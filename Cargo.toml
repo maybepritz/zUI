@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = ["crates/z-core", "crates/app"]
+
+[workspace.package]
+version = "0.0.4"
+edition = "2024"
