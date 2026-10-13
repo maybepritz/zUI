@@ -145,7 +145,6 @@ cargo run -p z-i18n --bin check-locales --locked
 - [bol-van / zapret](https://github.com/bol-van/zapret) — Zapret и winws.
 - [Flowseal / zapret-discord-youtube](https://github.com/Flowseal/zapret-discord-youtube) — сборка и стратегии для Windows.
 - [Flowseal / tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy) — Telegram WS Proxy.
-- [peshk0v / Zapret-Zen](https://github.com/peshk0v/Zapret-Zen) — вдохновение для интерфейса.
 - [Zed / GPUI](https://gpui.rs) и [Longbridge / GPUI Kit](https://gpui-kit.com) — интерфейс и компоненты.
 - [Lucide](https://lucide.dev) — иконки.
 
