@@ -29,3 +29,7 @@ Thumbs.db
 Desktop.ini
 
 # Cargo.lock is intentionally tracked for reproducible application builds.
+
+# Local planning notes and automatic file-header extension settings.
+/todo.md
+/.auto-header.toml
