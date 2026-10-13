@@ -1,7 +1,8 @@
 [workspace]
 resolver = "2"
-members = ["crates/z-core", "crates/app"]
+members = ["crates/z-core", "crates/z-i18n", "crates/app"]
+default-members = ["crates/app"]
 
 [workspace.package]
-version = "0.0.4"
+version = "0.1.0"
 edition = "2024"

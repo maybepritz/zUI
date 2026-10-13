@@ -1,3 +1,31 @@
-/target/
-/runtime/
+# Rust build output (including individual workspace crates).
+target/
 *.pdb
+*.rs.bk
+
+# Release packages.
+/dist/
+
+# Local application data: settings, logs, DNS snapshots and installed services.
+# The app creates runtime next to its executable; --runtime can override it.
+runtime/
+
+# Local environment variables. Keep templates available to contributors.
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Local IDE state and temporary editor files.
+.idea/
+.vs/
+*.swp
+*.swo
+*~
+
+# Operating system metadata.
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Cargo.lock is intentionally tracked for reproducible application builds.
