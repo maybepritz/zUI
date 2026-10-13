@@ -1,29 +1,22 @@
 use crate::{
     components::section::{button_row, section},
-    i18n::{self, tr},
+    i18n::tr,
     root::RootView,
     state::AppState,
 };
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     component::{button::*, label::Label, *},
     *,
 };
-use z_core::preferences::{Language, ThemePreference};
+use z_core::preferences::ThemePreference;
 
 pub fn render(state: &AppState, cx: &mut Context<RootView>) -> AnyElement {
     let mut themes = button_row();
     for (id, name, preference) in [
-        (
-            "theme-system",
-            tr("Как в системе", "System"),
-            ThemePreference::System,
-        ),
-        (
-            "theme-light",
-            tr("Светлая", "Light"),
-            ThemePreference::Light,
-        ),
-        ("theme-dark", tr("Тёмная", "Dark"), ThemePreference::Dark),
+        ("theme-system", tr("ui-system"), ThemePreference::System),
+        ("theme-light", tr("ui-light"), ThemePreference::Light),
+        ("theme-dark", tr("ui-dark"), ThemePreference::Dark),
     ] {
         let selected = state.settings.theme == preference;
         let button = Button::new(id).label(name);
@@ -33,61 +26,40 @@ pub fn render(state: &AppState, cx: &mut Context<RootView>) -> AnyElement {
             button.outline()
         };
         themes = themes.child(button.on_click(cx.listener(move |this, _, window, cx| {
-            this.state.settings.theme = preference;
-            let dark = match preference {
-                ThemePreference::Dark => true,
-                ThemePreference::Light => false,
-                ThemePreference::System => crate::platform::system_dark(),
-            };
-            this.state.settings.dark_theme = dark;
-            Theme::change(
-                if dark {
-                    ThemeMode::Dark
-                } else {
-                    ThemeMode::Light
-                },
-                Some(window),
-                cx,
-            );
-            this.state.save_settings();
-            cx.notify();
+            this.on_theme(preference, window, cx);
         })));
     }
 
-    let mut languages = button_row();
-    for (id, name, language) in [
-        ("settings-ru", "Русский", Language::Ru),
-        ("settings-en", "English", Language::En),
-    ] {
-        let selected = state.settings.language == language;
-        let button = Button::new(id).label(name);
-        let button = if selected {
-            button.primary()
-        } else {
-            button.outline()
-        };
-        languages = languages.child(button.on_click(cx.listener(move |this, _, _, cx| {
-            this.state.settings.language = language;
-            i18n::set_language(language);
-            this.state.save_settings();
-            cx.notify();
-        })));
-    }
+    let languages = crate::components::rows::language_picker::language_picker(
+        &state.settings.language,
+        "settings",
+        cx,
+    );
 
-    section(tr("Внешний вид", "Appearance"))
+    let translators = crate::i18n::translators(&state.settings.language).join(", ");
+    section(tr("ui-appearance"))
         .child(
             div()
                 .v_flex()
                 .gap_2()
-                .child(Label::new(tr("Тема", "Theme")))
+                .child(Label::new(tr("ui-theme")))
                 .child(themes),
         )
         .child(
             div()
                 .v_flex()
                 .gap_2()
-                .child(Label::new(tr("Язык интерфейса", "Interface language")))
-                .child(languages),
+                .child(Label::new(tr("ui-interface-language")))
+                .child(languages)
+                .when(!translators.is_empty(), |row| {
+                    row.child(
+                        Label::new(crate::i18n::tr_args(
+                            "locale-credit",
+                            &[("names", translators.into())],
+                        ))
+                        .text_xs(),
+                    )
+                }),
         )
         .into_any_element()
 }

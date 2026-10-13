@@ -1,11 +1,11 @@
 use super::job::{Job, JobPoll};
-use gpui_kit::SharedString;
+use crate::i18n::Text;
 use std::path::PathBuf;
 use z_core::{log::Log, telegram::TelegramProxy};
 
 pub struct TelegramController {
     pub proxy: TelegramProxy,
-    pub message: SharedString,
+    pub message: Text,
     job: Job<Result<String, String>>,
     log: Log,
 }
@@ -34,7 +34,7 @@ impl TelegramController {
         }
 
         let dir = self.proxy.dir.clone();
-        self.message = "Загрузка официального релиза и проверка SHA-256…".into();
+        self.message = crate::i18n::text("telegram-installing").into();
         self.job
             .spawn(move || z_core::telegram::install(&dir).map_err(|e| format!("{e:#}")));
     }
@@ -52,7 +52,11 @@ impl TelegramController {
 
         self.message = match result {
             Ok(()) => "".into(),
-            Err(e) => format!("Ошибка TG WS Proxy: {e:#}").into(),
+            Err(e) => crate::i18n::text_args(
+                "telegram-error",
+                &[("error", (format!("{e:#}")).to_string().into())],
+            )
+            .into(),
         };
 
         let line = if self.message.is_empty() {
@@ -65,8 +69,12 @@ impl TelegramController {
 
     pub fn fix_media(&mut self, clear: bool) {
         self.message = match self.proxy.fix_media(clear) {
-            Ok(()) => "Настройка сохранена. Запустите прокси снова.".into(),
-            Err(e) => format!("Ошибка: {e:#}").into(),
+            Ok(()) => crate::i18n::text("telegram-media-saved").into(),
+            Err(e) => crate::i18n::text_args(
+                "operation-error",
+                &[("error", (format!("{e:#}")).to_string().into())],
+            )
+            .into(),
         };
     }
 
@@ -74,7 +82,11 @@ impl TelegramController {
         match self.proxy.link() {
             Ok(link) => Some(link),
             Err(e) => {
-                self.message = format!("Ошибка ссылки: {e:#}").into();
+                self.message = crate::i18n::text_args(
+                    "telegram-link-error",
+                    &[("error", (format!("{e:#}")).to_string().into())],
+                )
+                .into();
                 None
             }
         }
@@ -83,14 +95,17 @@ impl TelegramController {
     pub fn poll(&mut self) {
         self.proxy.poll();
         let message = match self.job.poll() {
-            JobPoll::Done(Ok(version)) => {
-                format!("Установлен TG WS Proxy {version}. Нажмите «Запустить».")
+            JobPoll::Done(Ok(version)) => crate::i18n::text_args(
+                "telegram-installed",
+                &[("version", (version).to_string().into())],
+            ),
+            JobPoll::Done(Err(e)) => {
+                crate::i18n::text_args("install-error", &[("error", (e).to_string().into())])
             }
-            JobPoll::Done(Err(e)) => format!("Ошибка установки: {e}"),
-            JobPoll::Lost => "Ошибка: установка прервана".to_string(),
+            JobPoll::Lost => crate::i18n::text("install-interrupted"),
             JobPoll::Pending => return,
         };
-        self.log.add(&message);
+        self.log.add(message.to_string());
         self.message = message.into();
     }
 }

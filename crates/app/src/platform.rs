@@ -1,8 +1,8 @@
 pub const APP_ID: &str = "zUI.App";
-mod startup;
 mod handoff;
-pub use startup::{relaunch_elevated, set_autostart, system_dark};
+mod startup;
 pub use handoff::wait_for_previous;
+pub use startup::{relaunch_elevated, set_autostart, system_dark};
 pub const APP_NAME: &str = "zUI";
 
 #[cfg(windows)]

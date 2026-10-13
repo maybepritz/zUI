@@ -1,7 +1,8 @@
+use crate::preferences::{Automation, Language, Notifications, StartupServices, ThemePreference};
+use crate::profiles::Profile;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
-use crate::preferences::{Automation, Language, Notifications, StartupServices, ThemePreference};
 
 /// Only settings implemented by the UI are persisted here.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -10,6 +11,7 @@ pub struct Settings {
     pub selected_strategy: String,
     pub dark_theme: bool,
     pub close_to_tray: bool,
+    pub remember_close_action: bool,
     pub onboarded: bool,
     pub autostart: bool,
     pub language: Language,
@@ -18,6 +20,9 @@ pub struct Settings {
     pub notifications: Notifications,
     pub automation: Automation,
     pub last_seen_version: String,
+    pub favorite_strategies: Vec<String>,
+    pub profiles: Vec<Profile>,
+    pub selected_profile_id: Option<String>,
 }
 
 impl Default for Settings {
@@ -26,6 +31,7 @@ impl Default for Settings {
             selected_strategy: String::new(),
             dark_theme: false,
             close_to_tray: true,
+            remember_close_action: false,
             onboarded: false,
             autostart: false,
             language: Language::default(),
@@ -34,6 +40,9 @@ impl Default for Settings {
             notifications: Notifications::default(),
             automation: Automation::default(),
             last_seen_version: String::new(),
+            favorite_strategies: Vec::new(),
+            profiles: Vec::new(),
+            selected_profile_id: None,
         }
     }
 }
@@ -56,8 +65,8 @@ impl Settings {
             .context("Не удалось прочитать настройки")?;
         let legacy = value.get("onboarded").is_none();
         let legacy_theme = value.get("theme").is_none() && value.get("dark_theme").is_some();
-        let mut settings: Self = serde_json::from_value(value)
-            .context("Не удалось прочитать настройки")?;
+        let mut settings: Self =
+            serde_json::from_value(value).context("Не удалось прочитать настройки")?;
         if legacy {
             settings.onboarded = true;
         }
@@ -92,6 +101,78 @@ mod tests {
     use super::*;
 
     #[test]
+    fn existing_settings_ask_about_closing_and_start_without_profiles() {
+        let settings = Settings::from_json(r#"{"onboarded":true,"close_to_tray":false}"#).unwrap();
+        assert!(!settings.close_to_tray);
+        assert!(!settings.remember_close_action);
+        assert!(settings.profiles.is_empty());
+        assert!(settings.selected_profile_id.is_none());
+    }
+
+    #[test]
+    fn both_remembered_close_choices_survive_restart() {
+        for hide in [false, true] {
+            let settings = Settings {
+                close_to_tray: hide,
+                remember_close_action: true,
+                ..Default::default()
+            };
+            let loaded = Settings::from_json(&serde_json::to_string(&settings).unwrap()).unwrap();
+            assert!(loaded.remember_close_action);
+            assert_eq!(loaded.close_to_tray, hide);
+        }
+    }
+
+    #[test]
+    fn profile_dns_modes_and_identity_survive_serialization() {
+        use crate::profiles::ProfileDns;
+        for dns in [
+            ProfileDns::Keep,
+            ProfileDns::Automatic,
+            ProfileDns::Preset("cloudflare".into()),
+        ] {
+            let profile = Profile {
+                id: "stable-id".into(),
+                name: "Дом".into(),
+                strategy: "general.bat".into(),
+                dns: dns.clone(),
+                startup: StartupServices {
+                    zapret: true,
+                    telegram: false,
+                },
+                automation: Automation {
+                    watchdog: true,
+                    ..Default::default()
+                },
+            };
+            let settings = Settings {
+                profiles: vec![profile],
+                selected_profile_id: Some("stable-id".into()),
+                ..Default::default()
+            };
+            let loaded = Settings::from_json(&serde_json::to_string(&settings).unwrap()).unwrap();
+            assert_eq!(loaded.selected_profile_id.as_deref(), Some("stable-id"));
+            assert_eq!(loaded.profiles[0].dns, dns);
+            assert_eq!(loaded.profiles[0].name, "Дом");
+            assert_eq!(loaded.profiles[0].strategy, "general.bat");
+            assert!(loaded.profiles[0].startup.zapret);
+            assert!(loaded.profiles[0].automation.watchdog);
+        }
+    }
+
+    #[test]
+    fn older_profile_records_default_to_keeping_dns() {
+        use crate::profiles::ProfileDns;
+        let settings = Settings::from_json(
+            r#"{"profiles":[{"id":"old","name":"Home","strategy":"general.bat"}]}"#,
+        )
+        .unwrap();
+        assert_eq!(settings.profiles[0].dns, ProfileDns::Keep);
+        assert!(!settings.profiles[0].startup.zapret);
+        assert!(!settings.profiles[0].automation.watchdog);
+    }
+
+    #[test]
     fn old_settings_enable_tray_without_losing_preferences() {
         let settings: Settings =
             serde_json::from_str(r#"{"selected_strategy":"general.bat","dark_theme":true}"#)
@@ -117,12 +198,25 @@ mod tests {
         let legacy = Settings::from_json(r#"{"dark_theme":true}"#).unwrap();
         assert!(legacy.onboarded);
         assert_eq!(legacy.theme, ThemePreference::Dark);
-        let current = Settings::from_json(
-            r#"{"dark_theme":true,"theme":"system","onboarded":false}"#,
-        ).unwrap();
+        let current =
+            Settings::from_json(r#"{"dark_theme":true,"theme":"system","onboarded":false}"#)
+                .unwrap();
         assert!(!current.onboarded);
         assert_eq!(current.theme, ThemePreference::System);
         assert!(!current.automation.auto_switch);
         assert!(!current.automation.daily_retest);
+    }
+
+    #[test]
+    fn language_codes_preserve_old_settings_and_allow_community_locales() {
+        for code in ["ru", "en", "pt-BR", "zh-Hant"] {
+            let settings =
+                Settings::from_json(&format!(r#"{{"language":"{code}","onboarded":true}}"#))
+                    .unwrap();
+            assert_eq!(settings.language.code(), code);
+            let loaded: Settings =
+                serde_json::from_str(&serde_json::to_string(&settings).unwrap()).unwrap();
+            assert_eq!(loaded.language.code(), code);
+        }
     }
 }

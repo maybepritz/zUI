@@ -1,14 +1,15 @@
 pub mod dns;
 pub mod download;
 pub mod hosts;
-pub mod report;
 pub mod log;
 pub mod paths;
 pub mod preferences;
+pub mod profiles;
 pub mod recovery;
+pub mod report;
 pub mod services;
-pub mod statistics;
 pub mod settings;
+pub mod statistics;
 pub mod telegram;
 mod telegram_config;
 pub mod updater;

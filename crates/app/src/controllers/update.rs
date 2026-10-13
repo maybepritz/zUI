@@ -80,28 +80,43 @@ impl UpdateController {
     pub fn poll(&mut self) {
         match self.check_job.poll() {
             JobPoll::Done(Ok(Some(v))) => {
-                self.log.add(format!("Доступна версия {v}"));
+                self.log.add(crate::i18n::tr_args(
+                    "update-version-available",
+                    &[("version", (v).to_string().into())],
+                ));
                 self.state = UpdateState::Available(v);
             }
             JobPoll::Done(Ok(None)) => self.state = UpdateState::Idle,
             JobPoll::Done(Err(e)) => {
-                self.log
-                    .add(format!("Не удалось проверить обновления: {e}"));
+                self.log.add(crate::i18n::tr_args(
+                    "update-check-error",
+                    &[("error", (e).to_string().into())],
+                ));
                 self.state = UpdateState::Failed(e);
             }
-            JobPoll::Lost => self.state = UpdateState::Failed("Проверка обновлений прервана".into()),
+            JobPoll::Lost => {
+                self.state = UpdateState::Failed(crate::i18n::tr("update-check-interrupted").into())
+            }
             JobPoll::Pending => {}
         }
         match self.install_job.poll() {
             JobPoll::Done(Ok(v)) => {
-                self.log.add(format!("Обновлено до {v}"));
+                self.log.add(crate::i18n::tr_args(
+                    "update-version-installed",
+                    &[("version", (v).to_string().into())],
+                ));
                 self.state = UpdateState::Done(v);
             }
             JobPoll::Done(Err(e)) => {
-                self.log.add(format!("Ошибка обновления: {e}"));
+                self.log.add(crate::i18n::tr_args(
+                    "update-error",
+                    &[("error", (e).to_string().into())],
+                ));
                 self.state = UpdateState::Failed(e);
             }
-            JobPoll::Lost => self.state = UpdateState::Failed("поток прерван".into()),
+            JobPoll::Lost => {
+                self.state = UpdateState::Failed(crate::i18n::tr("worker-interrupted").into())
+            }
             JobPoll::Pending => {}
         }
     }

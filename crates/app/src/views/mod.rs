@@ -1,10 +1,9 @@
 pub mod dns;
 pub mod home;
-pub mod hosts;
 pub mod logs;
-pub mod onboarding;
+pub mod overlays;
+pub mod profiles;
 pub mod settings;
 pub mod statistics;
 pub mod strategies;
 pub mod telegram;
-pub mod whats_new;

@@ -68,11 +68,12 @@ impl DiagnosticsController {
     }
 
     pub fn start_with_targets(&mut self, zapret: &mut ZapretController, targets: Vec<String>) {
-        if self.busy() || zapret.installing() || zapret.strategies.is_empty() || targets.is_empty() {
+        if self.busy() || zapret.installing() || zapret.strategies.is_empty() || targets.is_empty()
+        {
             return;
         }
         if !zapret.lock() {
-            self.log.add("Тест стратегий отменён: не удалось остановить Zapret");
+            self.log.add(crate::i18n::tr("test-stop-failed"));
             return;
         }
         self.progress = Arc::new(Progress::default());
@@ -102,16 +103,16 @@ impl DiagnosticsController {
     pub fn poll(&mut self, zapret: &mut ZapretController) -> Option<bool> {
         match self.job.poll() {
             JobPoll::Done(scores) => {
-                self.log.add(format!(
-                    "Тест стратегий завершён: проверено {}",
-                    scores.len()
+                self.log.add(crate::i18n::tr_args(
+                    "test-complete-count",
+                    &[("count", (scores.len()).into())],
                 ));
                 self.results = scores;
                 zapret.unlock();
                 return Some(!self.progress.cancel.load(Ordering::SeqCst));
             }
             JobPoll::Lost => {
-                self.log.add("Тест стратегий прерван");
+                self.log.add(crate::i18n::tr("test-interrupted"));
                 zapret.unlock(); // иначе Zapret остался бы заблокированным
                 return Some(false);
             }

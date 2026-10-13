@@ -12,7 +12,8 @@ pub(super) struct TestRun {
 
 impl AppState {
     pub fn start_test(&mut self, automatic: bool) {
-        if self.diagnostics.busy()
+        if self.profile_busy()
+            || self.diagnostics.busy()
             || self.zapret.installing()
             || matches!(self.update.state, UpdateState::Installing)
             || !z_core::dns::is_elevated()
@@ -20,7 +21,9 @@ impl AppState {
             return;
         }
         let run = TestRun {
-            previous: self.zapret.selected()
+            previous: self
+                .zapret
+                .selected()
                 .map(|strategy| strategy.file_name.clone())
                 .unwrap_or_default(),
             running: self.zapret.is_running(),
@@ -29,7 +32,8 @@ impl AppState {
         };
         if automatic {
             let targets = z_core::services::targets(&self.settings.automation.services);
-            self.diagnostics.start_with_targets(&mut self.zapret, targets);
+            self.diagnostics
+                .start_with_targets(&mut self.zapret, targets);
         } else {
             self.diagnostics.start(&mut self.zapret);
         }
@@ -49,20 +53,26 @@ impl AppState {
             return;
         };
         let best = self.diagnostics.results.iter().find(|score| score.is_ok());
-        let baseline = self.diagnostics.results.iter()
+        let baseline = self
+            .diagnostics
+            .results
+            .iter()
             .find(|score| score.file_name == run.previous);
         // Only switch on full reachability. If both work, require a 20% improvement.
-        let better = best.filter(|best| {
-            completed
-                && run.automatic
-                && run.services == self.settings.automation.services
-                && best.file_name != run.previous
-                && baseline.is_some_and(|old| {
-                    !old.is_ok() || best.avg_ms.saturating_mul(5) < old.avg_ms.saturating_mul(4)
-                })
-        }).map(|score| score.file_name.clone());
+        let better = best
+            .filter(|best| {
+                completed
+                    && run.automatic
+                    && run.services == self.settings.automation.services
+                    && best.file_name != run.previous
+                    && baseline.is_some_and(|old| {
+                        !old.is_ok() || best.avg_ms.saturating_mul(5) < old.avg_ms.saturating_mul(4)
+                    })
+            })
+            .map(|score| score.file_name.clone());
         // Disabling automatic switching while a test runs prevents applying its result.
-        let replacement = better.as_ref()
+        let replacement = better
+            .as_ref()
             .filter(|_| self.settings.automation.auto_switch)
             .cloned();
         let target = replacement.as_deref().unwrap_or(&run.previous);
@@ -76,38 +86,20 @@ impl AppState {
             }
             let restored = self.zapret.start();
             let message = if restored {
-                tr(
-                    "Не удалось запустить выбранную стратегию; восстановлена предыдущая",
-                    "Could not start the selected strategy; the previous one was restored",
-                )
+                tr("ui-could-not-start-the-selected-strategy-the")
             } else {
-                tr(
-                    "Не удалось восстановить Zapret после теста. См. журнал",
-                    "Could not restore Zapret after testing. See the log",
-                )
+                tr("ui-could-not-restore-zapret-after-testing-see")
             };
             self.event(EventKind::Error, message.into());
         } else {
             let message = if replacement.is_some() {
-                tr(
-                    "Найдена и применена лучшая стратегия",
-                    "A better strategy was found and applied",
-                )
+                tr("ui-a-better-strategy-was-found-and-applied")
             } else if better.is_some() {
-                tr(
-                    "Найдена лучшая стратегия. Выберите её на вкладке «Стратегии»",
-                    "A better strategy is available on the Strategies page",
-                )
+                tr("ui-a-better-strategy-is-available-on-the")
             } else if completed {
-                tr(
-                    "Тест завершён. Текущая стратегия сохранена",
-                    "Test complete. Current strategy retained",
-                )
+                tr("ui-test-complete-current-strategy-retained")
             } else {
-                tr(
-                    "Тест отменён. Предыдущее состояние восстановлено",
-                    "Test cancelled. Previous state restored",
-                )
+                tr("ui-test-cancelled-previous-state-restored")
             };
             self.event(EventKind::Strategy, message.into());
         }

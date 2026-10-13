@@ -14,11 +14,18 @@ use gpui_kit::{
 pub fn render(state: &AppState, cx: &mut Context<RootView>) -> AnyElement {
     let muted = cx.theme().muted_foreground;
 
-    let about = section(tr("О приложении", "About"))
-        .child(Label::new(format!(
-            "{}: {}",
-            tr("Версия", "Version"),
-            state.update.current_version()
+    let about = section(tr("ui-about"))
+        .child(Label::new(crate::i18n::tr_args(
+            "version-label",
+            &[(
+                "version",
+                format!(
+                    "{} {}",
+                    state.update.current_version(),
+                    crate::release::codename()
+                )
+                .into(),
+            )],
         )))
         .child(
             button_row()
@@ -26,19 +33,17 @@ pub fn render(state: &AppState, cx: &mut Context<RootView>) -> AnyElement {
                     Button::new("check-update")
                         .outline()
                         .icon(IconName::Info)
-                        .label(tr("Проверить обновления", "Check for updates"))
+                        .label(tr("ui-check-for-updates"))
                         .on_click(cx.listener(|this, _, _, cx| {
-                            this.state.update.check();
-                            cx.notify();
+                            this.on_check_update(cx);
                         })),
                 )
                 .child(
                     Button::new("show-whats-new")
                         .outline()
-                        .label(tr("Что нового", "What's new"))
+                        .label(tr("ui-what-s-new"))
                         .on_click(cx.listener(|this, _, _, cx| {
-                            this.show_whats_new = true;
-                            cx.notify();
+                            this.on_show_whats_new(cx);
                         })),
                 ),
         )
@@ -46,43 +51,40 @@ pub fn render(state: &AppState, cx: &mut Context<RootView>) -> AnyElement {
             Button::new("open-runtime")
                 .outline()
                 .icon(IconName::Folder)
-                .label(tr("Открыть папку данных", "Open data folder"))
-                .on_click(cx.listener(|this, _, _, cx| cx.reveal_path(&this.state.data_dir()))),
+                .label(tr("ui-open-data-folder"))
+                .on_click(cx.listener(|this, _, _, cx| this.on_open_runtime(cx))),
         );
 
-    let report = section(tr("Сообщить о проблеме", "Report a problem"))
+    let report = section(tr("ui-report-a-problem"))
+        .child(hint(
+            Label::new(tr("ui-the-report-includes-the-version-checks-statistics")),
+            muted,
+        ))
         .child(
-            hint(Label::new(tr(
-            "Отчёт содержит версию, результаты проверок, статистику и последние 250 строк журнала. Секреты прокси не включаются. Проверьте текст перед публикацией.",
-            "The report includes the version, checks, statistics and the last 250 log entries. Proxy secrets are excluded. Review the text before publishing."
-        )), muted))
-        .child(button_row()
-            .child(Button::new("export-report").primary()
-                .label(tr("Сохранить отчёт", "Save report"))
-                .on_click(cx.listener(|this, _, _, cx| {
-                    match this.state.export_report() {
-                        Some(path) => {
-                            cx.open_with_system(&path);
-                            this.state.settings_status = tr("Отчёт сохранён", "Report saved").into();
-                        }
-                        None => {
-                            this.state.settings_status =
-                                tr("Не удалось сохранить отчёт", "Could not save the report").into();
-                        }
-                    }
-                    cx.notify();
-                })))
-            .child(Button::new("copy-report").outline()
-                .label(tr("Копировать для GitHub", "Copy for GitHub"))
-                .on_click(cx.listener(|this, _, _, cx| {
-                    cx.write_to_clipboard(ClipboardItem::new_string(this.state.issue_report()));
-                    this.state.settings_status =
-                        tr("Текст скопирован. Проверьте его перед отправкой", "Copied. Review before submitting").into();
-                    cx.notify();
-                })))
-            .child(Button::new("open-issue").outline()
-                .label("GitHub issue")
-                .on_click(|_, _, cx| cx.open_url("https://github.com/maybepritz/zui/issues/new"))));
+            button_row()
+                .child(
+                    Button::new("export-report")
+                        .primary()
+                        .label(tr("ui-save-report"))
+                        .on_click(cx.listener(|this, _, _, cx| {
+                            this.on_export_report(cx);
+                        })),
+                )
+                .child(
+                    Button::new("copy-report")
+                        .outline()
+                        .label(tr("ui-copy-for-github"))
+                        .on_click(cx.listener(|this, _, _, cx| {
+                            this.on_copy_report(cx);
+                        })),
+                )
+                .child(
+                    Button::new("open-issue")
+                        .outline()
+                        .label("GitHub issue")
+                        .on_click(cx.listener(|this, _, _, cx| this.on_open_issue(cx))),
+                ),
+        );
     div()
         .v_flex()
         .gap_4()

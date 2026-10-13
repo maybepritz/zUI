@@ -1,5 +1,5 @@
 use crate::i18n::tr;
-use crate::root::{RootView, Tab};
+use crate::root::RootView;
 use gpui_kit::component::{
     button::*,
     group_box::{GroupBox, GroupBoxVariants},
@@ -14,7 +14,7 @@ pub fn log_preview(lines: Vec<String>, cx: &mut Context<RootView>) -> AnyElement
             div()
                 .text_xs()
                 .text_color(muted)
-                .child(tr("Логи пока пусты. Запустите Zapret для начала работы.", "No events yet. Start Zapret to begin."))
+                .child(tr("ui-no-events-yet-start-zapret-to-begin"))
                 .into_any_element(),
         ]
     } else {
@@ -31,7 +31,7 @@ pub fn log_preview(lines: Vec<String>, cx: &mut Context<RootView>) -> AnyElement
     };
     GroupBox::new()
         .outline()
-        .title(tr("Последние события", "Recent events"))
+        .title(tr("ui-recent-events"))
         .gap_2()
         .child(div().v_flex().gap_1().children(body))
         .child(
@@ -39,10 +39,9 @@ pub fn log_preview(lines: Vec<String>, cx: &mut Context<RootView>) -> AnyElement
                 Button::new("go-logs")
                     .ghost()
                     .small()
-                    .label(tr("Все логи →", "All logs →"))
+                    .label(tr("ui-all-logs"))
                     .on_click(cx.listener(|this, _, _, cx| {
-                        this.tab = Tab::Logs;
-                        cx.notify();
+                        this.on_show_logs(cx);
                     })),
             ),
         )

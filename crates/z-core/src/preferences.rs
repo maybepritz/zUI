@@ -1,11 +1,29 @@
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum Language {
-    #[default]
-    Ru,
-    En,
+/// Persisted BCP-47 code; adding a translation no longer requires a Rust enum variant.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(transparent)]
+pub struct Language(Cow<'static, str>);
+
+impl Language {
+    #[allow(non_upper_case_globals)]
+    pub const Ru: Self = Self(Cow::Borrowed("ru"));
+    #[allow(non_upper_case_globals)]
+    pub const En: Self = Self(Cow::Borrowed("en"));
+
+    pub fn from_code(code: &str) -> Self {
+        Self(Cow::Owned(code.to_owned()))
+    }
+    pub fn code(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Default for Language {
+    fn default() -> Self {
+        Self::Ru
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
@@ -17,7 +35,7 @@ pub enum ThemePreference {
     Dark,
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(default)]
 pub struct StartupServices {
     pub zapret: bool,
@@ -37,12 +55,12 @@ impl Default for Notifications {
         Self {
             errors: true,
             strategy: true,
-            updates: true
+            updates: true,
         }
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(default)]
 pub struct Automation {
     pub watchdog: bool,

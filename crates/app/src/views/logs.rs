@@ -1,33 +1,28 @@
+use crate::components::page::page_with_header;
 use crate::i18n::tr;
-use crate::{root::RootView, state::AppState};
+use crate::root::RootView;
+use crate::root::view_data::ViewData;
 use gpui_kit::component::{
     button::*,
     group_box::{GroupBox, GroupBoxVariants},
     label::Label,
-    scroll::ScrollableElement as _,
     *,
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 
-fn empty() -> &'static str {
-    tr("Лог пуст. Запустите службу Zapret на вкладке «Главная» для просмотра событий.", "No events yet. Start Zapret on the Home page to view events.")
+fn empty() -> String {
+    tr("ui-no-events-yet-start-zapret-on-the")
 }
 
-pub fn render(state: &mut AppState, cx: &mut Context<RootView>) -> AnyElement {
-    let logs = state.log.get();
+pub fn render(data: &ViewData, cx: &mut Context<RootView>) -> AnyElement {
+    let logs = data.logs.clone();
     let count = logs.len();
 
-    div()
-        .v_flex()
-        .size_full()
-        .gap_4()
-        .child(header(count, cx))
-        .child(log_view(logs, cx))
-        .into_any_element()
+    page_with_header(header(count, cx), div().child(log_view(logs, cx)))
 }
 
-fn header(count: usize, cx: &mut Context<RootView>) -> impl IntoElement {
+fn header(count: usize, cx: &mut Context<RootView>) -> Div {
     div()
         .h_flex()
         .justify_between()
@@ -37,7 +32,7 @@ fn header(count: usize, cx: &mut Context<RootView>) -> impl IntoElement {
                 .v_flex()
                 .gap_1()
                 .child(
-                    Label::new(tr("Журнал событий", "Event log"))
+                    Label::new(tr("ui-event-log"))
                         .text_lg()
                         .font_weight(FontWeight::BOLD),
                 )
@@ -45,17 +40,19 @@ fn header(count: usize, cx: &mut Context<RootView>) -> impl IntoElement {
                     div()
                         .text_xs()
                         .text_color(cx.theme().muted_foreground)
-                        .child(format!("Всего записей: {count}")),
+                        .child(crate::i18n::tr_args(
+                            "logs-count",
+                            &[("count", (count).into())],
+                        )),
                 ),
         )
         .child(
             Button::new("clear-logs-btn")
                 .outline()
                 .small()
-                .label(tr("Очистить журнал", "Clear log"))
+                .label(tr("ui-clear-log"))
                 .on_click(cx.listener(|this, _, _, cx| {
-                    this.state.log.clear();
-                    cx.notify();
+                    this.on_clear_logs(cx);
                 })),
         )
 }
@@ -73,14 +70,10 @@ fn log_view(logs: Vec<String>, cx: &mut Context<RootView>) -> impl IntoElement {
         logs.into_iter().map(log_line).collect()
     };
 
-    GroupBox::new().outline().flex_1().w_full().child(
-        div()
-            .v_flex()
-            .size_full()
-            .gap_1()
-            .overflow_y_scrollbar()
-            .children(lines),
-    )
+    GroupBox::new()
+        .outline()
+        .w_full()
+        .child(div().v_flex().w_full().gap_1().children(lines))
 }
 
 fn log_line(line: String) -> AnyElement {

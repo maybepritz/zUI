@@ -4,6 +4,7 @@ mod controllers;
 mod i18n;
 mod notifications;
 mod platform;
+mod release;
 mod root;
 mod state;
 mod tray;
@@ -19,21 +20,51 @@ use std::borrow::Cow;
 #[folder = "assets/"]
 struct EmbeddedAssets;
 
+// Extend the default GPUI Kit icons with the Lucide variants used by zUI.
+gpui_kit::assets::icon_assets!(
+    AppIcons,
+    [
+        Star,
+        StarFill,
+        Search,
+        RotateCcw,
+        House,
+        SlidersHorizontal,
+        Network,
+        Send,
+        ChartNoAxesColumn,
+        ScrollText,
+        Settings,
+        Sparkles,
+        Power,
+        Globe,
+        MousePointer2,
+        ArrowRight
+    ]
+);
+
 impl AssetSource for EmbeddedAssets {
     fn load(&self, path: &str) -> gpui::Result<Option<Cow<'static, [u8]>>> {
         let clean_path = path.trim_start_matches('/');
-        match EmbeddedAssets::get(clean_path) {
-            Some(file) => Ok(Some(file.data)),
-            None => Ok(None),
+        if let Some(file) = EmbeddedAssets::get(clean_path) {
+            return Ok(Some(file.data));
         }
+        if let Some(data) = AppIcons.load(clean_path)? {
+            return Ok(Some(data));
+        }
+        Ok(gpui_kit::assets::Assets::get(clean_path).map(|file| file.data))
     }
 
     fn list(&self, path: &str) -> gpui::Result<Vec<SharedString>> {
         let clean_path = path.trim_start_matches('/');
-        let files = EmbeddedAssets::iter()
+        let mut files: Vec<SharedString> = EmbeddedAssets::iter()
             .filter(|p| p.starts_with(clean_path))
             .map(|p| SharedString::from(p.to_string()))
             .collect();
+        files.extend(AppIcons.list(clean_path)?);
+        files.extend(gpui_kit::assets::Assets.list(clean_path)?);
+        files.sort();
+        files.dedup();
         Ok(files)
     }
 }
@@ -53,7 +84,7 @@ fn main() {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
                 window_min_size: Some(size(px(750.), px(480.))),
                 titlebar: Some(TitlebarOptions {
-                    title: Some("zUI".into()),
+                    title: Some(release::title().into()),
                     ..Default::default()
                 }),
                 ..Default::default()

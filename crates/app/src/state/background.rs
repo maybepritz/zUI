@@ -61,6 +61,7 @@ impl AppState {
         self.poll_update_events();
 
         let checking_allowed = self.settings.onboarded
+            && !self.profile_busy()
             && !self.diagnostics.busy()
             && !self.zapret.installing()
             && !matches!(self.update.state, UpdateState::Installing);
@@ -70,9 +71,11 @@ impl AppState {
         );
         self.poll_watchdog();
 
-        let daily_due = self.background.statistics.last_retest.is_none_or(|last| {
-            statistics::now().saturating_sub(last) >= RETEST_INTERVAL
-        });
+        let daily_due = self
+            .background
+            .statistics
+            .last_retest
+            .is_none_or(|last| statistics::now().saturating_sub(last) >= RETEST_INTERVAL);
         let preferences = &self.settings.automation;
         let should_retest = (preferences.auto_switch && self.background.services.degraded)
             || (preferences.daily_retest && daily_due);
@@ -86,6 +89,9 @@ impl AppState {
     }
 
     fn poll_watchdog(&mut self) {
+        if self.profile_busy() {
+            return;
+        }
         if !self.settings.automation.watchdog
             || !self.zapret.wanted_running
             || self.zapret.locked
@@ -96,7 +102,10 @@ impl AppState {
             return;
         }
         if self.zapret.is_running() {
-            let since = self.background.stable_since.get_or_insert_with(Instant::now);
+            let since = self
+                .background
+                .stable_since
+                .get_or_insert_with(Instant::now);
             if since.elapsed() >= CHECK_INTERVAL {
                 self.background.restart_budget.reset();
             }
@@ -108,16 +117,16 @@ impl AppState {
         }
         let restarted = self.zapret.start();
         if restarted {
-            self.background.statistics.watchdog_restarts =
-                self.background.statistics.watchdog_restarts.saturating_add(1);
+            self.background.statistics.watchdog_restarts = self
+                .background
+                .statistics
+                .watchdog_restarts
+                .saturating_add(1);
         }
         let message = if restarted {
-            tr("winws завершился и был перезапущен", "winws exited and was restarted")
+            tr("ui-winws-exited-and-was-restarted")
         } else {
-            tr(
-                "Не удалось перезапустить winws. Автоповторы ограничены тремя попытками",
-                "Could not restart winws. Automatic retries are limited to three attempts",
-            )
+            tr("ui-could-not-restart-winws-automatic-retries-are")
         };
         self.event(EventKind::Error, message.into());
         self.persist_statistics();
@@ -131,17 +140,11 @@ impl AppState {
         match self.update.state.clone() {
             UpdateState::Available(version) => self.event(
                 EventKind::Update,
-                format!("{}: {version}", tr("Доступно обновление", "Update available")),
+                crate::i18n::tr_args("update-version-available", &[("version", version.into())]),
             ),
             UpdateState::Done(version) => self.event(
                 EventKind::Update,
-                format!(
-                    "{}: {version}",
-                    tr(
-                        "Обновление готово. Перезапустите приложение",
-                        "Update ready. Restart the app",
-                    ),
-                ),
+                crate::i18n::tr_args("update-ready-version", &[("version", version.into())]),
             ),
             UpdateState::Failed(error) => self.event(EventKind::Error, error),
             _ => {}

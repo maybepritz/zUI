@@ -1,6 +1,9 @@
 use super::job::{Job, JobPoll};
 use std::time::{Duration, Instant};
-use z_core::{recovery::FailureTracker, services::{self, CheckBatch}};
+use z_core::{
+    recovery::FailureTracker,
+    services::{self, CheckBatch},
+};
 
 pub struct ServicesController {
     job: Job<(u64, Result<CheckBatch, String>)>,
@@ -21,7 +24,7 @@ impl ServicesController {
             error: None,
             tracker: FailureTracker::default(),
             next_check: Instant::now(),
-            degraded: false
+            degraded: false,
         }
     }
 
@@ -37,7 +40,12 @@ impl ServicesController {
         let generation = self.generation;
         self.error = None;
         self.next_check = Instant::now() + Duration::from_secs(60);
-        self.job.spawn(move || (generation, services::check(&ids).map_err(|e| format!("{e:#}"))));
+        self.job.spawn(move || {
+            (
+                generation,
+                services::check(&ids).map_err(|e| format!("{e:#}")),
+            )
+        });
     }
 
     pub fn poll(&mut self, ids: &[String], enabled: bool) {
@@ -52,7 +60,7 @@ impl ServicesController {
                 self.degraded = false;
             }
             JobPoll::Lost => {
-                self.error = Some("Проверка сервисов прервана".into());
+                self.error = Some(crate::i18n::tr("services-interrupted").into());
                 self.degraded = false;
             }
             JobPoll::Pending => {}
