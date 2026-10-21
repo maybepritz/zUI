@@ -1,4 +1,5 @@
 //! Persistent counters, the latest diagnostic snapshot and a bounded event history.
+use crate::settings::Recovery;
 use serde::{Deserialize, Serialize};
 use std::{
     path::Path,
@@ -66,20 +67,27 @@ pub struct Statistics {
 }
 
 impl Statistics {
-    pub fn load(path: &Path) -> anyhow::Result<Self> {
+    /// Load statistics; an unreadable file is moved aside and the backup is tried
+    /// before falling back to empty statistics.
+    pub fn load(path: &Path) -> (Self, Option<Recovery>) {
+        crate::settings::load_recovering(path, Self::read)
+    }
+
+    pub fn save(&self, path: &Path) -> anyhow::Result<()> {
+        crate::settings::save_with_backup(path, self, Self::read)
+    }
+
+    /// `Ok(None)` when the file does not exist yet.
+    fn read(path: &Path) -> anyhow::Result<Option<Self>> {
         match std::fs::read(path) {
             Ok(bytes) => {
                 let mut statistics: Self = serde_json::from_slice(&bytes)?;
                 statistics.trim_history();
-                Ok(statistics)
+                Ok(Some(statistics))
             }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(Self::default()),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
             Err(error) => Err(error.into()),
         }
-    }
-
-    pub fn save(&self, path: &Path) -> anyhow::Result<()> {
-        crate::settings::save_json(path, self)
     }
 
     pub fn record_event(&mut self, kind: StatisticsEventKind) {
@@ -114,6 +122,71 @@ impl Statistics {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+
+    fn temp_dir(name: &str) -> std::path::PathBuf {
+        let dir =
+            std::env::temp_dir().join(format!("zui-statistics-{}-{name}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn damaged_statistics_are_moved_aside_and_backup_is_restored() {
+        let dir = temp_dir("restore");
+        let path = dir.join("statistics.json");
+        for uptime_seconds in [100, 200] {
+            Statistics {
+                uptime_seconds,
+                ..Default::default()
+            }
+            .save(&path)
+            .unwrap();
+        }
+        fs::write(&path, b"{\"uptime_seconds\": 2").unwrap();
+
+        let (loaded, recovery) = Statistics::load(&path);
+        let recovery = recovery.unwrap();
+        assert!(recovery.from_backup);
+        assert_eq!(loaded.uptime_seconds, 100);
+        let quarantined = recovery.quarantined.unwrap();
+        assert_eq!(fs::read(&quarantined).unwrap(), b"{\"uptime_seconds\": 2");
+
+        // Saving after recovery keeps the damaged copy for inspection.
+        loaded.save(&path).unwrap();
+        assert_eq!(fs::read(&quarantined).unwrap(), b"{\"uptime_seconds\": 2");
+        assert_eq!(Statistics::load(&path).0.uptime_seconds, 100);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn damaged_statistics_without_backup_start_empty_and_survive_saving() {
+        let dir = temp_dir("defaults");
+        let path = dir.join("statistics.json");
+        fs::write(&path, b"not json").unwrap();
+
+        let (loaded, recovery) = Statistics::load(&path);
+        let recovery = recovery.unwrap();
+        assert!(!recovery.from_backup);
+        assert_eq!(loaded.uptime_seconds, 0);
+        loaded.save(&path).unwrap();
+        assert_eq!(
+            fs::read(recovery.quarantined.unwrap()).unwrap(),
+            b"not json"
+        );
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn missing_statistics_load_empty_without_recovery() {
+        let dir = temp_dir("missing");
+        let (loaded, recovery) = Statistics::load(&dir.join("statistics.json"));
+        assert!(recovery.is_none());
+        assert!(loaded.history.is_empty());
+        fs::remove_dir_all(dir).unwrap();
+    }
+
     #[test]
     fn old_statistics_remain_readable() {
         let old = r#"{"uptime_seconds":123,"strategy_changes":4,"last_successful_test":42}"#;

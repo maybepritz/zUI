@@ -19,16 +19,30 @@ impl AppState {
         let runtime_dir = z_core::paths::zapret_dir();
         let data_dir = runtime_dir.parent().unwrap_or(&runtime_dir).to_path_buf();
 
-        let (settings, settings_status) = match Settings::load(&data_dir.join("settings.json")) {
-            Ok(s) => (s, Text::default()),
-            Err(e) => (
-                Settings::default(),
-                crate::i18n::text_args(
-                    "settings-load-error",
-                    &[("error", (format!("{e:#}")).to_string().into())],
-                )
-                .into(),
-            ),
+        let (settings, recovery) = Settings::load(&data_dir.join("settings.json"));
+        let settings_status = match recovery {
+            None => Text::default(),
+            Some(recovery) => {
+                let error = format!("{:#}", recovery.error);
+                log.add(format!("Settings: {error}"));
+                match recovery.quarantined {
+                    Some(file) => {
+                        let key = if recovery.from_backup {
+                            "settings-restored-from-backup"
+                        } else {
+                            "settings-reset-to-defaults"
+                        };
+                        let file = file.file_name().unwrap_or_default().to_string_lossy();
+                        crate::i18n::text_args(
+                            key,
+                            &[("error", error.into()), ("file", file.into_owned().into())],
+                        )
+                    }
+                    None => {
+                        crate::i18n::text_args("settings-load-error", &[("error", error.into())])
+                    }
+                }
+            }
         };
 
         report(PreparationStage::Languages);
@@ -39,11 +53,23 @@ impl AppState {
         report(PreparationStage::Components);
         let mut zapret = ZapretController::new(&runtime_dir, &settings, log.clone());
 
-        let statistics = z_core::statistics::Statistics::load(&data_dir.join("statistics.json"))
-            .unwrap_or_else(|error| {
-                log.add(format!("Statistics: {error:#}"));
-                Default::default()
-            });
+        let (statistics, recovery) =
+            z_core::statistics::Statistics::load(&data_dir.join("statistics.json"));
+        if let Some(recovery) = recovery {
+            let saved = match &recovery.quarantined {
+                Some(file) => format!("damaged file saved as {}", file.display()),
+                None => "damaged file could not be moved aside".into(),
+            };
+            let loaded = if recovery.from_backup {
+                "previous copy restored"
+            } else {
+                "starting with empty statistics"
+            };
+            log.add(format!(
+                "Statistics: {:#}; {saved}; {loaded}",
+                recovery.error
+            ));
+        }
         let dns = DnsController::new(&data_dir, log.clone());
         let telegram = TelegramController::new(z_core::paths::tg_proxy_dir(), log.clone());
         report(PreparationStage::Updates);

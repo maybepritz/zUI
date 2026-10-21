@@ -696,6 +696,12 @@ test-complete-count = Тест стратегий завершён: провер
 settings-load-error = Ошибка настроек: { $error }
 
 # Used in: state/lifecycle.rs
+settings-restored-from-backup = Не удалось прочитать настройки ({ $error }). Повреждённый файл сохранён как { $file }, восстановлена предыдущая копия.
+
+# Used in: state/lifecycle.rs
+settings-reset-to-defaults = Не удалось прочитать настройки ({ $error }). Повреждённый файл сохранён как { $file }, используются настройки по умолчанию.
+
+# Used in: state/lifecycle.rs
 telegram-stop-error = Ошибка остановки TG WS Proxy: { $error }
 
 # Used in: controllers/dns.rs

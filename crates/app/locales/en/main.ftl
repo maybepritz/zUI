@@ -694,6 +694,12 @@ test-complete-count = Strategy test complete: checked { $count }
 settings-load-error = Settings error: { $error }
 
 # Used in: state/lifecycle.rs
+settings-restored-from-backup = Settings could not be read ({ $error }). The damaged file was saved as { $file }; the previous copy was restored.
+
+# Used in: state/lifecycle.rs
+settings-reset-to-defaults = Settings could not be read ({ $error }). The damaged file was saved as { $file }; default settings are used.
+
+# Used in: state/lifecycle.rs
 telegram-stop-error = Could not stop TG WS Proxy: { $error }
 
 # Used in: controllers/dns.rs
