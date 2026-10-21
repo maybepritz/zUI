@@ -9168,7 +9168,6 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "tokio",
- "windows 0.62.2",
  "zip 9.0.0",
 ]
 

@@ -492,7 +492,7 @@ ui-first-time-setup = Первый запуск
 ui-administrator-privileges-available = Права администратора есть
 
 # Used in: views/overlays/onboarding/permissions.rs
-ui-viewing-and-telegram-proxy-work-without-elevation = Без повышения прав доступны просмотр и Telegram-прокси. Zapret, DNS и hosts требуют администратора.
+ui-viewing-and-telegram-proxy-work-without-elevation = Без повышения прав доступны просмотр и Telegram-прокси. Zapret и DNS требуют прав администратора.
 
 # Used in: views/overlays/onboarding/permissions.rs
 ui-restart-as-administrator = Перезапустить от администратора

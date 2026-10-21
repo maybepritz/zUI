@@ -492,7 +492,7 @@ ui-first-time-setup = First-time setup
 ui-administrator-privileges-available = Administrator privileges available
 
 # Used in: views/overlays/onboarding/permissions.rs
-ui-viewing-and-telegram-proxy-work-without-elevation = Viewing and Telegram proxy work without elevation. Zapret, DNS and hosts require administrator privileges.
+ui-viewing-and-telegram-proxy-work-without-elevation = Viewing and Telegram proxy work without elevation. Zapret and DNS require administrator privileges.
 
 # Used in: views/overlays/onboarding/permissions.rs
 ui-restart-as-administrator = Restart as administrator
