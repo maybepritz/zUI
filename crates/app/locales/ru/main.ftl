@@ -693,13 +693,10 @@ zapret-installed = Zapret { $version } установлен
 test-complete-count = Тест стратегий завершён: проверено { $count }
 
 # Used in: state/lifecycle.rs
-settings-load-error = Ошибка настроек: { $error }
+settings-restored-from-backup = Не удалось прочитать настройки ({ $error }). Восстановлена предыдущая копия, подробности в журнале.
 
 # Used in: state/lifecycle.rs
-settings-restored-from-backup = Не удалось прочитать настройки ({ $error }). Повреждённый файл сохранён как { $file }, восстановлена предыдущая копия.
-
-# Used in: state/lifecycle.rs
-settings-reset-to-defaults = Не удалось прочитать настройки ({ $error }). Повреждённый файл сохранён как { $file }, используются настройки по умолчанию.
+settings-reset-to-defaults = Не удалось прочитать настройки ({ $error }). Используются настройки по умолчанию, подробности в журнале.
 
 # Used in: state/lifecycle.rs
 telegram-stop-error = Ошибка остановки TG WS Proxy: { $error }

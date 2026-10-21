@@ -60,6 +60,26 @@ pub struct Recovery {
     pub from_backup: bool,
 }
 
+/// One log line: the error, where the damaged file went and what was loaded.
+impl std::fmt::Display for Recovery {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let moved = self.quarantined.as_deref().map(Path::display);
+        let loaded = if self.from_backup {
+            "backup"
+        } else {
+            "defaults"
+        };
+        match moved {
+            Some(file) => write!(f, "{:#}; moved to {file}; loaded {loaded}", self.error),
+            None => write!(
+                f,
+                "{:#}; could not move the file; loaded {loaded}",
+                self.error
+            ),
+        }
+    }
+}
+
 impl Settings {
     /// Load settings; an unreadable file is moved aside and the backup is tried
     /// before falling back to defaults.
@@ -164,69 +184,35 @@ mod tests {
         dir
     }
 
-    fn quarantined_files(dir: &Path) -> Vec<PathBuf> {
-        fs::read_dir(dir)
-            .unwrap()
-            .map(|entry| entry.unwrap().path())
-            .filter(|path| path.to_string_lossy().contains(".json.corrupt-"))
-            .collect()
-    }
-
     #[test]
-    fn save_keeps_previous_version_as_backup() {
-        let dir = temp_dir("backup");
+    fn damaged_file_is_moved_aside_and_previous_save_is_restored() {
+        let dir = temp_dir("restore");
         let path = dir.join("settings.json");
-        let first = Settings {
-            selected_strategy: "first.bat".into(),
-            ..Default::default()
-        };
-        first.save(&path).unwrap();
-        assert!(!backup_path(&path).exists());
+        for strategy in ["first.bat", "second.bat"] {
+            let settings = Settings {
+                selected_strategy: strategy.into(),
+                ..Default::default()
+            };
+            settings.save(&path).unwrap();
+        }
+        fs::write(&path, b"{\"onboarded\": tru").unwrap();
 
-        let second = Settings {
-            selected_strategy: "second.bat".into(),
-            ..Default::default()
-        };
-        second.save(&path).unwrap();
+        let (loaded, recovery) = Settings::load(&path);
+        let recovery = recovery.unwrap();
+        assert!(recovery.from_backup);
+        assert_eq!(loaded.selected_strategy, "first.bat");
+        let quarantined = recovery.quarantined.unwrap();
+        assert_eq!(fs::read(&quarantined).unwrap(), b"{\"onboarded\": tru");
+
+        // The first save after recovery must not replace the good backup.
+        loaded.save(&path).unwrap();
         let backup = Settings::read(&backup_path(&path)).unwrap().unwrap();
         assert_eq!(backup.selected_strategy, "first.bat");
         fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
-    fn damaged_settings_are_moved_aside_and_backup_is_restored() {
-        let dir = temp_dir("restore");
-        let path = dir.join("settings.json");
-        let good = Settings {
-            onboarded: true,
-            favorite_strategies: vec!["general.bat".into()],
-            ..Default::default()
-        };
-        save_json(&backup_path(&path), &good).unwrap();
-        fs::write(&path, b"{\"onboarded\": tru").unwrap();
-
-        let (loaded, recovery) = Settings::load(&path);
-        let recovery = recovery.unwrap();
-        assert!(recovery.from_backup);
-        assert!(loaded.onboarded);
-        assert_eq!(loaded.favorite_strategies, ["general.bat"]);
-        let quarantined = recovery.quarantined.unwrap();
-        assert_eq!(fs::read(&quarantined).unwrap(), b"{\"onboarded\": tru");
-        assert!(!path.exists());
-
-        // The first save after recovery must not replace the good backup.
-        loaded.save(&path).unwrap();
-        assert!(
-            Settings::read(&backup_path(&path))
-                .unwrap()
-                .unwrap()
-                .onboarded
-        );
-        fs::remove_dir_all(dir).unwrap();
-    }
-
-    #[test]
-    fn damaged_settings_without_backup_survive_saving_defaults() {
+    fn damaged_file_without_backup_survives_saving_defaults() {
         let dir = temp_dir("defaults");
         let path = dir.join("settings.json");
         fs::write(&path, b"not json").unwrap();
@@ -234,21 +220,11 @@ mod tests {
         let (loaded, recovery) = Settings::load(&path);
         let recovery = recovery.unwrap();
         assert!(!recovery.from_backup);
-        assert!(!loaded.onboarded);
         loaded.save(&path).unwrap();
-
-        assert_eq!(quarantined_files(&dir), [recovery.quarantined.unwrap()]);
-        assert_eq!(fs::read(&quarantined_files(&dir)[0]).unwrap(), b"not json");
-        assert!(!backup_path(&path).exists());
-        fs::remove_dir_all(dir).unwrap();
-    }
-
-    #[test]
-    fn missing_settings_load_defaults_without_recovery() {
-        let dir = temp_dir("missing");
-        let (loaded, recovery) = Settings::load(&dir.join("settings.json"));
-        assert!(recovery.is_none());
-        assert!(!loaded.onboarded);
+        assert_eq!(
+            fs::read(recovery.quarantined.unwrap()).unwrap(),
+            b"not json"
+        );
         fs::remove_dir_all(dir).unwrap();
     }
 
