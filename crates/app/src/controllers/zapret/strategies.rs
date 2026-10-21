@@ -37,7 +37,7 @@ impl ZapretController {
             .and_then(|name| self.strategies.iter().position(|s| s.file_name == name))
             .unwrap_or(0);
         if !self.strategies.is_empty() && !self.zapret.is_running() {
-            self.status = crate::i18n::text("zapret-stopped").into();
+            self.status = crate::i18n::text("zapret-stopped");
         }
     }
 

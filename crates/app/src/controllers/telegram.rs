@@ -34,7 +34,7 @@ impl TelegramController {
         }
 
         let dir = self.proxy.dir.clone();
-        self.message = crate::i18n::text("telegram-installing").into();
+        self.message = crate::i18n::text("telegram-installing");
         self.job
             .spawn(move || z_core::telegram::install(&dir).map_err(|e| format!("{e:#}")));
     }
@@ -55,8 +55,7 @@ impl TelegramController {
             Err(e) => crate::i18n::text_args(
                 "telegram-error",
                 &[("error", (format!("{e:#}")).to_string().into())],
-            )
-            .into(),
+            ),
         };
 
         let line = if self.message.is_empty() {
@@ -69,12 +68,11 @@ impl TelegramController {
 
     pub fn fix_media(&mut self, clear: bool) {
         self.message = match self.proxy.fix_media(clear) {
-            Ok(()) => crate::i18n::text("telegram-media-saved").into(),
+            Ok(()) => crate::i18n::text("telegram-media-saved"),
             Err(e) => crate::i18n::text_args(
                 "operation-error",
                 &[("error", (format!("{e:#}")).to_string().into())],
-            )
-            .into(),
+            ),
         };
     }
 
@@ -85,8 +83,7 @@ impl TelegramController {
                 self.message = crate::i18n::text_args(
                     "telegram-link-error",
                     &[("error", (format!("{e:#}")).to_string().into())],
-                )
-                .into();
+                );
                 None
             }
         }
@@ -106,6 +103,6 @@ impl TelegramController {
             JobPoll::Pending => return,
         };
         self.log.add(message.to_string());
-        self.message = message.into();
+        self.message = message;
     }
 }

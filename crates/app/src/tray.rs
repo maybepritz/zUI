@@ -32,19 +32,22 @@ mod native {
         pub fn new(window: &Window) -> Result<Self, String> {
             let handle = HasWindowHandle::window_handle(window).map_err(|e| e.to_string())?;
             let RawWindowHandle::Win32(handle) = handle.as_raw() else {
-                return Err(crate::i18n::tr("tray-window-unavailable").into());
+                return Err(crate::i18n::tr("tray-window-unavailable"));
             };
             let hwnd = HWND(handle.hwnd.get() as *mut _);
             // SAFETY: initialization runs on the owning window's UI thread.
             // LoadIconW returns a shared resource icon, which must not be destroyed.
             unsafe {
                 let module = GetModuleHandleW(None).map_err(|e| e.to_string())?;
-                let icon = LoadIconW(Some(HINSTANCE(module.0)), PCWSTR(1usize as *const u16))
-                    .map_err(|e| e.to_string())?;
+                let icon = LoadIconW(
+                    Some(HINSTANCE(module.0)),
+                    PCWSTR(std::ptr::without_provenance(1)),
+                )
+                .map_err(|e| e.to_string())?;
                 let callback = RegisterWindowMessageW(w!("zUI.Tray.Callback"));
                 let taskbar_created = RegisterWindowMessageW(w!("TaskbarCreated"));
                 if callback == 0 || taskbar_created == 0 {
-                    return Err(crate::i18n::tr("tray-registration-failed").into());
+                    return Err(crate::i18n::tr("tray-registration-failed"));
                 }
                 // Explorer normally runs without elevation, even when zUI runs as admin.
                 ChangeWindowMessageFilterEx(hwnd, callback, MSGFLT_ALLOW, None)
@@ -79,12 +82,12 @@ mod native {
                 )
                 .as_bool()
                 {
-                    return Err(crate::i18n::tr("tray-handler-failed").into());
+                    return Err(crate::i18n::tr("tray-handler-failed"));
                 }
                 state.attached.set(true);
                 let tray = Self(state);
                 if !tray.0.add_icon() {
-                    return Err(crate::i18n::tr("tray-icon-failed").into());
+                    return Err(crate::i18n::tr("tray-icon-failed"));
                 }
                 Ok(tray)
             }

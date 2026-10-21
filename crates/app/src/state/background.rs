@@ -131,7 +131,7 @@ impl AppState {
         } else {
             tr("ui-could-not-restart-winws-automatic-retries-are")
         };
-        self.event(EventKind::Error, message.into());
+        self.event(EventKind::Error, message);
         self.persist_statistics();
     }
 

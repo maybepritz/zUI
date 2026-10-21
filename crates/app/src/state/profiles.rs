@@ -100,10 +100,10 @@ impl AppState {
                 ProfileDns::Keep
             }
         });
-        if let ProfileDns::Preset(key) = &dns {
-            if !z_core::dns::presets().iter().any(|p| &p.key == key) {
-                return Err(ProfileError::UnknownDns);
-            }
+        if let ProfileDns::Preset(key) = &dns
+            && !z_core::dns::presets().iter().any(|p| &p.key == key)
+        {
+            return Err(ProfileError::UnknownDns);
         }
         Ok(Profile {
             id,

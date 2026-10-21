@@ -71,7 +71,7 @@ impl AppState {
     pub fn save_settings(&mut self) -> bool {
         match self.settings.save(&self.data_dir().join("settings.json")) {
             Ok(()) => {
-                self.settings_status = crate::i18n::text("ui-settings-saved").into();
+                self.settings_status = crate::i18n::text("ui-settings-saved");
                 true
             }
             Err(error) => {

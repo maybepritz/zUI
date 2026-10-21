@@ -60,7 +60,7 @@ impl ServicesController {
                 self.degraded = false;
             }
             JobPoll::Lost => {
-                self.error = Some(crate::i18n::tr("services-interrupted").into());
+                self.error = Some(crate::i18n::tr("services-interrupted"));
                 self.degraded = false;
             }
             JobPoll::Pending => {}

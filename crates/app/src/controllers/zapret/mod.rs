@@ -63,8 +63,7 @@ impl ZapretController {
             crate::i18n::text("zapret-missing-strategies")
         } else {
             crate::i18n::text("zapret-stopped")
-        }
-        .into();
+        };
         Self {
             zapret,
             log,

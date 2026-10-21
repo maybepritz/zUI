@@ -62,7 +62,6 @@ pub(super) fn extract_zip(zip_path: &Path, dest: &Path) -> Result<()> {
                 String::from_utf8_lossy(entry.name_raw())
             );
         };
-        let path: PathBuf = path.into();
         let rel: PathBuf = match &strip {
             Some(root) => path
                 .strip_prefix(root)

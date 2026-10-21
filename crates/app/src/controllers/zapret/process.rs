@@ -21,7 +21,7 @@ impl ZapretController {
         let had_process = self.zapret.pid.is_some();
         let running = self.zapret.is_running();
         if had_process && !running {
-            self.status = crate::i18n::text("zapret-exited").into();
+            self.status = crate::i18n::text("zapret-exited");
         }
         running
     }
@@ -29,16 +29,16 @@ impl ZapretController {
     /// Start the selected strategy unless installation or diagnostics owns Zapret.
     pub fn start(&mut self) -> bool {
         if self.installing() {
-            self.status = crate::i18n::text("zapret-installing").into();
+            self.status = crate::i18n::text("zapret-installing");
             return false;
         }
         if self.locked {
-            self.status = crate::i18n::text("zapret-testing").into();
+            self.status = crate::i18n::text("zapret-testing");
             return false;
         }
 
         let Some(strategy) = self.selected().cloned() else {
-            self.status = crate::i18n::text("zapret-no-strategies").into();
+            self.status = crate::i18n::text("zapret-no-strategies");
             return false;
         };
         match self.zapret.start(
@@ -49,8 +49,7 @@ impl ZapretController {
             Ok(pid) => {
                 self.wanted_running = true;
                 self.status =
-                    crate::i18n::text_args("zapret-running", &[("pid", pid.to_string().into())])
-                        .into();
+                    crate::i18n::text_args("zapret-running", &[("pid", pid.to_string().into())]);
                 true
             }
             Err(e) => {
@@ -72,8 +71,7 @@ impl ZapretController {
             crate::i18n::text("zapret-stop-failed")
         } else {
             crate::i18n::text("zapret-stopped")
-        }
-        .into();
+        };
     }
 
     pub fn toggle(&mut self) {

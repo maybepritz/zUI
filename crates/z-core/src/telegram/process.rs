@@ -96,7 +96,7 @@ impl TelegramProxy {
             .stdout(Stdio::null())
             .stderr(Stdio::null());
         #[cfg(windows)]
-        cmd.creation_flags(0x08000000);
+        cmd.creation_flags(crate::CREATE_NO_WINDOW);
         self.child = Some(cmd.spawn().context("Не удалось запустить TG WS Proxy")?);
         self.endpoint = Some(endpoint);
         self.started = Some(Instant::now());
@@ -164,7 +164,7 @@ impl TelegramProxy {
             {
                 let output = Command::new("taskkill.exe")
                     .args(["/PID", &child.id().to_string(), "/T", "/F"])
-                    .creation_flags(0x08000000)
+                    .creation_flags(crate::CREATE_NO_WINDOW)
                     .output()?;
                 if !output.status.success() && child.try_wait()?.is_none() {
                     bail!(

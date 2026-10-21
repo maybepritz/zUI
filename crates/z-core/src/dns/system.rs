@@ -1,17 +1,10 @@
-use std::{process::Command, time::{SystemTime, UNIX_EPOCH}};
+use std::process::Command;
 use anyhow::{Result, anyhow, bail};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde_json::Value;
 use super::{model::*, scripts::*};
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
-
-pub(super) fn now() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
-}
 
 #[cfg(windows)]
 pub fn is_elevated() -> bool {
@@ -92,7 +85,7 @@ pub(super) fn run_ps(body: &str, payload: Option<&str>) -> Result<String> {
         cmd.env("ZAPRET_DNS_PAYLOAD", p);
     }
     #[cfg(windows)]
-    cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+    cmd.creation_flags(crate::CREATE_NO_WINDOW);
 
     let out = cmd.output()?;
     let stdout = decode(&out.stdout);

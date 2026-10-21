@@ -64,21 +64,20 @@ pub fn load_strategies(zapret_dir: &Path) -> Result<Vec<Strategy>> {
             .to_string_lossy()
             .to_string();
 
-        if let Ok(content) = fs::read_to_string(&path) {
-            if let Some(raw_args) =
+        if let Ok(content) = fs::read_to_string(&path)
+            && let Some(raw_args) =
                 parse_with_game_filter(&content, &bin_str, &lists_str, (&game.0, &game.1))
-            {
-                strategies.push(Strategy {
-                    name,
-                    file_name,
-                    raw_args,
-                });
-            }
+        {
+            strategies.push(Strategy {
+                name,
+                file_name,
+                raw_args,
+            });
         }
     }
 
     // Сортировка: general первая, затем ALT по возрастанию, затем FAKE TLS, затем SIMPLE FAKE, затем EXP
-    strategies.sort_by(|a, b| strategy_sort_key(&a.name).cmp(&strategy_sort_key(&b.name)));
+    strategies.sort_by_key(|a| strategy_sort_key(&a.name));
 
     Ok(strategies)
 }
@@ -93,7 +92,7 @@ pub(super) fn validate_args(args: &str) -> Result<()> {
             bail!("Не найден файл стратегии: {part}");
         }
     }
-    if args.matches('"').count() % 2 != 0 {
+    if !args.matches('"').count().is_multiple_of(2) {
         bail!("Незакрытая кавычка в стратегии");
     }
     Ok(())

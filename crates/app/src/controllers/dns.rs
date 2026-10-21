@@ -58,7 +58,7 @@ impl DnsController {
             return;
         }
         let mut manager = self.manager.clone();
-        self.status = crate::i18n::text("dns-applying").into();
+        self.status = crate::i18n::text("dns-applying");
         self.job.spawn(move || {
             let (result, label) = match action {
                 DnsAction::Apply(key) => (manager.apply_preset(&key), "dns-applied"),
@@ -89,13 +89,13 @@ impl DnsController {
                     message.append_detail(&format!(". {w}"));
                 }
                 self.log.add(message.to_string());
-                self.status = message.into();
+                self.status = message;
                 Some(outcome)
             }
             JobPoll::Lost => {
                 let message = crate::i18n::text("dns-interrupted");
                 self.log.add(message.to_string());
-                self.status = message.into();
+                self.status = message;
                 Some(Err(crate::i18n::tr("dns-interrupted")))
             }
             JobPoll::Pending => None,
@@ -105,12 +105,11 @@ impl DnsController {
 
 fn dns_name(manager: &DnsManager) -> Text {
     if !manager.is_active() {
-        return crate::i18n::text("dns-system-settings").into();
+        return crate::i18n::text("dns-system-settings");
     }
     z_core::dns::presets()
         .into_iter()
         .find(|p| p.key == manager.state().preset)
         .map(|p| Text::from(p.name))
-        .unwrap_or_else(|| crate::i18n::text("dns-snapshot-present").into())
-        .into()
+        .unwrap_or_else(|| crate::i18n::text("dns-snapshot-present"))
 }

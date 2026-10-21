@@ -2,7 +2,6 @@ use std::{fs, path::{Path, PathBuf}};
 use anyhow::Result;
 /// Keep the report human-reviewable. Proxy config and secrets are deliberately
 /// excluded; high-risk log lines are redacted in full.
-
 pub fn redact(line: &str) -> String {
     let lower = line.to_ascii_lowercase();
     if ["secret", "token", "password", "authorization", "tg://", "cookie"]
@@ -12,10 +11,10 @@ pub fn redact(line: &str) -> String {
     }
     let mut text = line.to_string();
     for name in ["USERPROFILE", "APPDATA", "LOCALAPPDATA"] {
-        if let Ok(path) = std::env::var(name) {
-            if !path.is_empty() {
-                text = text.replace(&path, "%USER_DATA%");
-            }
+        if let Ok(path) = std::env::var(name)
+            && !path.is_empty()
+        {
+            text = text.replace(&path, "%USER_DATA%");
         }
     }
     text

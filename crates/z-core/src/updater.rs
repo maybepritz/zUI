@@ -31,7 +31,7 @@ pub fn check(current: &str) -> Result<Option<String>, String> {
     let Some(latest) = releases.latest() else {
         return Ok(None);
     };
-    let newer = self_update::version::bump_is_greater(current, &latest.version()).map_err(err)?;
+    let newer = self_update::version::bump_is_greater(current, latest.version()).map_err(err)?;
     Ok(newer.then(|| latest.version().to_string()))
 }
 

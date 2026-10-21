@@ -61,12 +61,3 @@ pub fn page_with_header(header: Div, content: Div) -> AnyElement {
         )
         .into_any_element()
 }
-
-pub fn page_fixed(content: Div) -> AnyElement {
-    div()
-        .v_flex()
-        .size_full()
-        .p_6()
-        .child(centered(content.flex_1().min_h_0()))
-        .into_any_element()
-}

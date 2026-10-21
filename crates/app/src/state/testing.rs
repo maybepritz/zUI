@@ -100,7 +100,7 @@ impl AppState {
             } else {
                 tr("ui-could-not-restore-zapret-after-testing-see")
             };
-            self.event(EventKind::Error, message.into());
+            self.event(EventKind::Error, message);
         } else {
             let message = if replacement.is_some() {
                 tr("ui-a-better-strategy-was-found-and-applied")
@@ -111,7 +111,7 @@ impl AppState {
             } else {
                 tr("ui-test-cancelled-previous-state-restored")
             };
-            self.event(EventKind::Strategy, message.into());
+            self.event(EventKind::Strategy, message);
         }
         self.background.services.reset();
         self.persist_statistics();

@@ -63,7 +63,7 @@ impl Zapret {
 
         #[cfg(windows)]
         {
-            cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+            cmd.creation_flags(crate::CREATE_NO_WINDOW);
             cmd.raw_arg(raw_args);
         }
 
@@ -91,12 +91,12 @@ impl Zapret {
     pub fn stop(&mut self) {
         if let Some(mut c) = self.child.take() {
             let pid = self.pid.unwrap_or(0);
-            if let Err(error) = c.kill() {
-                if !matches!(c.try_wait(), Ok(Some(_))) {
-                    self.log.add(format!("Ошибка остановки PID {pid}: {error}"));
-                    self.child = Some(c);
-                    return;
-                }
+            if let Err(error) = c.kill()
+                && !matches!(c.try_wait(), Ok(Some(_)))
+            {
+                self.log.add(format!("Ошибка остановки PID {pid}: {error}"));
+                self.child = Some(c);
+                return;
             }
             let _ = c.wait();
             self.pid = None;

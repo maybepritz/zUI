@@ -95,7 +95,7 @@ impl UpdateController {
                 self.state = UpdateState::Failed(e);
             }
             JobPoll::Lost => {
-                self.state = UpdateState::Failed(crate::i18n::tr("update-check-interrupted").into())
+                self.state = UpdateState::Failed(crate::i18n::tr("update-check-interrupted"))
             }
             JobPoll::Pending => {}
         }
@@ -115,7 +115,7 @@ impl UpdateController {
                 self.state = UpdateState::Failed(e);
             }
             JobPoll::Lost => {
-                self.state = UpdateState::Failed(crate::i18n::tr("worker-interrupted").into())
+                self.state = UpdateState::Failed(crate::i18n::tr("worker-interrupted"))
             }
             JobPoll::Pending => {}
         }
