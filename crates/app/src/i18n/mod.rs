@@ -115,3 +115,19 @@ pub(crate) fn tr_args<'a>(key: &str, values: &[(&str, FluentValue<'a>)]) -> Stri
         .get_or_init(bundled)
         .format(&current, key, Some(&args))
 }
+
+/// Format the first frame without initializing the application's main catalog.
+/// Otherwise an early `tr` call would make `initialize` skip user-installed packs.
+pub(crate) fn startup_tr(key: &str) -> String {
+    if LOCALIZER.get().is_some() {
+        return tr(key);
+    }
+    static STARTUP_FALLBACK: OnceLock<Localizer> = OnceLock::new();
+    let current = LANGUAGE
+        .read()
+        .map(|value| value.clone())
+        .unwrap_or_else(|_| "en".into());
+    STARTUP_FALLBACK
+        .get_or_init(bundled)
+        .format(&current, key, None)
+}

@@ -809,3 +809,13 @@ statistics-event-test = Strategy check completed
 statistics-event-cancelled = Strategy check interrupted
 statistics-event-recovered = winws automatically restarted
 statistics-event-recovery-failed = Could not automatically restart winws
+
+# Startup: real preparation stages shown before the main interface.
+startup-settings = Loading settings…
+startup-languages = Loading translations…
+startup-components = Checking components…
+startup-updates = Checking for updates…
+startup-network-hint = On a slow connection, update checks will continue in the background.
+startup-failed = Could not prepare the application
+startup-failed-hint = Try preparing again. If the problem persists, restart zUI.
+startup-retry = Retry

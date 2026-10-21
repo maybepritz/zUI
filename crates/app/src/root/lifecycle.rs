@@ -7,8 +7,7 @@ use gpui_kit::*;
 use z_core::preferences::ThemePreference;
 
 impl RootView {
-    pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
-        let mut state = AppState::new();
+    pub fn new(mut state: AppState, window: &mut Window, cx: &mut Context<Self>) -> Self {
         i18n::set_language(&state.settings.language);
         let show_whats_new = state.settings.onboarded
             && state.settings.last_seen_version != env!("CARGO_PKG_VERSION");

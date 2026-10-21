@@ -31,6 +31,7 @@ AppIcons и стандартные иконки GPUI Kit. Для новых ик
 ```text
 app/src/
   main.rs
+  startup/                 # первый экран, фоновая подготовка, передача состояния RootView
   root/
     mod.rs                  # RootView, закрытые поля владельца окна
     navigation.rs           # Tab, подписи и список вкладок
@@ -50,7 +51,7 @@ app/src/
       support.rs            # отчёты, обновления, what's new, выход
   state/
     mod.rs                  # AppState и реэкспорт Preference
-    lifecycle.rs            # new, poll, shutdown
+    lifecycle.rs            # prepare, poll, shutdown
     settings.rs             # настройки и сохранение
     strategies.rs           # выбор стратегии и статистика
     profiles.rs             # CRUD, применение после DNS, фактическое состояние

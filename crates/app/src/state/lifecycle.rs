@@ -1,7 +1,7 @@
 //! Создание, polling и остановка сервисов приложения.
 
-use super::AppState;
 use super::background::Background;
+use super::{AppState, PreparationStage};
 use crate::controllers::{
     diagnostics::DiagnosticsController, dns::DnsController, telegram::TelegramController,
     update::UpdateController, zapret::ZapretController,
@@ -10,11 +10,11 @@ use crate::i18n::Text;
 use z_core::{log::Log, settings::Settings};
 
 impl AppState {
-    pub fn new() -> Self {
+    /// Prepare local data off the GPUI thread. No managed services are launched here.
+    pub fn prepare(mut report: impl FnMut(PreparationStage)) -> Self {
+        report(PreparationStage::Settings);
         let log = Log::new();
-
         let mut update = UpdateController::new(log.clone());
-        update.check(); // фоновая проверка при старте
 
         let runtime_dir = z_core::paths::zapret_dir();
         let data_dir = runtime_dir.parent().unwrap_or(&runtime_dir).to_path_buf();
@@ -31,25 +31,31 @@ impl AppState {
             ),
         };
 
+        report(PreparationStage::Languages);
         for issue in crate::i18n::initialize(&data_dir.join("locales"), &settings.language) {
             log.add(issue);
         }
 
+        report(PreparationStage::Components);
         let mut zapret = ZapretController::new(&runtime_dir, &settings, log.clone());
-        zapret.check_update(); // фоновая проверка новой версии Zapret
 
         let statistics = z_core::statistics::Statistics::load(&data_dir.join("statistics.json"))
             .unwrap_or_else(|error| {
                 log.add(format!("Statistics: {error:#}"));
                 Default::default()
             });
+        let dns = DnsController::new(&data_dir, log.clone());
+        let telegram = TelegramController::new(z_core::paths::tg_proxy_dir(), log.clone());
+        report(PreparationStage::Updates);
+        update.check();
+        zapret.check_update();
         Self {
             profiles: Default::default(),
             background: Background::new(statistics),
             zapret,
             diagnostics: DiagnosticsController::new(log.clone()),
-            dns: DnsController::new(&data_dir, log.clone()),
-            telegram: TelegramController::new(z_core::paths::tg_proxy_dir(), log.clone()),
+            dns,
+            telegram,
             update,
             settings,
             settings_status,

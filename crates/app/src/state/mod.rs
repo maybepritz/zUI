@@ -2,6 +2,7 @@
 mod background;
 mod events;
 mod lifecycle;
+mod preparation;
 mod profiles;
 mod reports;
 mod settings;
@@ -20,6 +21,7 @@ use crate::controllers::{
 };
 
 pub(crate) use background::Background;
+pub(crate) use preparation::PreparationStage;
 pub(crate) use profiles::{ProfileError, ProfileRuntime};
 pub(crate) use settings::Preference;
 

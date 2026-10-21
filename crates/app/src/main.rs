@@ -6,14 +6,15 @@ mod notifications;
 mod platform;
 mod release;
 mod root;
+mod startup;
 mod state;
 mod tray;
 mod views;
 
 use gpui::{AssetSource, SharedString};
 use gpui_kit::*;
-use root::RootView;
 use rust_embed::RustEmbed;
+use startup::StartupView;
 use std::borrow::Cow;
 
 #[derive(RustEmbed)]
@@ -94,7 +95,7 @@ fn main() {
             };
 
             gpui_kit::open_window(options, cx, |window, cx| {
-                cx.new(|cx| RootView::new(window, cx))
+                cx.new(|cx| StartupView::new(window, cx))
             })
             .expect("Failed to open window");
         });

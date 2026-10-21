@@ -2,6 +2,7 @@ pub mod cards;
 pub mod layout;
 pub mod log_preview;
 pub mod modal;
+pub mod particle_background;
 pub mod rows;
 
 pub use cards::{banner, list_card, stat_card, status_card, update_banner};

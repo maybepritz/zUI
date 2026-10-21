@@ -811,3 +811,13 @@ statistics-event-test = Проверка стратегий завершена
 statistics-event-cancelled = Проверка стратегий прервана
 statistics-event-recovered = winws автоматически перезапущен
 statistics-event-recovery-failed = Не удалось автоматически перезапустить winws
+
+# Startup: real preparation stages shown before the main interface.
+startup-settings = Загружаем настройки…
+startup-languages = Подключаем переводы…
+startup-components = Проверяем компоненты…
+startup-updates = Проверяем обновления…
+startup-network-hint = При медленной сети проверка обновлений продолжится в фоне.
+startup-failed = Не удалось подготовить приложение
+startup-failed-hint = Повторите запуск подготовки. Если ошибка повторится, перезапустите zUI.
+startup-retry = Повторить

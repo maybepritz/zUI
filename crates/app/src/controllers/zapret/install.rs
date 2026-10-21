@@ -18,6 +18,11 @@ impl ZapretController {
         self.run_install(false);
     }
 
+    /// Startup observes the existing worker instead of launching a duplicate check.
+    pub fn checking_update(&self) -> bool {
+        self.check_job.busy()
+    }
+
     pub fn check_update(&mut self) {
         if self.check_job.busy() || self.installing() || !self.installed() {
             return;
