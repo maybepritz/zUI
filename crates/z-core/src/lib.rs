@@ -10,6 +10,5 @@ pub mod services;
 pub mod settings;
 pub mod statistics;
 pub mod telegram;
-mod telegram_config;
 pub mod updater;
 pub mod zapret;

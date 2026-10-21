@@ -4,7 +4,7 @@ use anyhow::{Context, Result, bail};
 use serde_json::{Value, json};
 use std::{
     fs,
-    net::SocketAddr,
+    net::{IpAddr, SocketAddr},
     path::{Path, PathBuf},
 };
 
@@ -62,7 +62,15 @@ pub(super) fn config_endpoint(config: &Value) -> Result<SocketAddr> {
     let port = config["port"]
         .as_u64()
         .context("Порт должен быть целым числом")?;
-    crate::telegram_config::endpoint(host, port).map_err(anyhow::Error::msg)
+    let host: IpAddr = host.parse().ok().context("Некорректный адрес прокси")?;
+    if !host.is_loopback() {
+        bail!("Используйте локальный адрес 127.0.0.1 или ::1");
+    }
+    let port = u16::try_from(port)
+        .ok()
+        .filter(|&port| port != 0)
+        .context("Порт должен быть числом от 1 до 65535")?;
+    Ok(SocketAddr::new(host, port))
 }
 
 fn proxy_link(config: &Value) -> Result<String> {
@@ -70,7 +78,15 @@ fn proxy_link(config: &Value) -> Result<String> {
     let secret = config["secret"]
         .as_str()
         .context("В конфигурации отсутствует secret")?;
-    crate::telegram_config::link(endpoint, secret).map_err(anyhow::Error::msg)
+    if secret.len() != 32 || !secret.bytes().all(|b| b.is_ascii_hexdigit()) {
+        bail!("Secret должен содержать 32 шестнадцатеричных символа");
+    }
+    // Matches tg_proxy_url in Flowseal's tray application.
+    let host = endpoint.ip().to_string().replace(':', "%3A");
+    Ok(format!(
+        "tg://proxy?server={host}&port={}&secret=dd{secret}",
+        endpoint.port()
+    ))
 }
 
 pub(super) fn new_secret() -> Result<String> {
@@ -116,12 +132,30 @@ mod tests {
     }
 
     #[test]
+    fn ipv6_link_is_encoded() {
+        let mut value = config();
+        value["host"] = json!("::1");
+        assert!(
+            proxy_link(&value)
+                .unwrap()
+                .contains("server=%3A%3A1&port=1443")
+        );
+    }
+
+    #[test]
     fn reject_invalid_port_secret_and_public_bind() {
         for (key, value) in [
             ("port", json!(0)),
             ("port", json!(65536)),
+            ("port", json!(u64::MAX)),
+            ("secret", json!("")),
             ("secret", json!("bad&port=80")),
+            ("secret", json!("zz23456789abcdef0123456789abcdef")),
+            ("secret", json!("dd0123456789abcdef0123456789abcdef")),
             ("host", json!("0.0.0.0")),
+            ("host", json!("::")),
+            ("host", json!("8.8.8.8")),
+            ("host", json!("localhost&port=80")),
         ] {
             let mut cfg = config();
             cfg[key] = value;
