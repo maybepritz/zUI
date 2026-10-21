@@ -22,7 +22,7 @@ pub fn app_update_banner(state: &AppState, cx: &mut Context<RootView>) -> Option
         UpdateState::Available(v) => banner(
             crate::i18n::tr_args(
                 "update-version-available",
-                &[("version", (v).to_string().into())],
+                &[("version", v.to_string().into())],
             ),
             buttons(
                 Button::new("update-later")
@@ -50,7 +50,7 @@ pub fn app_update_banner(state: &AppState, cx: &mut Context<RootView>) -> Option
         UpdateState::Done(v) => banner(
             crate::i18n::tr_args(
                 "update-version-installed-restart",
-                &[("version", (v).to_string().into())],
+                &[("version", v.to_string().into())],
             ),
             Button::new("update-restart")
                 .primary()
@@ -61,7 +61,7 @@ pub fn app_update_banner(state: &AppState, cx: &mut Context<RootView>) -> Option
                 })),
         ),
         UpdateState::Failed(e) => banner(
-            crate::i18n::tr_args("update-error", &[("error", (e).to_string().into())]),
+            crate::i18n::tr_args("update-error", &[("error", e.to_string().into())]),
             Button::new("update-dismiss")
                 .ghost()
                 .small()
@@ -79,7 +79,7 @@ pub fn zapret_update_banner(state: &AppState, cx: &mut Context<RootView>) -> Opt
         ZapretUpdate::Available(tag) => banner(
             crate::i18n::tr_args(
                 "zapret-update-available",
-                &[("version", (tag).to_string().into())],
+                &[("version", tag.to_string().into())],
             ),
             buttons(
                 Button::new("zapret-update-later")

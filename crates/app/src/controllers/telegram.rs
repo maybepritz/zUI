@@ -52,10 +52,9 @@ impl TelegramController {
 
         self.message = match result {
             Ok(()) => "".into(),
-            Err(e) => crate::i18n::text_args(
-                "telegram-error",
-                &[("error", (format!("{e:#}")).to_string().into())],
-            ),
+            Err(e) => {
+                crate::i18n::text_args("telegram-error", &[("error", format!("{e:#}").into())])
+            }
         };
 
         let line = if self.message.is_empty() {
@@ -69,10 +68,9 @@ impl TelegramController {
     pub fn fix_media(&mut self, clear: bool) {
         self.message = match self.proxy.fix_media(clear) {
             Ok(()) => crate::i18n::text("telegram-media-saved"),
-            Err(e) => crate::i18n::text_args(
-                "operation-error",
-                &[("error", (format!("{e:#}")).to_string().into())],
-            ),
+            Err(e) => {
+                crate::i18n::text_args("operation-error", &[("error", format!("{e:#}").into())])
+            }
         };
     }
 
@@ -82,7 +80,7 @@ impl TelegramController {
             Err(e) => {
                 self.message = crate::i18n::text_args(
                     "telegram-link-error",
-                    &[("error", (format!("{e:#}")).to_string().into())],
+                    &[("error", format!("{e:#}").into())],
                 );
                 None
             }
@@ -94,10 +92,10 @@ impl TelegramController {
         let message = match self.job.poll() {
             JobPoll::Done(Ok(version)) => crate::i18n::text_args(
                 "telegram-installed",
-                &[("version", (version).to_string().into())],
+                &[("version", version.to_string().into())],
             ),
             JobPoll::Done(Err(e)) => {
-                crate::i18n::text_args("install-error", &[("error", (e).to_string().into())])
+                crate::i18n::text_args("install-error", &[("error", e.to_string().into())])
             }
             JobPoll::Lost => crate::i18n::text("install-interrupted"),
             JobPoll::Pending => return,

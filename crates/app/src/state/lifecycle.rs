@@ -79,7 +79,7 @@ impl AppState {
         if let Err(error) = self.telegram.proxy.stop() {
             self.log.add(crate::i18n::tr_args(
                 "telegram-stop-error",
-                &[("error", (format!("{error:#}")).to_string().into())],
+                &[("error", format!("{error:#}").into())],
             ));
         }
     }

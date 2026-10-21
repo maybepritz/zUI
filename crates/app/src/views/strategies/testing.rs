@@ -22,7 +22,7 @@ pub(super) fn test_section(
     let hint = if diag.busy() {
         crate::i18n::tr_args(
             "test-progress",
-            &[("done", (done).into()), ("total", (total).into())],
+            &[("done", done.into()), ("total", total.into())],
         )
     } else if !is_admin {
         tr("ui-testing-requires-administrator-privileges").to_string()

@@ -55,7 +55,7 @@ pub fn status_card(
                                 .text_color(muted)
                                 .child(crate::i18n::tr_args(
                                     "data-directory",
-                                    &[("directory", (dir).to_string().into())],
+                                    &[("directory", dir.to_string().into())],
                                 )),
                         ),
                 )

@@ -42,7 +42,7 @@ fn header(count: usize, cx: &mut Context<RootView>) -> Div {
                         .text_color(cx.theme().muted_foreground)
                         .child(crate::i18n::tr_args(
                             "logs-count",
-                            &[("count", (count).into())],
+                            &[("count", count.into())],
                         )),
                 ),
         )

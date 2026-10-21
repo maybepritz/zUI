@@ -82,7 +82,7 @@ impl UpdateController {
             JobPoll::Done(Ok(Some(v))) => {
                 self.log.add(crate::i18n::tr_args(
                     "update-version-available",
-                    &[("version", (v).to_string().into())],
+                    &[("version", v.to_string().into())],
                 ));
                 self.state = UpdateState::Available(v);
             }
@@ -90,7 +90,7 @@ impl UpdateController {
             JobPoll::Done(Err(e)) => {
                 self.log.add(crate::i18n::tr_args(
                     "update-check-error",
-                    &[("error", (e).to_string().into())],
+                    &[("error", e.to_string().into())],
                 ));
                 self.state = UpdateState::Failed(e);
             }
@@ -103,14 +103,14 @@ impl UpdateController {
             JobPoll::Done(Ok(v)) => {
                 self.log.add(crate::i18n::tr_args(
                     "update-version-installed",
-                    &[("version", (v).to_string().into())],
+                    &[("version", v.to_string().into())],
                 ));
                 self.state = UpdateState::Done(v);
             }
             JobPoll::Done(Err(e)) => {
                 self.log.add(crate::i18n::tr_args(
                     "update-error",
-                    &[("error", (e).to_string().into())],
+                    &[("error", e.to_string().into())],
                 ));
                 self.state = UpdateState::Failed(e);
             }

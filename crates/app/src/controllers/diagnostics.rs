@@ -105,7 +105,7 @@ impl DiagnosticsController {
             JobPoll::Done(scores) => {
                 self.log.add(crate::i18n::tr_args(
                     "test-complete-count",
-                    &[("count", (scores.len()).into())],
+                    &[("count", scores.len().into())],
                 ));
                 self.results = scores;
                 zapret.unlock();

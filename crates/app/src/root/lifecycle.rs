@@ -19,7 +19,7 @@ impl RootView {
             Err(error) => {
                 let message = crate::i18n::tr_args(
                     "tray-unavailable",
-                    &[("error", (error).to_string().into())],
+                    &[("error", error.to_string().into())],
                 );
                 state.log.add(&message);
                 state.settings_status = message.into();

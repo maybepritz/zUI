@@ -19,7 +19,7 @@ impl ZapretController {
             JobPoll::Done(Err(e)) => {
                 self.log.add(crate::i18n::tr_args(
                     "zapret-update-check-error",
-                    &[("error", (e).to_string().into())],
+                    &[("error", e.to_string().into())],
                 ));
             }
             JobPoll::Lost | JobPoll::Pending => {}
@@ -29,7 +29,7 @@ impl ZapretController {
             JobPoll::Done(Ok(tag)) => {
                 self.log.add(crate::i18n::tr_args(
                     "zapret-installed",
-                    &[("version", (tag).to_string().into())],
+                    &[("version", tag.to_string().into())],
                 ));
                 self.update_state = ZapretUpdate::Idle;
                 self.reload_strategies();
@@ -40,7 +40,7 @@ impl ZapretController {
             JobPoll::Done(Err(e)) => {
                 self.log.add(crate::i18n::tr_args(
                     "install-error",
-                    &[("error", (e).to_string().into())],
+                    &[("error", e.to_string().into())],
                 ));
                 self.update_state = ZapretUpdate::Idle;
                 if std::mem::take(&mut self.restart_after) {

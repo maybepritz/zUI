@@ -55,7 +55,7 @@ impl ZapretController {
             Err(e) => {
                 let message = crate::i18n::text_args(
                     "zapret-start-error",
-                    &[("error", (format!("{e:#}")).to_string().into())],
+                    &[("error", format!("{e:#}").into())],
                 );
                 self.log.add(message.to_string());
                 self.status = message;

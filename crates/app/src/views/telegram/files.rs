@@ -21,7 +21,7 @@ pub(super) fn files_section(
         .child(
             Label::new(crate::i18n::tr_args(
                 "data-directory",
-                &[("directory", (tg.proxy.dir.display()).to_string().into())],
+                &[("directory", tg.proxy.dir.display().to_string().into())],
             ))
             .text_xs()
             .text_color(muted),

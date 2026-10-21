@@ -25,7 +25,7 @@ impl ZapretController {
         }
         self.log.add(crate::i18n::tr_args(
             "strategy-selected",
-            &[("strategy", (self.strategies[index].name).to_string().into())],
+            &[("strategy", self.strategies[index].name.to_string().into())],
         ));
         Some(self.strategies[index].file_name.clone())
     }

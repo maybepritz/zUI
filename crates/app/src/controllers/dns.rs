@@ -82,7 +82,7 @@ impl DnsController {
                 let mut message = match done.result {
                     Ok(()) => crate::i18n::text(done.label),
                     Err(e) => {
-                        crate::i18n::text_args("dns-error", &[("error", (e).to_string().into())])
+                        crate::i18n::text_args("dns-error", &[("error", e.to_string().into())])
                     }
                 };
                 for w in self.manager.warnings() {

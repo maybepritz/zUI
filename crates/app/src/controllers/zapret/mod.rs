@@ -43,7 +43,7 @@ impl ZapretController {
             Err(e) => {
                 log.add(crate::i18n::tr_args(
                     "strategies-load-error",
-                    &[("error", (format!("{e:#}")).to_string().into())],
+                    &[("error", format!("{e:#}").into())],
                 ));
                 Vec::new()
             }
@@ -55,8 +55,8 @@ impl ZapretController {
         log.add(crate::i18n::tr_args(
             "runtime-strategies",
             &[
-                ("directory", (runtime_dir.display()).to_string().into()),
-                ("count", (strategies.len()).into()),
+                ("directory", runtime_dir.display().to_string().into()),
+                ("count", strategies.len().into()),
             ],
         ));
         let status = if strategies.is_empty() {

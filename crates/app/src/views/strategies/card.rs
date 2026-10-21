@@ -16,9 +16,9 @@ fn score_label(score: &Score) -> (String, Hsla) {
             crate::i18n::tr_args(
                 "test-score",
                 &[
-                    ("passed", (score.passed).into()),
-                    ("total", (score.total).into()),
-                    ("latency", (score.avg_ms).into()),
+                    ("passed", score.passed.into()),
+                    ("total", score.total.into()),
+                    ("latency", score.avg_ms.into()),
                 ],
             ),
             green(),
@@ -28,9 +28,9 @@ fn score_label(score: &Score) -> (String, Hsla) {
             crate::i18n::tr_args(
                 "test-score",
                 &[
-                    ("passed", (score.passed).into()),
-                    ("total", (score.total).into()),
-                    ("latency", (score.avg_ms).into()),
+                    ("passed", score.passed.into()),
+                    ("total", score.total.into()),
+                    ("latency", score.avg_ms.into()),
                 ],
             ),
             hsla(38.0 / 360.0, 0.92, 0.50, 1.0),
