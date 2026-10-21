@@ -177,7 +177,7 @@ ui-just-now = только что
 ui-not-yet = Ещё не было
 
 # Used in: views/statistics.rs
-ui-zui-uptime = Время работы zUI
+ui-zui-uptime = Общее время работы
 
 # Used in: views/statistics.rs
 ui-last-successful-test = Последний успешный тест
@@ -186,7 +186,7 @@ ui-last-successful-test = Последний успешный тест
 ui-strategy-changes = Смен стратегии
 
 # Used in: views/statistics.rs
-ui-winws-restarts = Перезапусков winws
+ui-winws-restarts = Автоперезапуски
 
 # Used in: components/cards/banner.rs
 ui-zapret-is-not-installed = Zapret не установлен
@@ -781,3 +781,33 @@ tray-exit = Выход
 # Used in: root/lifecycle.rs
 window-close-tray-failed = Не удалось свернуть в трей. Для выхода выключите сворачивание или нажмите «Выйти из приложения».
 
+
+# Statistics: saved results and recent activity.
+statistics-intro = Последняя проверка, общее время работы и недавние события.
+statistics-last-check = Последняя проверка
+statistics-open-testing = К тестированию
+statistics-check-success = Все цели доступны
+statistics-check-partial = Часть целей недоступна
+statistics-check-failed = Рабочая стратегия не найдена
+statistics-check-cancelled = Проверка прервана
+statistics-check-meta = { $time } · Проверено стратегий: { $count }
+statistics-best-strategy = Лучший результат проверки
+statistics-best-so-far = Лучший результат до остановки
+statistics-targets = Доступно целей: { $passed } из { $total }
+statistics-latency = Средняя задержка: { $ms } мс
+statistics-snapshot-hint = Результат на момент проверки. Текущее состояние соединения может отличаться.
+statistics-check-empty = Пока нет результатов
+statistics-check-empty-hint = Запустите тестирование стратегий, чтобы сравнить доступность целей и задержку.
+statistics-legacy-check = Последний успешный тест: { $time }. Подробные результаты не сохранены.
+statistics-uptime-hint = За все запуски приложения
+statistics-changes-hint = Выбор другой стратегии
+statistics-restarts-hint = Восстановления после остановки winws
+statistics-history = Последние события
+statistics-history-hint = До 20 последних событий · история сохраняется между запусками
+statistics-history-empty = Здесь появится история
+statistics-history-empty-hint = Смены стратегии, результаты тестирования и автоматические восстановления.
+statistics-event-strategy = Выбрана стратегия: { $strategy }
+statistics-event-test = Проверка стратегий завершена
+statistics-event-cancelled = Проверка стратегий прервана
+statistics-event-recovered = winws автоматически перезапущен
+statistics-event-recovery-failed = Не удалось автоматически перезапустить winws

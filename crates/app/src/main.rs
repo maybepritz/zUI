@@ -39,7 +39,10 @@ gpui_kit::assets::icon_assets!(
         Power,
         Globe,
         MousePointer2,
-        ArrowRight
+        ArrowRight,
+        Clock,
+        ArrowRightLeft,
+        Activity
     ]
 );
 

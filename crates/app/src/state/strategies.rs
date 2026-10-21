@@ -19,6 +19,11 @@ impl AppState {
                     .statistics
                     .strategy_changes
                     .saturating_add(1);
+                self.background.statistics.record_event(
+                    z_core::statistics::StatisticsEventKind::StrategyChanged {
+                        strategy: file.clone(),
+                    },
+                );
                 self.event(
                     EventKind::Strategy,
                     crate::i18n::tr_args("strategy-changed", &[("strategy", file.into())]),

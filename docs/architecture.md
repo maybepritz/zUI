@@ -85,7 +85,7 @@ app/src/
       whats_new.rs
       close_dialog.rs       # выбор выхода или скрытия и флаг запоминания
     logs.rs
-    statistics.rs
+    statistics/             # результат проверки, счётчики, история
   components/               # cards, rows, layout, log_preview, modal
   platform/                 # startup, handoff
   tray.rs

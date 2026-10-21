@@ -177,7 +177,7 @@ ui-just-now = just now
 ui-not-yet = Not yet
 
 # Used in: views/statistics.rs
-ui-zui-uptime = zUI uptime
+ui-zui-uptime = Total uptime
 
 # Used in: views/statistics.rs
 ui-last-successful-test = Last successful test
@@ -186,7 +186,7 @@ ui-last-successful-test = Last successful test
 ui-strategy-changes = Strategy changes
 
 # Used in: views/statistics.rs
-ui-winws-restarts = winws restarts
+ui-winws-restarts = Automatic restarts
 
 # Used in: components/cards/banner.rs
 ui-zapret-is-not-installed = Zapret is not installed
@@ -779,3 +779,33 @@ tray-exit = Exit
 # Used in: root/lifecycle.rs
 window-close-tray-failed = Could not hide to tray. Disable close-to-tray or click Exit application.
 
+
+# Statistics: saved results and recent activity.
+statistics-intro = Your last check, total uptime and recent activity.
+statistics-last-check = Last check
+statistics-open-testing = Open testing
+statistics-check-success = All targets reachable
+statistics-check-partial = Some targets unreachable
+statistics-check-failed = No working strategy found
+statistics-check-cancelled = Check interrupted
+statistics-check-meta = { $time } · Strategies tested: { $count }
+statistics-best-strategy = Best result of the check
+statistics-best-so-far = Best result before stopping
+statistics-targets = Reachable targets: { $passed } of { $total }
+statistics-latency = Average latency: { $ms } ms
+statistics-snapshot-hint = A result saved at the time of the check. Your current connection may differ.
+statistics-check-empty = No results yet
+statistics-check-empty-hint = Run strategy testing to compare target reachability and latency.
+statistics-legacy-check = Last successful test: { $time }. Detailed results were not saved.
+statistics-uptime-hint = Across all application sessions
+statistics-changes-hint = Selections of a different strategy
+statistics-restarts-hint = Recoveries after winws stopped
+statistics-history = Recent activity
+statistics-history-hint = Up to 20 recent events · kept between sessions
+statistics-history-empty = Your history will appear here
+statistics-history-empty-hint = Strategy changes, test results and automatic recoveries.
+statistics-event-strategy = Strategy selected: { $strategy }
+statistics-event-test = Strategy check completed
+statistics-event-cancelled = Strategy check interrupted
+statistics-event-recovered = winws automatically restarted
+statistics-event-recovery-failed = Could not automatically restart winws

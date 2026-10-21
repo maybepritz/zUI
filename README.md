@@ -125,6 +125,7 @@ cargo run -p z-i18n --bin check-locales --locked
 
 - [Руководство для переводчиков](docs/localization.md)
 - [Архитектура и границы модулей](docs/architecture.md)
+- [Статистика: данные, история и сохранение](docs/statistics.md)
 - [Задачи и предложения](https://github.com/maybepritz/zUI/issues)
 
 | Crate | Ответственность |

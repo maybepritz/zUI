@@ -285,6 +285,11 @@ impl AppState {
                 .statistics
                 .strategy_changes
                 .saturating_add(1);
+            self.background.statistics.record_event(
+                z_core::statistics::StatisticsEventKind::StrategyChanged {
+                    strategy: profile.strategy.clone(),
+                },
+            );
             self.persist_statistics();
         }
         if profile.startup.zapret && !self.zapret.start() {

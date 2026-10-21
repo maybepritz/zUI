@@ -123,6 +123,9 @@ impl AppState {
                 .watchdog_restarts
                 .saturating_add(1);
         }
+        self.background
+            .statistics
+            .record_event(statistics::StatisticsEventKind::Recovery { restarted });
         let message = if restarted {
             tr("ui-winws-exited-and-was-restarted")
         } else {

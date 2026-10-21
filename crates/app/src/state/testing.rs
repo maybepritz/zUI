@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 
 use super::AppState;
 use crate::{controllers::update::UpdateState, i18n::tr, notifications::EventKind};
+use z_core::statistics::{StrategyResult, TestSummary};
 
 pub(super) struct TestRun {
     previous: String,
@@ -46,12 +47,21 @@ impl AppState {
     }
 
     pub(super) fn finish_test(&mut self, completed: bool) {
-        if completed && self.diagnostics.results.iter().any(|score| score.is_ok()) {
-            self.background.statistics.last_successful_test = Some(z_core::statistics::now());
-        }
         let Some(run) = self.background.test.take() else {
             return;
         };
+        self.background.statistics.record_test(TestSummary {
+            finished_at: z_core::statistics::now(),
+            completed,
+            strategies_tested: self.diagnostics.results.len(),
+            best: self.diagnostics.best().map(|score| StrategyResult {
+                file_name: score.file_name.clone(),
+                name: score.name.clone(),
+                passed: score.passed,
+                total: score.total,
+                avg_ms: score.avg_ms,
+            }),
+        });
         let best = self.diagnostics.results.iter().find(|score| score.is_ok());
         let baseline = self
             .diagnostics
