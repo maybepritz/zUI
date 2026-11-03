@@ -20,7 +20,7 @@ pub fn render(state: &AppState, cx: &mut Context<RootView>) -> AnyElement {
         .child(
             Label::new(tr("ui-settings"))
                 .text_lg()
-                .font_weight(FontWeight::BOLD),
+                .font_weight(FontWeight::MEDIUM),
         )
         .child(
             Label::new(state.settings_status.clone())

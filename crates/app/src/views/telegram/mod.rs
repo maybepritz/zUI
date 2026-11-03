@@ -35,7 +35,7 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
             .child(
                 Label::new(tr("telegram-title"))
                     .text_lg()
-                    .font_weight(FontWeight::BOLD),
+                    .font_weight(FontWeight::MEDIUM),
             )
             .child(Label::new(intro()).text_sm().text_color(muted))
             .child(connection_section(state, data, running, muted, cx))

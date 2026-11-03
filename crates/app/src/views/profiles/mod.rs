@@ -120,7 +120,7 @@ pub(crate) fn render(state: &AppState, cx: &mut Context<RootView>) -> AnyElement
                         .child(
                             Label::new(profile.name.clone())
                                 .text_sm()
-                                .font_weight(FontWeight::BOLD),
+                                .font_weight(FontWeight::MEDIUM),
                         )
                         .child(Label::new(details).text_xs().text_color(muted))
                         .child(Label::new(services).text_xs().text_color(muted))

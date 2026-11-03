@@ -1,4 +1,5 @@
 //! A compact metric tile; state and value formatting belong to the caller.
+use super::card::card;
 use gpui_kit::{
     assets::IconName,
     component::{label::Label, *},
@@ -13,16 +14,10 @@ pub fn stat_card(
     cx: &App,
 ) -> Div {
     let muted = cx.theme().muted_foreground;
-    div()
-        .v_flex()
+    card(cx)
         .gap_3()
-        .p_4()
         .flex_1()
         .min_w(px(200.))
-        .rounded_lg()
-        .border_1()
-        .border_color(cx.theme().border)
-        .bg(cx.theme().muted.opacity(0.25))
         .child(
             div()
                 .h_flex()
@@ -31,6 +26,11 @@ pub fn stat_card(
                 .child(Icon::new(icon).size_4().text_color(muted))
                 .child(Label::new(title.into()).text_xs().text_color(muted)),
         )
-        .child(div().text_2xl().font_weight(FontWeight::BOLD).child(value))
+        .child(
+            div()
+                .text_2xl()
+                .font_weight(FontWeight::MEDIUM)
+                .child(value),
+        )
         .child(Label::new(description).text_xs().text_color(muted))
 }

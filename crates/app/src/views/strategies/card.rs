@@ -1,6 +1,7 @@
 //! Разметка стратегий и результатов тестирования — card.
 use crate::components::list_card::list_card;
-use crate::components::rows::favorite_button::{favorite_button, favorite_color};
+use crate::components::rows::favorite_button::favorite_button;
+use crate::components::tone::{self, status_dot};
 use crate::{i18n::tr, root::RootView};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
@@ -9,9 +10,9 @@ use gpui_kit::{
 };
 use z_core::zapret::diagnostics::Score;
 
-fn score_label(score: &Score) -> (String, Hsla) {
+fn score_label(score: &Score, cx: &App) -> (String, Hsla) {
     match &score.error {
-        Some(_) => (tr("ui-failed-to-start").to_string(), red()),
+        Some(_) => (tr("ui-failed-to-start").to_string(), tone::error(cx)),
         None if score.is_ok() => (
             crate::i18n::tr_args(
                 "test-score",
@@ -21,9 +22,9 @@ fn score_label(score: &Score) -> (String, Hsla) {
                     ("latency", score.avg_ms.into()),
                 ],
             ),
-            green(),
+            tone::ok(cx),
         ),
-        None if score.passed == 0 => (format!("0/{}", score.total), red()),
+        None if score.passed == 0 => (format!("0/{}", score.total), tone::error(cx)),
         None => (
             crate::i18n::tr_args(
                 "test-score",
@@ -33,7 +34,7 @@ fn score_label(score: &Score) -> (String, Hsla) {
                     ("latency", score.avg_ms.into()),
                 ],
             ),
-            hsla(38.0 / 360.0, 0.92, 0.50, 1.0),
+            tone::warning(cx),
         ),
     }
 }
@@ -86,7 +87,8 @@ pub(super) fn strategy_card(
         .gap_2()
         .child(star)
         .child(select);
-    let favorite_ink = favorite_color(cx);
+    let score = score.map(|score| score_label(score, cx));
+    let state_dot = if running { tone::ok(cx) } else { muted };
 
     list_card(
         div()
@@ -99,7 +101,7 @@ pub(super) fn strategy_card(
             .child(
                 Label::new(name.to_string())
                     .text_sm()
-                    .font_weight(FontWeight::BOLD),
+                    .font_weight(FontWeight::MEDIUM),
             )
             .child(
                 div()
@@ -110,9 +112,11 @@ pub(super) fn strategy_card(
             .when(selected, |this| {
                 this.child(
                     div()
+                        .h_flex()
+                        .items_center()
+                        .gap_1()
                         .text_xs()
-                        .font_weight(FontWeight::BOLD)
-                        .text_color(green())
+                        .child(status_dot(state_dot))
                         .child(if running {
                             tr("ui-running-2")
                         } else {
@@ -120,7 +124,7 @@ pub(super) fn strategy_card(
                         }),
                 )
             })
-            .when_some(score.map(score_label), |this, (text, color)| {
+            .when_some(score, |this, (text, color)| {
                 this.child(
                     div()
                         .text_xs()
@@ -128,28 +132,7 @@ pub(super) fn strategy_card(
                         .text_color(color)
                         .child(text),
                 )
-            })
-            .when(favorite, |this| {
-                this.child(
-                    div()
-                        .text_xs()
-                        .font_weight(FontWeight::MEDIUM)
-                        .text_color(favorite_ink)
-                        .bg(hsla(40.0 / 360.0, 0.85, 0.55, 0.10))
-                        .rounded_md()
-                        .px_2()
-                        .py_0p5()
-                        .child(tr("favorite-label")),
-                )
             }),
         right,
     )
-}
-
-fn green() -> Hsla {
-    hsla(142.0 / 360.0, 0.76, 0.45, 1.0)
-}
-
-fn red() -> Hsla {
-    hsla(0.0, 0.70, 0.50, 1.0)
 }

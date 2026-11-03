@@ -66,14 +66,9 @@ pub fn render(
         .small()
         .value((idx + 1) as f32 / STEPS as f32 * 100.0);
 
-    let card = div()
-        .v_flex()
+    let card = crate::components::cards::card::card(cx)
         .gap_4()
-        .p_4()
         .w_full()
-        .rounded_lg()
-        .border_1()
-        .border_color(cx.theme().border)
         .child(content);
 
     let footer = div()
@@ -121,7 +116,7 @@ pub fn render(
                 .child(
                     Label::new(tr("ui-first-time-setup"))
                         .text_lg()
-                        .font_weight(FontWeight::BOLD),
+                        .font_weight(FontWeight::MEDIUM),
                 )
                 .child(Label::new(format!("{} / {}", idx + 1, STEPS)).text_sm()),
         )

@@ -1,5 +1,6 @@
 //! Карточка DNS-пресета: данные и callback применения.
 use crate::components::list_card::list_card;
+use crate::components::tone;
 use crate::{i18n::tr, root::RootView};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
@@ -19,6 +20,7 @@ pub(super) fn render(
     let has_doh = !preset.doh.is_empty();
     let addrs = preset.ipv4.join(", ");
     let key = preset.key.clone();
+    let applied = tone::ok(cx);
 
     list_card(
         div()
@@ -35,7 +37,7 @@ pub(super) fn render(
                     .child(
                         Label::new(preset.name.clone())
                             .text_sm()
-                            .font_weight(FontWeight::BOLD),
+                            .font_weight(FontWeight::MEDIUM),
                     )
                     .child(
                         div()
@@ -51,8 +53,8 @@ pub(super) fn render(
                         this.child(
                             div()
                                 .text_xs()
-                                .font_weight(FontWeight::BOLD)
-                                .text_color(gpui_kit::hsla(142.0 / 360.0, 0.76, 0.45, 1.0))
+                                .font_weight(FontWeight::MEDIUM)
+                                .text_color(applied)
                                 .child(if doh_active {
                                     tr("ui-applied-doh-registered")
                                 } else {

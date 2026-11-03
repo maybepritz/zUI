@@ -21,20 +21,21 @@ impl Render for StartupView {
                 PreparationStage::Updates => "startup-updates",
             }
         });
+        let theme = cx.theme();
+        let (ink, muted, border) = (theme.foreground, theme.muted_foreground, theme.border);
+        let background = theme.background;
         let mut details = div().v_flex().items_center().gap_4().w_full().child(
             div()
                 .h_flex()
                 .items_center()
                 .gap_2()
                 .children((0..3).map(|index| {
-                    div().size(px(3.)).rounded_full().bg(hsla(
-                        0.,
-                        0.,
-                        0.,
-                        self.particles.indicator_alpha(index),
-                    ))
+                    div()
+                        .size(px(3.))
+                        .rounded_full()
+                        .bg(ink.opacity(self.particles.indicator_alpha(index)))
                 }))
-                .child(div().text_sm().text_color(rgb(0x626262)).child(status)),
+                .child(div().text_sm().text_color(muted).child(status)),
         );
 
         if self.failed {
@@ -42,7 +43,7 @@ impl Render for StartupView {
                 .child(
                     div()
                         .text_xs()
-                        .text_color(rgb(0x888888))
+                        .text_color(muted)
                         .child(tr("startup-failed-hint")),
                 )
                 .child(
@@ -58,8 +59,8 @@ impl Render for StartupView {
             .relative()
             .size_full()
             .overflow_hidden()
-            .bg(rgb(0xffffff))
-            .text_color(rgb(0x151515))
+            .bg(background)
+            .text_color(ink)
             .on_mouse_move(cx.listener(|this, event: &MouseMoveEvent, _, cx| {
                 if !this.failed && !cx.reduce_motion() {
                     this.particles.pointer_moved(event.position);
@@ -70,7 +71,7 @@ impl Render for StartupView {
                     this.particles.pointer_left();
                 }
             }))
-            .child(self.particles.canvas().absolute().inset_0().size_full())
+            .child(self.particles.canvas(ink).absolute().inset_0().size_full())
             .child(
                 div()
                     .relative()
@@ -93,16 +94,16 @@ impl Render for StartupView {
                                     .items_center()
                                     .gap_1()
                                     .child(
-                                        div().text_3xl().font_weight(FontWeight::BOLD).child("zUI"),
+                                        div()
+                                            .text_3xl()
+                                            .font_weight(FontWeight::MEDIUM)
+                                            .child("zUI"),
                                     )
                                     .child(
-                                        div()
-                                            .text_xs()
-                                            .text_color(rgb(0x888888))
-                                            .child(release::label()),
+                                        div().text_xs().text_color(muted).child(release::label()),
                                     ),
                             )
-                            .child(div().h(px(1.)).w(px(32.)).bg(rgb(0xe5e5e5)))
+                            .child(div().h(px(1.)).w(px(32.)).bg(border))
                             .child(details),
                     ),
             )
@@ -114,7 +115,7 @@ impl Render for StartupView {
                     .right_6()
                     .text_center()
                     .text_xs()
-                    .text_color(rgb(0x999999))
+                    .text_color(muted)
                     .child(tr("startup-network-hint")),
             )
             .into_any_element()

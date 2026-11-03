@@ -25,24 +25,24 @@ profile-details = Strategy: { $strategy } · DNS: { $dns }
 profile-services = Services on apply and startup: Zapret { $zapret }, Telegram { $telegram }
 profile-on = on
 profile-off = off
-profile-saved = Profile saved.
-profile-renamed = Profile renamed.
+profile-saved = Profile saved
+profile-renamed = Profile renamed
 profile-updated = Profile updated. Apply it to activate the saved configuration.
-profile-deleted = Profile deleted.
+profile-deleted = Profile deleted
 profile-applying = Applying “{ $name }”… Waiting for DNS.
-profile-applied = “{ $name }” applied.
+profile-applied = “{ $name }” applied
 profile-modified = The configuration changed. No saved profile is currently marked as applied.
 profile-apply-failed = Profile not fully applied: { $error }. Some settings may have changed; review the current configuration.
-profile-error-name = Enter a profile name.
-profile-error-long-name = Use no more than 80 characters for the name.
-profile-error-duplicate = A profile with this name already exists.
+profile-error-name = Enter a profile name
+profile-error-long-name = Use no more than 80 characters for the name
+profile-error-duplicate = A profile with this name already exists
 profile-error-busy = Wait for DNS, testing or installation to finish.
 profile-error-strategy = The saved strategy is unavailable. Install Zapret or update the profile.
-profile-error-missing = This profile no longer exists.
+profile-error-missing = This profile no longer exists
 profile-error-save = Could not save the profile. Check the event log and folder permissions.
 profile-error-dns = The saved DNS preset is unavailable. Update the profile.
 profile-error-admin = Run zUI as administrator to apply DNS or start Zapret.
-profile-error-telegram = Install Telegram Proxy before applying this profile.
+profile-error-telegram = Install Telegram Proxy before applying this profile
 close-dialog-title = Close zUI?
 close-dialog-hint = Hide keeps zUI and services running in the tray. Exit stops Zapret and Telegram Proxy and closes the application.
 close-hide = Hide to tray
@@ -59,17 +59,16 @@ strategy-filter-favorites = Favorites only
 strategy-filter-reset = Reset filters
 strategy-filter-count = Showing { $shown } of { $total }
 strategy-list-empty = No strategies available
-strategy-list-empty-hint = Install Zapret or check its files on the Home page.
+strategy-list-empty-hint = Install Zapret or check its files on the Home page
 strategy-open-home = Open Home
 strategy-favorites-empty = No favorite strategies
-strategy-favorites-empty-hint = Mark strategies with a star or reset the filters.
+strategy-favorites-empty-hint = Mark strategies with a star or reset the filters
 strategy-search-empty = No strategies found
-strategy-search-empty-hint = Try a different query or reset the filters.
+strategy-search-empty-hint = Try a different query or reset the filters
 
 # Used in: views/strategies/card.rs
 favorite-add = Add to favorites
 favorite-remove = Remove from favorites
-favorite-label = Favorite
 
 # Used in: notifications.rs
 ui-zui-error = zUI — error
@@ -201,10 +200,10 @@ ui-installing = Installing…
 ui-install-zapret = Install Zapret
 
 # Used in: components/cards/status_card.rs
-ui-running = ● RUNNING
+ui-running = Running
 
 # Used in: components/cards/status_card.rs
-ui-stopped = ○ STOPPED
+ui-stopped = Stopped
 
 # Used in: components/cards/update_banner.rs
 ui-later = Later
@@ -321,7 +320,7 @@ ui-about-strategies-and-tests = About strategies and tests
 ui-about-updates = About updates
 
 # Used in: views/settings/automation.rs
-ui-notifications-appear-when-the-window-is-minimized = Notifications appear when the window is minimized.
+ui-notifications-appear-when-the-window-is-minimized = Notifications appear when the window is minimized
 
 # Used in: views/settings/behavior.rs, views/overlays/onboarding/mod.rs
 ui-startup = Startup
@@ -396,7 +395,7 @@ ui-tests-strategies-against-discord-and-youtube-zapret = Tests strategies agains
 ui-dpi-bypass-strategies = DPI bypass strategies
 
 # Used in: views/strategies/testing.rs
-ui-testing-requires-administrator-privileges = Testing requires administrator privileges.
+ui-testing-requires-administrator-privileges = Testing requires administrator privileges
 
 # Used in: views/strategies/testing.rs
 ui-strategy-testing = Strategy testing
@@ -514,7 +513,7 @@ ui-disable = Disable
 
 # Used in: views/overlays/whats_new.rs
 whats-new-summary = Favorite strategies, quick search and a clearer window-close flow — with an interface that is easier to use and translate.
-whats-new-footer = You can open these notes again in Settings → About.
+whats-new-footer = You can open these notes again in Settings → About
 whats-new-notes = ## Strategies, closer at hand
     - Mark strategies with a star: favorites stay at the top.
     - Search by name or file and show favorites only.
@@ -784,7 +783,7 @@ window-close-tray-failed = Could not hide to tray. Disable close-to-tray or clic
 
 
 # Statistics: saved results and recent activity.
-statistics-intro = Your last check, total uptime and recent activity.
+statistics-intro = Your last check, total uptime and recent activity
 statistics-last-check = Last check
 statistics-open-testing = Open testing
 statistics-check-success = All targets reachable
@@ -818,7 +817,7 @@ startup-settings = Loading settings…
 startup-languages = Loading translations…
 startup-components = Checking components…
 startup-updates = Checking for updates…
-startup-network-hint = On a slow connection, update checks will continue in the background.
+startup-network-hint = On a slow connection, update checks will continue in the background
 startup-failed = Could not prepare the application
 startup-failed-hint = Try preparing again. If the problem persists, restart zUI.
 startup-retry = Retry

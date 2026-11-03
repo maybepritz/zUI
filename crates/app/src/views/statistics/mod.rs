@@ -57,7 +57,7 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
                     .child(
                         Label::new(tr("ui-statistics"))
                             .text_lg()
-                            .font_weight(FontWeight::BOLD),
+                            .font_weight(FontWeight::MEDIUM),
                     )
                     .child(
                         Label::new(tr("statistics-intro"))

@@ -25,24 +25,24 @@ profile-details = Стратегия: { $strategy } · DNS: { $dns }
 profile-services = Сервисы при применении и запуске: Zapret { $zapret }, Telegram { $telegram }
 profile-on = включён
 profile-off = выключен
-profile-saved = Профиль сохранён.
-profile-renamed = Профиль переименован.
+profile-saved = Профиль сохранён
+profile-renamed = Профиль переименован
 profile-updated = Профиль обновлён. Примените его для активации сохранённой конфигурации.
-profile-deleted = Профиль удалён.
+profile-deleted = Профиль удалён
 profile-applying = Применяется «{ $name }»… Ожидание DNS.
-profile-applied = Профиль «{ $name }» применён.
+profile-applied = Профиль «{ $name }» применён
 profile-modified = Конфигурация изменилась. Ни один сохранённый профиль сейчас не отмечен применённым.
 profile-apply-failed = Профиль применён не полностью: { $error }. Часть настроек могла измениться; проверьте текущую конфигурацию.
-profile-error-name = Введите название профиля.
-profile-error-long-name = Название должно содержать не больше 80 символов.
-profile-error-duplicate = Профиль с таким названием уже существует.
+profile-error-name = Введите название профиля
+profile-error-long-name = Название должно содержать не больше 80 символов
+profile-error-duplicate = Профиль с таким названием уже существует
 profile-error-busy = Дождитесь завершения настройки DNS, тестирования или установки.
 profile-error-strategy = Стратегия недоступна. Установите Zapret или обновите профиль.
-profile-error-missing = Этот профиль больше не существует.
+profile-error-missing = Этот профиль больше не существует
 profile-error-save = Не удалось сохранить профиль. Проверьте журнал и права на каталог данных.
 profile-error-dns = Сохранённый DNS-пресет недоступен. Обновите профиль.
 profile-error-admin = Запустите zUI от имени администратора для изменения DNS или запуска Zapret.
-profile-error-telegram = Перед применением профиля установите Telegram Proxy.
+profile-error-telegram = Перед применением профиля установите Telegram Proxy
 close-dialog-title = Закрыть zUI?
 close-dialog-hint = Скрытие оставляет zUI и сервисы работать в трее. Выход останавливает Zapret и Telegram Proxy и завершает приложение.
 close-hide = Скрыть в трей
@@ -59,17 +59,16 @@ strategy-filter-favorites = Только избранное
 strategy-filter-reset = Сбросить фильтры
 strategy-filter-count = Показано { $shown } из { $total }
 strategy-list-empty = Нет доступных стратегий
-strategy-list-empty-hint = Установите Zapret или проверьте его файлы на главной.
+strategy-list-empty-hint = Установите Zapret или проверьте его файлы на главной
 strategy-open-home = Открыть главную
 strategy-favorites-empty = Нет избранных стратегий
-strategy-favorites-empty-hint = Отметьте стратегии звёздочкой или сбросьте фильтры.
+strategy-favorites-empty-hint = Отметьте стратегии звёздочкой или сбросьте фильтры
 strategy-search-empty = Ничего не найдено
-strategy-search-empty-hint = Попробуйте другой запрос или сбросьте фильтры.
+strategy-search-empty-hint = Попробуйте другой запрос или сбросьте фильтры
 
 # Used in: views/strategies/card.rs
 favorite-add = Добавить в избранное
 favorite-remove = Убрать из избранного
-favorite-label = В избранном
 
 # Used in: notifications.rs
 ui-zui-error = zUI — ошибка
@@ -201,10 +200,10 @@ ui-installing = Установка…
 ui-install-zapret = Установить Zapret
 
 # Used in: components/cards/status_card.rs
-ui-running = ● РАБОТАЕТ
+ui-running = Работает
 
 # Used in: components/cards/status_card.rs
-ui-stopped = ○ ОСТАНОВЛЕНО
+ui-stopped = Остановлено
 
 # Used in: components/cards/update_banner.rs
 ui-later = Позже
@@ -240,7 +239,7 @@ ui-confirm-the-connection-in-telegram-if-no = Подтвердите подкл�
 ui-link-copied-open-it-in-telegram-saved = Ссылка скопирована. Откройте её в «Избранном» Telegram.
 
 # Used in: views/dns/mod.rs
-ui-running-without-administrator-privileges = ⚠ Запущено без прав Администратора
+ui-running-without-administrator-privileges = Запущено без прав администратора
 
 # Used in: views/dns/mod.rs
 ui-dns-and-doh-changes-require-administrator-privileges = Для применения DNS и шифрования DoH требуются права Администратора. Перезапустите zapret-ui от имени Администратора.
@@ -258,10 +257,10 @@ ui-restore-previous-settings = Вернуть как было
 ui-reset-to-dhcp-automatic = Сбросить на DHCP (Авто)
 
 # Used in: views/dns/preset_card.rs
-ui-applied-doh-registered = ✓ Применён · DoH зарегистрирован
+ui-applied-doh-registered = Применён · DoH зарегистрирован
 
 # Used in: views/dns/preset_card.rs
-ui-applied = ✓ Применён
+ui-applied = Применён
 
 # Used in: views/dns/preset_card.rs
 ui-reapply = Переприменить
@@ -321,7 +320,7 @@ ui-about-strategies-and-tests = О стратегиях и тестах
 ui-about-updates = Об обновлениях
 
 # Used in: views/settings/automation.rs
-ui-notifications-appear-when-the-window-is-minimized = Уведомления приходят при свёрнутом окне.
+ui-notifications-appear-when-the-window-is-minimized = Уведомления приходят при свёрнутом окне
 
 # Used in: views/settings/behavior.rs, views/overlays/onboarding/mod.rs
 ui-startup = Запуск
@@ -381,10 +380,10 @@ ui-failed-to-start = не запустилась
 ui-select = Выбрать
 
 # Used in: views/strategies/card.rs
-ui-running-2 = ✓ Работает
+ui-running-2 = Работает
 
 # Used in: views/strategies/card.rs
-ui-selected = ✓ Выбрана
+ui-selected = Выбрана
 
 # Used in: views/strategies/mod.rs
 ui-choose-a-strategy-for-your-isp-changing = Выберите наиболее подходящую стратегию под вашего провайдера. При смене активной стратегии работающий Zapret перезапустится автоматически.
@@ -396,7 +395,7 @@ ui-tests-strategies-against-discord-and-youtube-zapret = Перебор стра
 ui-dpi-bypass-strategies = Стратегии обхода блокировок DPI
 
 # Used in: views/strategies/testing.rs
-ui-testing-requires-administrator-privileges = Для теста нужны права администратора.
+ui-testing-requires-administrator-privileges = Для теста нужны права администратора
 
 # Used in: views/strategies/testing.rs
 ui-strategy-testing = Подбор стратегии
@@ -514,7 +513,7 @@ ui-disable = Выключить
 
 # Used in: views/overlays/whats_new.rs
 whats-new-summary = Избранные стратегии, быстрый поиск и понятное закрытие окна — с интерфейсом, который удобнее использовать и переводить.
-whats-new-footer = Эти заметки можно снова открыть в Настройках → О программе.
+whats-new-footer = Эти заметки можно снова открыть в Настройках → О программе
 whats-new-notes = ## Стратегии под рукой
     - Отмечайте стратегии звёздочкой: избранное всегда в начале списка.
     - Ищите по названию или файлу и показывайте только избранное.
@@ -786,7 +785,7 @@ window-close-tray-failed = Не удалось свернуть в трей. Д�
 
 
 # Statistics: saved results and recent activity.
-statistics-intro = Последняя проверка, общее время работы и недавние события.
+statistics-intro = Последняя проверка, общее время работы и недавние события
 statistics-last-check = Последняя проверка
 statistics-open-testing = К тестированию
 statistics-check-success = Все цели доступны
@@ -820,7 +819,7 @@ startup-settings = Загружаем настройки…
 startup-languages = Подключаем переводы…
 startup-components = Проверяем компоненты…
 startup-updates = Проверяем обновления…
-startup-network-hint = При медленной сети проверка обновлений продолжится в фоне.
+startup-network-hint = При медленной сети проверка обновлений продолжится в фоне
 startup-failed = Не удалось подготовить приложение
 startup-failed-hint = Повторите запуск подготовки. Если ошибка повторится, перезапустите zUI.
 startup-retry = Повторить

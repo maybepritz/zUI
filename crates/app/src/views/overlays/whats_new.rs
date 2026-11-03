@@ -1,4 +1,4 @@
-//! Release overview with themed cards and a full-width scroll area.
+//! Release overview with plain cards and a full-width scroll area.
 use crate::{i18n::tr, release, root::RootView};
 use gpui_kit::assets::IconName as LucideIcon;
 use gpui_kit::{
@@ -44,7 +44,6 @@ fn sections(text: &str) -> Vec<NotesSection> {
 }
 
 fn change_card(section: NotesSection, icon: LucideIcon, cx: &App) -> AnyElement {
-    let primary = cx.theme().primary;
     let muted = cx.theme().muted_foreground;
     GroupBox::new()
         .outline()
@@ -54,49 +53,30 @@ fn change_card(section: NotesSection, icon: LucideIcon, cx: &App) -> AnyElement 
         .child(
             div()
                 .v_flex()
-                .gap_3()
+                .gap_2()
                 .child(
                     div()
                         .h_flex()
                         .items_center()
-                        .gap_3()
-                        .child(
-                            div()
-                                .flex_shrink_0()
-                                .p_2()
-                                .rounded_lg()
-                                .bg(primary.opacity(0.10))
-                                .child(Icon::new(icon).size_4().text_color(primary)),
-                        )
+                        .gap_2()
+                        .child(Icon::new(icon).size_4().text_color(muted))
                         .child(
                             Label::new(section.title)
                                 .text_sm()
-                                .font_weight(FontWeight::BOLD),
+                                .font_weight(FontWeight::MEDIUM),
                         ),
                 )
-                .children(section.items.into_iter().map(|item| {
-                    div()
-                        .h_flex()
-                        .items_start()
-                        .gap_2()
-                        .child(
-                            div().flex_shrink_0().pt(px(2.)).child(
-                                Icon::new(LucideIcon::ArrowRight).size_3().text_color(muted),
-                            ),
-                        )
-                        .child(
-                            div()
-                                .flex_1()
-                                .min_w_0()
-                                .child(Label::new(item).text_sm().text_color(muted)),
-                        )
-                })),
+                .children(
+                    section
+                        .items
+                        .into_iter()
+                        .map(|item| Label::new(item).text_sm().text_color(muted)),
+                ),
         )
         .into_any_element()
 }
 
 pub fn render(cx: &mut Context<RootView>) -> AnyElement {
-    let primary = cx.theme().primary;
     let muted = cx.theme().muted_foreground;
     let icons = [
         LucideIcon::Star,
@@ -110,52 +90,20 @@ pub fn render(cx: &mut Context<RootView>) -> AnyElement {
         .map(|(ix, section)| change_card(section, icons[ix % icons.len()], cx))
         .collect();
 
+    // A plain heading: the release name carries the screen, not a tinted box.
     let hero = div()
         .v_flex()
         .w_full()
-        .gap_4()
-        .p_6()
-        .rounded_xl()
-        .border_1()
-        .border_color(primary.opacity(0.25))
-        .bg(primary.opacity(0.06))
+        .gap_2()
         .child(
-            div()
-                .h_flex()
-                .flex_wrap()
-                .items_center()
-                .justify_between()
-                .gap_3()
-                .child(
-                    div()
-                        .h_flex()
-                        .items_center()
-                        .gap_2()
-                        .child(Icon::new(LucideIcon::Sparkles).size_5().text_color(primary))
-                        .child(
-                            Label::new(tr("ui-what-s-new"))
-                                .text_sm()
-                                .font_weight(FontWeight::MEDIUM),
-                        ),
-                )
-                .child(
-                    div()
-                        .rounded_full()
-                        .px_3()
-                        .py_1()
-                        .bg(primary.opacity(0.12))
-                        .text_color(primary)
-                        .child(
-                            Label::new(format!("v{}", release::VERSION))
-                                .text_xs()
-                                .font_weight(FontWeight::MEDIUM),
-                        ),
-                ),
+            Label::new(format!("{} · v{}", tr("ui-what-s-new"), release::VERSION))
+                .text_sm()
+                .text_color(muted),
         )
         .child(
             Label::new(format!("zUI {}", release::codename()))
                 .text_3xl()
-                .font_weight(FontWeight::BOLD),
+                .font_weight(FontWeight::MEDIUM),
         )
         .child(
             Label::new(tr("whats-new-summary"))

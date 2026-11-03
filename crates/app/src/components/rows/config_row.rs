@@ -20,7 +20,7 @@ pub fn config_row(
                 .child(
                     Label::new(label.into())
                         .text_sm()
-                        .font_weight(FontWeight::BOLD),
+                        .font_weight(FontWeight::MEDIUM),
                 )
                 .child(Label::new(value.into()).text_sm()),
         )

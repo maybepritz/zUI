@@ -8,16 +8,7 @@ use gpui_kit::assets::IconName as LucideIcon;
 use gpui_kit::component::Size as ComponentSize;
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    component::{
-        button::*,
-        empty::{
-            Empty as EmptyState, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia,
-            EmptyMediaVariant, EmptyTitle,
-        },
-        input::Input,
-        label::Label,
-        *,
-    },
+    component::{button::*, empty::EmptyContent, input::Input, label::Label, *},
     *,
 };
 
@@ -126,18 +117,7 @@ pub(super) fn empty_state(
             .on_click(cx.listener(|this, _, window, cx| this.on_reset_strategy_filters(window, cx)))
     };
 
-    EmptyState::new()
-        .py_8()
-        .header(
-            EmptyHeader::new()
-                .media(
-                    EmptyMedia::new()
-                        .with_variant(EmptyMediaVariant::Icon)
-                        .child(Icon::new(LucideIcon::Search).size_4()),
-                )
-                .title(EmptyTitle::new().child(tr(title)))
-                .description(EmptyDescription::new().child(tr(detail))),
-        )
+    crate::components::empty_state::empty_state(LucideIcon::Search, tr(title), tr(detail))
         .content(EmptyContent::new().child(action))
         .into_any_element()
 }

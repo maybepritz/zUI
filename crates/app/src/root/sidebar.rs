@@ -29,7 +29,12 @@ impl RootView {
                         .items_center()
                         .gap_2()
                         .child(img("icon.svg").size_10().rounded_sm())
-                        .child(div().text_base().font_weight(FontWeight::BOLD).child("zUI")),
+                        .child(
+                            div()
+                                .text_base()
+                                .font_weight(FontWeight::MEDIUM)
+                                .child("zUI"),
+                        ),
                 ),
             )
             .child(SidebarGroup::new("").child(menu))

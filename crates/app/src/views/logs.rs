@@ -34,7 +34,7 @@ fn header(count: usize, cx: &mut Context<RootView>) -> Div {
                 .child(
                     Label::new(tr("ui-event-log"))
                         .text_lg()
-                        .font_weight(FontWeight::BOLD),
+                        .font_weight(FontWeight::MEDIUM),
                 )
                 .child(
                     div()
@@ -67,7 +67,8 @@ fn log_view(logs: Vec<String>, cx: &mut Context<RootView>) -> impl IntoElement {
                 .into_any_element(),
         ]
     } else {
-        logs.into_iter().map(log_line).collect()
+        let error = crate::components::tone::error(cx);
+        logs.into_iter().map(|line| log_line(line, error)).collect()
     };
 
     GroupBox::new()
@@ -76,12 +77,12 @@ fn log_view(logs: Vec<String>, cx: &mut Context<RootView>) -> impl IntoElement {
         .child(div().v_flex().w_full().gap_1().children(lines))
 }
 
-fn log_line(line: String) -> AnyElement {
+fn log_line(line: String, error: Hsla) -> AnyElement {
     let is_err = is_error(&line);
     div()
         .text_xs()
         .font_family("Consolas")
-        .when(is_err, |this| this.text_color(hsla(0.0, 0.70, 0.50, 1.0)))
+        .when(is_err, |this| this.text_color(error))
         .child(line)
         .into_any_element()
 }

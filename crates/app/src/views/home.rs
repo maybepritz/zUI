@@ -31,7 +31,6 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
         .map(|s| s.name.clone().into())
         .unwrap_or_else(|| tr("ui-not-selected").into());
     let recent: Vec<String> = data.logs.iter().cloned().rev().take(4).rev().collect();
-    let muted = cx.theme().muted_foreground;
 
     page(
         div()
@@ -44,7 +43,6 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
                 running,
                 state.zapret.status.clone().into(),
                 state.runtime_dir.display().to_string(),
-                muted,
                 Button::new("main-toggle")
                     .primary()
                     .large()
@@ -57,6 +55,7 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
                     .on_click(cx.listener(|this, _, _, cx| {
                         this.on_toggle_zapret(cx);
                     })),
+                cx,
             ))
             .child(
                 GroupBox::new()

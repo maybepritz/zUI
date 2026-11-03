@@ -44,7 +44,7 @@ pub fn install_card(installing: bool, cx: &mut Context<RootView>) -> AnyElement 
                         .child(
                             Label::new(tr("ui-zapret-is-not-installed"))
                                 .text_sm()
-                                .font_weight(FontWeight::BOLD),
+                                .font_weight(FontWeight::MEDIUM),
                         )
                         .child(
                             Label::new(tr("ui-the-latest-zapret-discord-youtube-release-will"))

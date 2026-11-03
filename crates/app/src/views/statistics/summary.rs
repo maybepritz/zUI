@@ -1,5 +1,6 @@
 use super::formatting::ago;
 use crate::{
+    components::{empty_state::empty_state, tone},
     i18n::{tr, tr_args},
     root::{RootView, Tab, view_data::ViewData},
     state::AppState,
@@ -14,13 +15,8 @@ pub(super) fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootVie
     let stats = &state.background.statistics;
     let muted = cx.theme().muted_foreground;
     let busy = state.diagnostics.busy();
-    let mut card = div()
-        .v_flex()
+    let mut card = crate::components::cards::card::card(cx)
         .gap_3()
-        .p_5()
-        .rounded_lg()
-        .border_1()
-        .border_color(cx.theme().border)
         .bg(cx.theme().muted.opacity(0.25))
         .child(
             div()
@@ -38,7 +34,7 @@ pub(super) fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootVie
                         .child(
                             Label::new(tr("statistics-last-check"))
                                 .text_sm()
-                                .font_weight(FontWeight::BOLD),
+                                .font_weight(FontWeight::MEDIUM),
                         ),
                 )
                 .child(
@@ -83,7 +79,7 @@ pub(super) fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootVie
                 .as_ref()
                 .is_some_and(|best| best.fully_available())
         {
-            hsla(142.0 / 360.0, 0.55, 0.45, 1.0)
+            tone::ok(cx)
         } else {
             cx.theme().muted_foreground
         };
@@ -91,7 +87,7 @@ pub(super) fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootVie
             .child(
                 div()
                     .text_lg()
-                    .font_weight(FontWeight::BOLD)
+                    .font_weight(FontWeight::MEDIUM)
                     .text_color(color)
                     .child(tr(status)),
             )
@@ -124,7 +120,7 @@ pub(super) fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootVie
                         .child(
                             div()
                                 .text_base()
-                                .font_weight(FontWeight::BOLD)
+                                .font_weight(FontWeight::MEDIUM)
                                 .child(best.name.clone()),
                         ),
                 )
@@ -155,18 +151,11 @@ pub(super) fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootVie
                 .text_color(muted),
         );
     } else {
-        card = card
-            .child(
-                div()
-                    .text_lg()
-                    .font_weight(FontWeight::BOLD)
-                    .child(tr("statistics-check-empty")),
-            )
-            .child(
-                Label::new(tr("statistics-check-empty-hint"))
-                    .text_sm()
-                    .text_color(muted),
-            );
+        card = card.child(empty_state(
+            IconName::Activity,
+            tr("statistics-check-empty"),
+            tr("statistics-check-empty-hint"),
+        ));
         // Older statistics only contain a timestamp, so do not invent a detailed result.
         if let Some(timestamp) = stats.last_successful_test {
             card = card.child(

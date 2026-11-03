@@ -1,5 +1,8 @@
 use super::formatting::ago;
-use crate::i18n::{tr, tr_args};
+use crate::{
+    components::empty_state::empty_state,
+    i18n::{tr, tr_args},
+};
 use gpui_kit::{
     assets::IconName,
     component::{label::Label, *},
@@ -59,26 +62,14 @@ pub(super) fn render(stats: &Statistics, now: u64, cx: &App) -> Div {
         );
     }
     if stats.history.is_empty() {
-        rows = rows.child(
-            div()
-                .v_flex()
-                .gap_1()
-                .py_4()
-                .child(Label::new(tr("statistics-history-empty")).text_sm())
-                .child(
-                    Label::new(tr("statistics-history-empty-hint"))
-                        .text_xs()
-                        .text_color(muted),
-                ),
-        );
+        rows = rows.child(empty_state(
+            IconName::ScrollText,
+            tr("statistics-history-empty"),
+            tr("statistics-history-empty-hint"),
+        ));
     }
-    div()
-        .v_flex()
+    crate::components::cards::card::card(cx)
         .gap_1()
-        .p_4()
-        .rounded_lg()
-        .border_1()
-        .border_color(cx.theme().border)
         .child(
             div()
                 .h_flex()
@@ -88,7 +79,7 @@ pub(super) fn render(stats: &Statistics, now: u64, cx: &App) -> Div {
                 .child(
                     Label::new(tr("statistics-history"))
                         .text_sm()
-                        .font_weight(FontWeight::BOLD),
+                        .font_weight(FontWeight::MEDIUM),
                 ),
         )
         .child(

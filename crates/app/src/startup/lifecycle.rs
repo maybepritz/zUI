@@ -26,7 +26,13 @@ const INACTIVE_INTERVAL: Duration = Duration::from_millis(200);
 impl StartupView {
     pub(crate) fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
         i18n::set_language(&z_core::preferences::Language::default());
-        Theme::change(ThemeMode::Light, None, cx);
+        // Settings are not loaded yet, so follow Windows to avoid a white flash in dark mode.
+        let mode = if crate::platform::system_dark() {
+            ThemeMode::Dark
+        } else {
+            ThemeMode::Light
+        };
+        Theme::change(mode, None, cx);
         // Before the normal root/tray exists, closing means exiting.
         window.on_window_should_close(cx, |_, cx| {
             cx.defer(|cx| cx.quit());

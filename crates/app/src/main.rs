@@ -36,7 +36,6 @@ gpui_kit::assets::icon_assets!(
         ChartNoAxesColumn,
         ScrollText,
         Settings,
-        Sparkles,
         Power,
         Globe,
         MousePointer2,

@@ -1,6 +1,7 @@
 //! Экран DNS: текущие настройки, восстановление и список пресетов.
 mod preset_card;
 use crate::components::page::page;
+use crate::components::tone;
 use crate::i18n::tr;
 use crate::root::view_data::ViewData;
 use gpui_kit::component::button::*;
@@ -18,6 +19,7 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
     let active_key = state.dns.manager.state().preset.clone();
     let status = state.dns.status.clone();
     let muted = cx.theme().muted_foreground;
+    let (warning, error) = (tone::warning(cx), tone::error(cx));
     let busy = state.dns.busy() || state.profile_busy();
     let doh_active = state.dns.manager.doh_active();
 
@@ -50,8 +52,8 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
                                     .child(
                                         Label::new(tr("ui-running-without-administrator-privileges"))
                                             .text_sm()
-                                            .font_weight(FontWeight::BOLD)
-                                            .text_color(gpui_kit::hsla(38.0 / 360.0, 0.92, 0.50, 1.0)),
+                                            .font_weight(FontWeight::MEDIUM)
+                                            .text_color(warning),
                                     )
                                     .child(
                                         Label::new(tr("ui-dns-and-doh-changes-require-administrator-privileges"))
@@ -65,7 +67,7 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
                     div()
                         .v_flex()
                         .gap_1()
-                        .child(Label::new(tr("ui-dns-servers")).text_lg().font_weight(FontWeight::BOLD))
+                        .child(Label::new(tr("ui-dns-servers")).text_lg().font_weight(FontWeight::MEDIUM))
                         .child(
                             Label::new(
                                 tr("ui-public-dns-helps-with-dns-based-blocking"),
@@ -104,7 +106,7 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
                     this.child(
                         Label::new(status.clone())
                             .text_xs()
-                            .text_color(gpui_kit::hsla(0.0, 0.7, 0.5, 1.0)),
+                            .text_color(error),
                     )
                 }),)
             .children(cards),

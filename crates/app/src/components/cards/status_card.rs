@@ -1,3 +1,4 @@
+use crate::components::tone::{self, status_dot};
 use crate::i18n::tr;
 use gpui_kit::component::{
     group_box::{GroupBox, GroupBoxVariants},
@@ -10,14 +11,12 @@ pub fn status_card(
     running: bool,
     status: SharedString,
     dir: String,
-    muted: Hsla,
     toggle: impl IntoElement,
+    cx: &App,
 ) -> AnyElement {
-    let color = if running {
-        hsla(142.0 / 360.0, 0.76, 0.45, 1.0)
-    } else {
-        hsla(0.0, 0.70, 0.50, 1.0)
-    };
+    let muted = cx.theme().muted_foreground;
+    // A stopped service is not an error, so it gets the neutral dot.
+    let dot = if running { tone::ok(cx) } else { muted };
     GroupBox::new()
         .outline()
         .gap_4()
@@ -36,17 +35,14 @@ pub fn status_card(
                                 .h_flex()
                                 .items_center()
                                 .gap_2()
-                                .child(
-                                    div()
-                                        .text_sm()
-                                        .font_weight(FontWeight::BOLD)
-                                        .text_color(color)
-                                        .child(if running {
-                                            tr("ui-running")
-                                        } else {
-                                            tr("ui-stopped")
-                                        }),
-                                )
+                                .child(status_dot(dot))
+                                .child(div().text_sm().font_weight(FontWeight::MEDIUM).child(
+                                    if running {
+                                        tr("ui-running")
+                                    } else {
+                                        tr("ui-stopped")
+                                    },
+                                ))
                                 .child(Label::new(status).text_sm().text_color(muted)),
                         )
                         .child(

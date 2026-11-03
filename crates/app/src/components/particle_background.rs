@@ -118,7 +118,8 @@ impl ParticleField {
         self.pointer = None;
     }
 
-    pub(crate) fn canvas(&self) -> impl IntoElement + Styled + use<> {
+    /// `ink` is the theme's text color; dots use it at low opacity in both themes.
+    pub(crate) fn canvas(&self, ink: Hsla) -> impl IntoElement + Styled + use<> {
         let particles = self.particles.clone();
         let trail = self.trail.clone();
         let pointer = self.pointer;
@@ -149,6 +150,7 @@ impl ParticleField {
                     let alpha = (0.10 + proximity * 0.24) * quiet;
                     paint_dot(
                         window,
+                        ink,
                         bounds.origin + point(px(x), px(y)),
                         particle.radius,
                         alpha,
@@ -158,19 +160,25 @@ impl ParticleField {
                     let age = now.duration_since(point.created).as_secs_f32()
                         / TRAIL_LIFETIME.as_secs_f32();
                     let fade = (1. - age).clamp(0., 1.);
-                    paint_dot(window, point.position, 1. + fade * 1.4, fade * fade * 0.22);
+                    paint_dot(
+                        window,
+                        ink,
+                        point.position,
+                        1. + fade * 1.4,
+                        fade * fade * 0.22,
+                    );
                 }
             },
         )
     }
 }
 
-fn paint_dot(window: &mut Window, center: Point<Pixels>, radius: f32, alpha: f32) {
+fn paint_dot(window: &mut Window, ink: Hsla, center: Point<Pixels>, radius: f32, alpha: f32) {
     let bounds = Bounds::new(
         center - point(px(radius), px(radius)),
         size(px(radius * 2.), px(radius * 2.)),
     );
-    let mut dot = fill(bounds, hsla(0., 0., 0., alpha));
+    let mut dot = fill(bounds, ink.opacity(alpha));
     dot.corner_radii = px(radius).into();
     window.paint_quad(dot);
 }

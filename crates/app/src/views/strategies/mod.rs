@@ -98,7 +98,7 @@ pub fn render(
                     .child(
                         Label::new(tr("ui-dpi-bypass-strategies"))
                             .text_lg()
-                            .font_weight(FontWeight::BOLD),
+                            .font_weight(FontWeight::MEDIUM),
                     )
                     .child(Label::new(intro()).text_xs().text_color(muted)),
             )
