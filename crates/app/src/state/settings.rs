@@ -22,18 +22,6 @@ pub(crate) enum Preference {
 impl AppState {
     /// Change a preference using the same save/error path as the original UI.
     pub(crate) fn set_preference(&mut self, preference: Preference, value: bool) {
-        if self.profile_busy()
-            && matches!(
-                preference,
-                Preference::StartupZapret
-                    | Preference::StartupTelegram
-                    | Preference::Watchdog
-                    | Preference::AutoSwitch
-                    | Preference::DailyRetest
-            )
-        {
-            return;
-        }
         match preference {
             Preference::StartupZapret => self.settings.startup.zapret = value,
             Preference::StartupTelegram => self.settings.startup.telegram = value,

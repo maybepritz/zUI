@@ -21,7 +21,7 @@ Total uptime includes all application sessions, including time spent hidden.
 ## Responsibilities
 
 - `state/testing.rs`: capture the final diagnostic snapshot.
-- `state/strategies.rs`, `state/profiles.rs`: record strategy changes.
+- `state/strategies.rs`: record strategy changes.
 - `state/background.rs`: record watchdog recovery attempts and persist statistics.
 - `views/statistics/`: layout, relative-time formatting, summary and event rows.
 - `components/cards/stat_card.rs`: reusable metric presentation.

@@ -1,48 +1,6 @@
 # zUI UI messages. Keep message IDs and variable names unchanged.
 
-# Profiles and window-close dialogs
-profiles-title = Профили
-profiles-hint = Сохраняйте стратегию, DNS, запуск сервисов и автоматизацию в именованные профили.
-profiles-empty = Профилей пока нет. Настройте приложение и сохраните первый профиль.
-profile-create = Сохранить текущую конфигурацию
-profile-save = Сохранить профиль
-profile-rename = Переименовать
-profile-update = Обновить из текущих настроек
-profile-delete = Удалить профиль
-profile-apply = Применить
-profile-active = Применён
-profile-name = Название профиля
-profile-name-placeholder = Например: Дом или Работа
-profile-create-hint = Сохранятся выбранная стратегия, настройки запуска и автоматизации. При применении профиля сервисы запускаются или останавливаются согласно его переключателям запуска.
-profile-rename-hint = Изменится название; настройки и идентификатор профиля сохранятся.
-profile-update-hint = Заменить настройки профиля «{ $name }» текущей конфигурацией?
-profile-delete-hint = Удалить профиль «{ $name }»? Запущенные сервисы и текущая конфигурация сохранятся.
-profile-dns-label = DNS при применении профиля
-profile-dns-current = Сохранить текущий пресет
-profile-dns-keep = Не менять DNS
-profile-dns-automatic = Автоматически (DHCP)
-profile-details = Стратегия: { $strategy } · DNS: { $dns }
-profile-services = Сервисы при применении и запуске: Zapret { $zapret }, Telegram { $telegram }
-profile-on = включён
-profile-off = выключен
-profile-saved = Профиль сохранён
-profile-renamed = Профиль переименован
-profile-updated = Профиль обновлён. Примените его для активации сохранённой конфигурации.
-profile-deleted = Профиль удалён
-profile-applying = Применяется «{ $name }»… Ожидание DNS.
-profile-applied = Профиль «{ $name }» применён
-profile-modified = Конфигурация изменилась. Ни один сохранённый профиль сейчас не отмечен применённым.
-profile-apply-failed = Профиль применён не полностью: { $error }. Часть настроек могла измениться; проверьте текущую конфигурацию.
-profile-error-name = Введите название профиля
-profile-error-long-name = Название должно содержать не больше 80 символов
-profile-error-duplicate = Профиль с таким названием уже существует
-profile-error-busy = Дождитесь завершения настройки DNS, тестирования или установки.
-profile-error-strategy = Стратегия недоступна. Установите Zapret или обновите профиль.
-profile-error-missing = Этот профиль больше не существует
-profile-error-save = Не удалось сохранить профиль. Проверьте журнал и права на каталог данных.
-profile-error-dns = Сохранённый DNS-пресет недоступен. Обновите профиль.
-profile-error-admin = Запустите zUI от имени администратора для изменения DNS или запуска Zapret.
-profile-error-telegram = Перед применением профиля установите Telegram Proxy
+# Window-close dialog
 close-dialog-title = Закрыть zUI?
 close-dialog-hint = Скрытие оставляет zUI и сервисы работать в трее. Выход останавливает Zapret и Telegram Proxy и завершает приложение.
 close-hide = Скрыть в трей
@@ -782,7 +740,6 @@ tray-exit = Выход
 
 # Used in: root/lifecycle.rs
 window-close-tray-failed = Не удалось свернуть в трей. Для выхода выключите сворачивание или нажмите «Выйти из приложения».
-
 
 # Statistics: saved results and recent activity.
 statistics-intro = Последняя проверка, общее время работы и недавние события

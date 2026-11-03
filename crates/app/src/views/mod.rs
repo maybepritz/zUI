@@ -2,7 +2,6 @@ pub mod dns;
 pub mod home;
 pub mod logs;
 pub mod overlays;
-pub mod profiles;
 pub mod settings;
 pub mod statistics;
 pub mod strategies;

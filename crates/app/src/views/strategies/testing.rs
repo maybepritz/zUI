@@ -14,7 +14,7 @@ pub(super) fn test_section(
     cx: &mut Context<RootView>,
 ) -> impl IntoElement {
     let diag = &state.diagnostics;
-    let busy = diag.busy() || state.profile_busy();
+    let busy = diag.busy();
     let (done, total) = diag.progress();
     let has_best = diag.best().is_some();
     let is_admin = data.administrator;

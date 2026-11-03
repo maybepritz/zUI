@@ -20,7 +20,7 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
     let status = state.dns.status.clone();
     let muted = cx.theme().muted_foreground;
     let (warning, error) = (tone::warning(cx), tone::error(cx));
-    let busy = state.dns.busy() || state.profile_busy();
+    let busy = state.dns.busy();
     let doh_active = state.dns.manager.doh_active();
 
     let cards = presets()

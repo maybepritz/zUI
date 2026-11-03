@@ -11,17 +11,11 @@ fn msg_copied() -> String {
 
 impl RootView {
     pub(crate) fn on_install_telegram(&mut self, cx: &mut Context<Self>) {
-        if self.state.profile_busy() {
-            return;
-        }
         self.state.telegram.install();
         self.refresh_and_notify(cx);
     }
 
     pub(crate) fn on_toggle_telegram(&mut self, cx: &mut Context<Self>) {
-        if self.state.profile_busy() {
-            return;
-        }
         self.state.telegram.toggle();
         self.refresh_and_notify(cx);
     }
@@ -43,17 +37,11 @@ impl RootView {
     }
 
     pub(crate) fn on_fix_telegram_media(&mut self, cx: &mut Context<Self>) {
-        if self.state.profile_busy() {
-            return;
-        }
         self.state.telegram.fix_media(false);
         self.refresh_and_notify(cx);
     }
 
     pub(crate) fn on_clear_telegram_media(&mut self, cx: &mut Context<Self>) {
-        if self.state.profile_busy() {
-            return;
-        }
         self.state.telegram.fix_media(true);
         self.refresh_and_notify(cx);
     }

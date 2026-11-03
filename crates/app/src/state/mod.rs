@@ -3,7 +3,6 @@ mod background;
 mod events;
 mod lifecycle;
 mod preparation;
-mod profiles;
 mod reports;
 mod settings;
 mod startup;
@@ -22,7 +21,6 @@ use crate::controllers::{
 
 pub(crate) use background::Background;
 pub(crate) use preparation::PreparationStage;
-pub(crate) use profiles::{ProfileError, ProfileRuntime};
 pub(crate) use settings::Preference;
 
 pub(crate) struct AppState {
@@ -36,5 +34,4 @@ pub(crate) struct AppState {
     pub(crate) runtime_dir: PathBuf,
     pub(crate) diagnostics: DiagnosticsController,
     pub(crate) background: Background,
-    pub(crate) profiles: ProfileRuntime,
 }

@@ -1,5 +1,4 @@
 use crate::preferences::{Automation, Language, Notifications, StartupServices, ThemePreference};
-use crate::profiles::Profile;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -24,8 +23,6 @@ pub struct Settings {
     pub automation: Automation,
     pub last_seen_version: String,
     pub favorite_strategies: Vec<String>,
-    pub profiles: Vec<Profile>,
-    pub selected_profile_id: Option<String>,
 }
 
 impl Default for Settings {
@@ -44,8 +41,6 @@ impl Default for Settings {
             automation: Automation::default(),
             last_seen_version: String::new(),
             favorite_strategies: Vec::new(),
-            profiles: Vec::new(),
-            selected_profile_id: None,
         }
     }
 }
@@ -229,12 +224,10 @@ mod tests {
     }
 
     #[test]
-    fn existing_settings_ask_about_closing_and_start_without_profiles() {
+    fn existing_settings_ask_about_closing() {
         let settings = Settings::from_json(r#"{"onboarded":true,"close_to_tray":false}"#).unwrap();
         assert!(!settings.close_to_tray);
         assert!(!settings.remember_close_action);
-        assert!(settings.profiles.is_empty());
-        assert!(settings.selected_profile_id.is_none());
     }
 
     #[test]
@@ -252,52 +245,12 @@ mod tests {
     }
 
     #[test]
-    fn profile_dns_modes_and_identity_survive_serialization() {
-        use crate::profiles::ProfileDns;
-        for dns in [
-            ProfileDns::Keep,
-            ProfileDns::Automatic,
-            ProfileDns::Preset("cloudflare".into()),
-        ] {
-            let profile = Profile {
-                id: "stable-id".into(),
-                name: "Дом".into(),
-                strategy: "general.bat".into(),
-                dns: dns.clone(),
-                startup: StartupServices {
-                    zapret: true,
-                    telegram: false,
-                },
-                automation: Automation {
-                    watchdog: true,
-                    ..Default::default()
-                },
-            };
-            let settings = Settings {
-                profiles: vec![profile],
-                selected_profile_id: Some("stable-id".into()),
-                ..Default::default()
-            };
-            let loaded = Settings::from_json(&serde_json::to_string(&settings).unwrap()).unwrap();
-            assert_eq!(loaded.selected_profile_id.as_deref(), Some("stable-id"));
-            assert_eq!(loaded.profiles[0].dns, dns);
-            assert_eq!(loaded.profiles[0].name, "Дом");
-            assert_eq!(loaded.profiles[0].strategy, "general.bat");
-            assert!(loaded.profiles[0].startup.zapret);
-            assert!(loaded.profiles[0].automation.watchdog);
-        }
-    }
-
-    #[test]
-    fn older_profile_records_default_to_keeping_dns() {
-        use crate::profiles::ProfileDns;
+    fn settings_saved_with_removed_profiles_still_load() {
         let settings = Settings::from_json(
-            r#"{"profiles":[{"id":"old","name":"Home","strategy":"general.bat"}]}"#,
+            r#"{"onboarded":true,"selected_strategy":"general.bat","profiles":[{"id":"old","name":"Home"}],"selected_profile_id":"old"}"#,
         )
         .unwrap();
-        assert_eq!(settings.profiles[0].dns, ProfileDns::Keep);
-        assert!(!settings.profiles[0].startup.zapret);
-        assert!(!settings.profiles[0].automation.watchdog);
+        assert_eq!(settings.selected_strategy, "general.bat");
     }
 
     #[test]

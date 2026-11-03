@@ -3,7 +3,6 @@ pub mod download;
 pub mod log;
 pub mod paths;
 pub mod preferences;
-pub mod profiles;
 pub mod recovery;
 pub mod report;
 pub mod services;

@@ -73,10 +73,9 @@ impl DnsController {
         });
     }
 
-    pub fn poll(&mut self) -> Option<Result<(), String>> {
+    pub fn poll(&mut self) {
         match self.job.poll() {
             JobPoll::Done(done) => {
-                let outcome = done.result.clone();
                 self.manager = done.manager;
                 self.active_name = dns_name(&self.manager);
                 let mut message = match done.result {
@@ -90,15 +89,13 @@ impl DnsController {
                 }
                 self.log.add(message.to_string());
                 self.status = message;
-                Some(outcome)
             }
             JobPoll::Lost => {
                 let message = crate::i18n::text("dns-interrupted");
                 self.log.add(message.to_string());
                 self.status = message;
-                Some(Err(crate::i18n::tr("dns-interrupted")))
             }
-            JobPoll::Pending => None,
+            JobPoll::Pending => {}
         }
     }
 }

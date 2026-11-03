@@ -13,8 +13,7 @@ pub(super) struct TestRun {
 
 impl AppState {
     pub fn start_test(&mut self, automatic: bool) {
-        if self.profile_busy()
-            || self.diagnostics.busy()
+        if self.diagnostics.busy()
             || self.zapret.installing()
             || matches!(self.update.state, UpdateState::Installing)
             || !z_core::dns::is_elevated()

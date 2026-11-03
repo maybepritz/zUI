@@ -62,17 +62,11 @@ impl RootView {
     }
 
     pub(crate) fn on_install_zapret(&mut self, cx: &mut Context<Self>) {
-        if self.state.profile_busy() {
-            return;
-        }
         self.state.zapret.install();
         self.refresh_and_notify(cx);
     }
 
     pub(crate) fn on_toggle_zapret(&mut self, cx: &mut Context<Self>) {
-        if self.state.profile_busy() {
-            return;
-        }
         self.state.zapret.toggle();
         self.refresh_and_notify(cx);
     }

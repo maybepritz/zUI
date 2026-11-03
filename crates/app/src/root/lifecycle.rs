@@ -102,7 +102,6 @@ impl RootView {
         {
             self.state.zapret.reload_strategies();
         }
-        self.state.reconcile_profile();
         self.view_data = super::view_data::ViewData::read(&mut self.state);
     }
 

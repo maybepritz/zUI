@@ -61,7 +61,6 @@ impl AppState {
         self.poll_update_events();
 
         let checking_allowed = self.settings.onboarded
-            && !self.profile_busy()
             && !self.diagnostics.busy()
             && !self.zapret.installing()
             && !matches!(self.update.state, UpdateState::Installing);
@@ -89,9 +88,6 @@ impl AppState {
     }
 
     fn poll_watchdog(&mut self) {
-        if self.profile_busy() {
-            return;
-        }
         if !self.settings.automation.watchdog
             || !self.zapret.wanted_running
             || self.zapret.locked

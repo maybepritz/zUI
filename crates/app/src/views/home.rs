@@ -46,7 +46,7 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
                 Button::new("main-toggle")
                     .primary()
                     .large()
-                    .disabled(installing || state.zapret.locked || state.profile_busy())
+                    .disabled(installing || state.zapret.locked)
                     .label(if running {
                         tr("ui-stop-zapret")
                     } else {
@@ -83,9 +83,6 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
                         nav_button("go-telegram", tr("ui-configure-proxy"), Tab::Telegram, cx),
                     )),
             )
-            .when(crate::release::PROFILES_VISIBLE, |page| {
-                page.child(crate::views::profiles::render(state, cx))
-            })
             .child(log_preview(recent, cx)),
     )
 }

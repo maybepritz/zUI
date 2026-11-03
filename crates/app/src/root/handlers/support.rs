@@ -27,9 +27,6 @@ impl RootView {
     }
 
     pub(crate) fn on_update_zapret(&mut self, cx: &mut Context<Self>) {
-        if self.state.profile_busy() {
-            return;
-        }
         self.state.zapret.update();
         self.refresh_and_notify(cx);
     }

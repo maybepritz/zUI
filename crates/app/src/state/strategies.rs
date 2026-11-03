@@ -6,9 +6,6 @@ use crate::notifications::EventKind;
 impl AppState {
     /// Switch through the controller before persisting the choice and statistics.
     pub fn select_strategy(&mut self, index: usize) {
-        if self.profile_busy() {
-            return;
-        }
         let previous = self.settings.selected_strategy.clone();
         if let Some(file) = self.zapret.select(index) {
             self.settings.selected_strategy = file.clone();

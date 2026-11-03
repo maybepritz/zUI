@@ -9190,7 +9190,6 @@ dependencies = [
  "notify-rust",
  "raw-window-handle",
  "rust-embed",
- "uuid",
  "windows 0.62.2",
  "winreg 0.52.0",
  "winresource",

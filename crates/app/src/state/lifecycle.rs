@@ -53,7 +53,6 @@ impl AppState {
         update.check();
         zapret.check_update();
         Self {
-            profiles: Default::default(),
             background: Background::new(statistics),
             zapret,
             diagnostics: DiagnosticsController::new(log.clone()),
@@ -68,10 +67,6 @@ impl AppState {
     }
 
     pub fn shutdown(&mut self) {
-        if self.profile_busy() {
-            self.settings.selected_profile_id = None;
-            self.save_settings();
-        }
         self.dns.shutdown();
         self.diagnostics.shutdown();
         self.persist_statistics();
@@ -86,14 +81,12 @@ impl AppState {
 
     pub fn poll(&mut self) {
         self.zapret.poll();
-        let dns_result = self.dns.poll();
+        self.dns.poll();
         self.telegram.poll();
         self.update.poll();
         if let Some(completed) = self.diagnostics.poll(&mut self.zapret) {
             self.finish_test(completed);
         }
-        self.poll_profile(dns_result);
         self.poll_background();
-        self.reconcile_profile();
     }
 }

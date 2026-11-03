@@ -33,7 +33,7 @@ pub fn render(
     let current = state.zapret.selected_index;
     let muted = cx.theme().muted_foreground;
     let scores = &data.scores;
-    let locked = state.zapret.locked || state.zapret.installing() || state.profile_busy();
+    let locked = state.zapret.locked || state.zapret.installing();
     let total = state.zapret.strategies.len();
     let query = filters.query.to_lowercase();
     let terms: Vec<_> = query.split_whitespace().collect();

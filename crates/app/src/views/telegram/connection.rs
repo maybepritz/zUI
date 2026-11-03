@@ -16,7 +16,7 @@ pub(super) fn connection_section(
 ) -> impl IntoElement {
     let tg = &state.telegram;
     let installed = data.telegram_installed;
-    let busy = tg.installing() || state.profile_busy();
+    let busy = tg.installing();
     let ready = tg.proxy.ready;
 
     let install_label = if tg.installing() {

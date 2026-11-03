@@ -9,7 +9,6 @@ gpui-kit = "0.7"
 notify-rust = "4"
 rust-embed = "8.5"
 winreg = "0.52"
-uuid = { version = "1", features = ["v4"] }
 z-core = { path = "../z-core" }
 
 [target.'cfg(windows)'.dependencies]

@@ -2,7 +2,6 @@
 mod dns;
 mod navigation;
 pub(super) mod onboarding;
-mod profiles;
 mod settings;
 mod strategies;
 mod support;
