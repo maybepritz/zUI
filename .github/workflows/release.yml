@@ -1,0 +1,47 @@
+# Builds the Windows ZIP for a version tag like v0.1.1 and attaches it to a draft release.
+# The draft lets you paste the CHANGELOG notes and publish it by hand.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - uses: Swatinem/rust-cache@v2
+
+      # The updater compares this number, so the tag must match Cargo.toml.
+      - name: Check tag matches the version
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path Cargo.toml -Pattern '^version = "(.+)"').Matches[0].Groups[1].Value
+          if ("v$version" -ne "${{ github.ref_name }}") {
+            throw "Tag ${{ github.ref_name }} does not match Cargo.toml version $version"
+          }
+
+      - name: Build
+        run: cargo build --release --locked --target x86_64-pc-windows-msvc -p zUI --bin zUI
+
+      # Same archive name and contents as docs/releases.md; the updater looks for it.
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
+          Compress-Archive -LiteralPath @('target/x86_64-pc-windows-msvc/release/zUI.exe', 'LICENSE') -DestinationPath dist/zUI-x86_64-pc-windows-msvc.zip -Force
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: zUI ${{ github.ref_name }}
+          files: dist/zUI-x86_64-pc-windows-msvc.zip

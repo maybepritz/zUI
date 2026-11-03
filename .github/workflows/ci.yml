@@ -1,0 +1,30 @@
+# Checks every push and pull request to main: build, lints, tests and translations.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      # Reuses compiled dependencies between runs; the first run takes the longest.
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Tests
+        run: cargo test -p z-core -p z-i18n --locked
+
+      - name: Translations
+        run: cargo run -p z-i18n --bin check-locales --locked
