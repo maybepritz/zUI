@@ -35,12 +35,9 @@ target, который использует GitHub-updater.
 
 ## Перед публикацией
 
-Ниже обязательные проверки, пока **не выполненные автоматически** в этой подготовке:
+Сборку, clippy, тесты и проверку переводов на каждый пуш в `main` выполняет
+GitHub Actions (`.github/workflows/ci.yml`). Вручную остаётся проверить в приложении:
 
-- [ ] `cargo check --workspace --all-targets --locked`.
-- [ ] `cargo test -p z-core -p z-i18n --locked`.
-- [ ] `cargo run -p z-i18n --bin check-locales --locked`.
-- [ ] Сборка Windows x64 в release-режиме.
 - [ ] Первый запуск из чистой папки и запуск с настройками от 0.0.4.
 - [ ] Избранное после перезапуска, поиск, фильтры и выбор нужной стратегии.
 - [ ] Скролл над карточками и свободными боковыми полями.
@@ -51,19 +48,22 @@ target, который использует GitHub-updater.
 - [ ] Обновление с предыдущего релиза из архива с указанным именем и структурой.
 - [ ] В архиве есть LICENSE и нет runtime, настроек, журналов, секретов и отладочных символов.
 
-## Сборка и упаковка
+## Сборка и публикация
 
-В PowerShell из корня проекта:
+Релиз собирается сам (`.github/workflows/release.yml`): когда в `main` попадает
+коммит с новой версией в `Cargo.toml`, GitHub собирает ZIP, ставит тег
+`v<версия>` и создаёт черновик GitHub Release с архивом. Если тег уже есть,
+ничего не происходит. Перенесите заметки из [CHANGELOG](../CHANGELOG.md) в черновик,
+проверьте архив и опубликуйте. Повторить сборку можно кнопкой Run workflow на
+вкладке Actions.
+
+Собрать архив вручную, без GitHub, можно в PowerShell из корня проекта:
 
 ```powershell
 cargo build --release --locked --target x86_64-pc-windows-msvc -p zUI --bin zUI
 New-Item -ItemType Directory -Path dist -Force
 Compress-Archive -LiteralPath @('target/x86_64-pc-windows-msvc/release/zUI.exe', 'LICENSE') -DestinationPath dist/zUI-x86_64-pc-windows-msvc.zip -Force
 ```
-
-Затем проверьте архив, перенесите заметки из [CHANGELOG](../CHANGELOG.md) в тело
-GitHub Release, создайте тег `v0.1.0` и приложите ZIP. Эти действия выполняются
-после успешных проверок; эта подготовка не создаёт тег и не публикует релиз.
 
 ## Следующий выпуск
 
@@ -72,4 +72,4 @@ GitHub Release, создайте тег `v0.1.0` и приложите ZIP. Эт
 3. Обновите `whats-new-summary`, `whats-new-footer` и `whats-new-notes` во всех языках.
 4. Сохраните формат заголовков `##` и пунктов `-` для карточек экрана изменений.
 5. Обновите README, CHANGELOG и этот документ.
-6. Выполните проверки выше.
+6. Выполните проверки выше и запушьте в `main`: черновик релиза появится сам.

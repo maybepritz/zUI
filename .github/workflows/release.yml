@@ -1,16 +1,44 @@
-# Builds the Windows ZIP for a version tag like v0.1.1 and attaches it to a draft release.
-# The draft lets you paste the CHANGELOG notes and publish it by hand.
+# Releases a new version when the version in Cargo.toml changes on main.
+# If the tag v<version> does not exist yet, it builds the Windows ZIP, creates the
+# tag and attaches the ZIP to a draft release that you publish by hand.
 name: Release
 
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths:
+      - Cargo.toml
+      - .github/workflows/release.yml
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      new: ${{ steps.version.outputs.new }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Other edits to Cargo.toml keep the same version, so an existing tag means nothing to do.
+      - id: version
+        run: |
+          version=$(grep -m1 '^version = ' Cargo.toml | cut -d'"' -f2)
+          tag="v$version"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "$tag already exists, nothing to release"
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
+    needs: version
+    if: needs.version.outputs.new == 'true'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,15 +48,6 @@ jobs:
           targets: x86_64-pc-windows-msvc
 
       - uses: Swatinem/rust-cache@v2
-
-      # The updater compares this number, so the tag must match Cargo.toml.
-      - name: Check tag matches the version
-        shell: pwsh
-        run: |
-          $version = (Select-String -Path Cargo.toml -Pattern '^version = "(.+)"').Matches[0].Groups[1].Value
-          if ("v$version" -ne "${{ github.ref_name }}") {
-            throw "Tag ${{ github.ref_name }} does not match Cargo.toml version $version"
-          }
 
       - name: Build
         run: cargo build --release --locked --target x86_64-pc-windows-msvc -p zUI --bin zUI
@@ -40,8 +59,15 @@ jobs:
           New-Item -ItemType Directory -Path dist -Force | Out-Null
           Compress-Archive -LiteralPath @('target/x86_64-pc-windows-msvc/release/zUI.exe', 'LICENSE') -DestinationPath dist/zUI-x86_64-pc-windows-msvc.zip -Force
 
+      # Tag only after a successful build, so a failed run can simply be retried.
+      - name: Tag
+        run: |
+          git tag ${{ needs.version.outputs.tag }}
+          git push origin ${{ needs.version.outputs.tag }}
+
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.version.outputs.tag }}
+          name: zUI ${{ needs.version.outputs.tag }}
           draft: true
-          name: zUI ${{ github.ref_name }}
           files: dist/zUI-x86_64-pc-windows-msvc.zip
