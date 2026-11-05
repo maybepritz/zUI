@@ -58,8 +58,7 @@ impl Health {
     }
 
     pub fn save(&self, path: &Path) -> anyhow::Result<()> {
-        fs::write(path, serde_json::to_vec(self)?)?;
-        Ok(())
+        crate::storage::save_json(path, self)
     }
 
     /// Последние сутки корзин сервиса, от старых к новым.

@@ -1,3 +1,4 @@
+pub mod clock;
 pub mod dns;
 pub mod download;
 pub mod health;
@@ -10,6 +11,7 @@ pub mod report;
 pub mod services;
 pub mod settings;
 pub mod statistics;
+pub(crate) mod storage;
 pub mod telegram;
 pub mod updater;
 pub mod zapret;

@@ -34,7 +34,7 @@ impl TelegramProxy {
         } else {
             json!(["4:149.154.167.220"])
         };
-        crate::settings::save_json(&path, &config)
+        crate::storage::save_json(&path, &config)
     }
 }
 

@@ -70,7 +70,7 @@ impl TelegramProxy {
         }
         let path = self.config_path();
         if !path.exists() {
-            crate::settings::save_json(
+            crate::storage::save_json(
                 &path,
                 &json!({
                     "host": "127.0.0.1", "port": 1443, "secret": new_secret()?,

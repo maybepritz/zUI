@@ -82,7 +82,7 @@ impl AppState {
             .background
             .statistics
             .last_retest
-            .is_none_or(|last| statistics::now().saturating_sub(last) >= RETEST_INTERVAL);
+            .is_none_or(|last| z_core::clock::now().saturating_sub(last) >= RETEST_INTERVAL);
         let preferences = &self.settings.automation;
         let should_retest = (preferences.auto_switch && self.background.services.degraded)
             || (preferences.daily_retest && daily_due);
@@ -116,7 +116,7 @@ impl AppState {
             return;
         }
         self.background.stable_since = None;
-        if !self.background.restart_budget.allow(statistics::now()) {
+        if !self.background.restart_budget.allow(z_core::clock::now()) {
             return;
         }
         let restarted = self.zapret.start();

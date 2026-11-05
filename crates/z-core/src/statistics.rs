@@ -1,19 +1,9 @@
 //! Сохраняемые счётчики, последний результат диагностики и ограниченная история событий.
-use crate::settings::Recovery;
+use crate::{clock::now, storage::Recovery};
 use serde::{Deserialize, Serialize};
-use std::{
-    path::Path,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::path::Path;
 
 pub const HISTORY_LIMIT: usize = 100;
-
-pub fn now() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs()
-}
 
 /// Сохранённый результат диагностики; текущее состояние связи он не описывает.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -82,11 +72,11 @@ impl Statistics {
     /// Загружает статистику; нечитаемый файл откладывается, пробуется резервная копия,
     /// и только потом пустая статистика.
     pub fn load(path: &Path) -> (Self, Option<Recovery>) {
-        crate::settings::load_recovering(path, Self::read)
+        crate::storage::load_recovering(path, Self::read)
     }
 
     pub fn save(&self, path: &Path) -> anyhow::Result<()> {
-        crate::settings::save_with_backup(path, self, Self::read)
+        crate::storage::save_with_backup(path, self, Self::read)
     }
 
     /// `Ok(None)`, если файла ещё нет.

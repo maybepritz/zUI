@@ -114,7 +114,7 @@ pub(super) fn move_into_place(staging: &Path, dir: &Path) -> Result<()> {
     }
     let backup = dir.with_file_name(format!(
         "zapret.bak-{}-{}",
-        crate::statistics::now(),
+        crate::clock::now(),
         std::process::id(),
     ));
     if backup.exists() {
@@ -142,7 +142,7 @@ mod tests {
         let root = std::env::temp_dir().join(format!(
             "zui-install-rollback-{}-{}",
             std::process::id(),
-            crate::statistics::now(),
+            crate::clock::now(),
         ));
         let installed = root.join("zapret");
         fs::create_dir_all(&installed).unwrap();

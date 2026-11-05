@@ -42,7 +42,7 @@ impl AppState {
         if self.diagnostics.busy() {
             self.background.test = Some(run);
             self.background.next_retest = Instant::now() + Duration::from_secs(30 * 60);
-            self.background.statistics.last_retest = Some(z_core::statistics::now());
+            self.background.statistics.last_retest = Some(z_core::clock::now());
             self.persist_statistics();
         }
     }
@@ -52,7 +52,7 @@ impl AppState {
             return;
         };
         self.background.statistics.record_test(TestSummary {
-            finished_at: z_core::statistics::now(),
+            finished_at: z_core::clock::now(),
             completed,
             strategies_tested: self.diagnostics.results.len(),
             best: self.diagnostics.best().map(|score| StrategyResult {

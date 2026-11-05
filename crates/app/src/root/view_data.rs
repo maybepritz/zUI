@@ -49,7 +49,7 @@ impl ViewData {
             administrator: z_core::dns::is_elevated(),
             scores: state.diagnostics.rows(),
             logs: state.log.get(),
-            now: z_core::statistics::now(),
+            now: z_core::clock::now(),
         }
     }
 }

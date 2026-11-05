@@ -1,5 +1,5 @@
 use super::{model::*, presets::presets, scripts::*, system::*};
-use crate::statistics::now;
+use crate::clock::now;
 use anyhow::{Result, anyhow, bail};
 use serde_json::json;
 use std::{fs, path::PathBuf};
@@ -62,7 +62,7 @@ impl DnsManager {
 
     fn save(&self) -> Result<()> {
         self.check_loaded()?;
-        crate::settings::save_json(&self.path, &self.state)
+        crate::storage::save_json(&self.path, &self.state)
     }
 
     fn check_loaded(&self) -> Result<()> {

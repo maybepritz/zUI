@@ -134,7 +134,7 @@ pub fn check(ids: &[String]) -> anyhow::Result<CheckBatch> {
         Ok(CheckBatch {
             checks,
             internet_available: control.connected(),
-            checked_at: crate::statistics::now(),
+            checked_at: crate::clock::now(),
         })
     })
 }
