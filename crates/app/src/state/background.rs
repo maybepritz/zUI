@@ -1,8 +1,9 @@
 use std::time::{Duration, Instant};
 
 use z_core::{
+    health::Health,
     recovery::RestartBudget,
-    statistics::{self, Statistics},
+    statistics::{self, Statistics, StatisticsEventKind},
 };
 
 use super::{AppState, testing::TestRun};
@@ -18,6 +19,8 @@ const RETEST_INTERVAL: u64 = 24 * 60 * 60;
 pub struct Background {
     pub services: ServicesController,
     pub statistics: Statistics,
+    /// История доступности сервисов для графика на главной.
+    pub health: Health,
     pub hidden: bool,
     pub(super) test: Option<TestRun>,
     pub(super) next_retest: Instant,
@@ -29,11 +32,12 @@ pub struct Background {
 }
 
 impl Background {
-    pub fn new(statistics: Statistics) -> Self {
+    pub fn new(statistics: Statistics, health: Health) -> Self {
         let now = Instant::now();
         Self {
             services: ServicesController::new(),
             statistics,
+            health,
             hidden: false,
             test: None,
             next_retest: now + CHECK_INTERVAL,
@@ -64,10 +68,14 @@ impl AppState {
             && !self.diagnostics.busy()
             && !self.zapret.installing()
             && !matches!(self.update.state, UpdateState::Installing);
-        self.background.services.poll(
+        // Проверяем, пока работает обход (для главной) или включено автопереключение.
+        let fresh = self.background.services.poll(
             &self.settings.automation.services,
-            checking_allowed && self.settings.automation.auto_switch,
+            checking_allowed && (self.zapret.is_running() || self.settings.automation.auto_switch),
         );
+        if fresh {
+            self.record_health();
+        }
         self.poll_watchdog();
 
         let daily_due = self
@@ -150,12 +158,32 @@ impl AppState {
         }
     }
 
+    /// Записывает свежую проверку в историю, а закончившиеся сбои — в события.
+    fn record_health(&mut self) {
+        let Some(batch) = &self.background.services.result else {
+            return;
+        };
+        for outage in self.background.health.record(batch) {
+            self.background
+                .statistics
+                .record_event(StatisticsEventKind::ServiceDown {
+                    service: outage.service,
+                    from: outage.from,
+                    to: outage.to,
+                });
+        }
+    }
+
     pub(super) fn persist_statistics(&mut self) {
         self.background.record_uptime();
         self.background.last_save = Instant::now();
         let path = self.data_dir().join("statistics.json");
         if let Err(error) = self.background.statistics.save(&path) {
             self.log.add(format!("Statistics: {error:#}"));
+        }
+        let path = self.data_dir().join("health.json");
+        if let Err(error) = self.background.health.save(&path) {
+            self.log.add(format!("Health: {error:#}"));
         }
     }
 }

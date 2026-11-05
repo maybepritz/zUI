@@ -48,12 +48,15 @@ impl ServicesController {
         });
     }
 
-    pub fn poll(&mut self, ids: &[String], enabled: bool) {
+    /// Возвращает `true`, когда пришёл новый результат проверки.
+    pub fn poll(&mut self, ids: &[String], enabled: bool) -> bool {
+        let mut fresh = false;
         match self.job.poll() {
             JobPoll::Done((generation, _)) if generation != self.generation => {}
             JobPoll::Done((_, Ok(result))) => {
                 self.degraded = self.tracker.observe(&result);
                 self.result = Some(result);
+                fresh = true;
             }
             JobPoll::Done((_, Err(error))) => {
                 self.error = Some(error);
@@ -68,6 +71,7 @@ impl ServicesController {
         if enabled && Instant::now() >= self.next_check {
             self.check(ids);
         }
+        fresh
     }
 
     pub fn reset(&mut self) {

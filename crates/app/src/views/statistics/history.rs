@@ -31,6 +31,22 @@ pub(super) fn render(stats: &Statistics, now: u64, cx: &App) -> Div {
                     "statistics-event-cancelled"
                 }),
             ),
+            StatisticsEventKind::ServiceDown { service, from, to } => (
+                IconName::TriangleAlert,
+                tr_args(
+                    "statistics-event-service-down",
+                    &[
+                        (
+                            "service",
+                            z_core::services::name(service).to_string().into(),
+                        ),
+                        (
+                            "duration",
+                            super::formatting::duration(to.saturating_sub(*from)).into(),
+                        ),
+                    ],
+                ),
+            ),
             StatisticsEventKind::Recovery { restarted } => (
                 IconName::RotateCcw,
                 tr(if *restarted {

@@ -53,6 +53,11 @@ pub const SERVICES: &[Service] = &[
     service("spotify", "Spotify", "https://open.spotify.com", Fix::Dns),
 ];
 
+/// Название сервиса для интерфейса; неизвестный id возвращается как есть.
+pub fn name(id: &str) -> &str {
+    SERVICES.iter().find(|s| s.id == id).map_or(id, |s| s.name)
+}
+
 /// Сервисы, которые проверяются по умолчанию.
 pub const DEFAULT_IDS: [&str; 2] = ["youtube", "discord"];
 

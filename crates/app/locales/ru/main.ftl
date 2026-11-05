@@ -770,6 +770,7 @@ statistics-event-test = Проверка стратегий завершена
 statistics-event-cancelled = Проверка стратегий прервана
 statistics-event-recovered = winws автоматически перезапущен
 statistics-event-recovery-failed = Не удалось автоматически перезапустить winws
+statistics-event-service-down = { $service } не открывался { $duration }
 
 # Startup: real preparation stages shown before the main interface.
 startup-settings = Загружаем настройки…

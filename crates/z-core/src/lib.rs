@@ -1,5 +1,6 @@
 pub mod dns;
 pub mod download;
+pub mod health;
 pub mod log;
 mod net;
 pub mod paths;

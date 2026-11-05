@@ -29,3 +29,12 @@ Total uptime includes all application sessions, including time spent hidden.
 Events store typed data rather than translated sentences. Their descriptions are formatted
 using the currently selected language. Add matching keys and variables to both bundled
 `locales/en/main.ftl` and `locales/ru/main.ftl` when extending this screen.
+
+## Service availability
+
+`crates/z-core/src/health.rs` keeps the last day of service checks in `health.json` next to
+`statistics.json`. Checks run every minute while the bypass is running or automatic switching
+is on; results are folded into 15-minute buckets (successes, failures, summed latency).
+A check without internet is skipped. When a service opens again after failing, the outage is
+recorded as a `ServiceDown` event in the statistics history. Losing `health.json` only resets
+the chart, so it has no backup.

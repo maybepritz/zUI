@@ -53,7 +53,10 @@ impl AppState {
         update.check();
         zapret.check_update();
         Self {
-            background: Background::new(statistics),
+            background: Background::new(
+                statistics,
+                z_core::health::Health::load(&data_dir.join("health.json")),
+            ),
             zapret,
             diagnostics: DiagnosticsController::new(log.clone()),
             dns,

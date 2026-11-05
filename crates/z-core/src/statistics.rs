@@ -49,9 +49,21 @@ pub struct StatisticsEvent {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum StatisticsEventKind {
-    StrategyChanged { strategy: String },
-    TestFinished { completed: bool },
-    Recovery { restarted: bool },
+    StrategyChanged {
+        strategy: String,
+    },
+    TestFinished {
+        completed: bool,
+    },
+    Recovery {
+        restarted: bool,
+    },
+    /// Сервис не открывался с `from` до `to`, unix-секунды.
+    ServiceDown {
+        service: String,
+        from: u64,
+        to: u64,
+    },
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

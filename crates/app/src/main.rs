@@ -42,7 +42,8 @@ gpui_kit::assets::icon_assets!(
         ArrowRight,
         Clock,
         ArrowRightLeft,
-        Activity
+        Activity,
+        TriangleAlert
     ]
 );
 

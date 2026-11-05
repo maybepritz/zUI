@@ -105,6 +105,10 @@ impl Settings {
         if legacy {
             settings.onboarded = true;
         }
+        // До 0.1.2 по умолчанию проверялись только AI-сервисы с геоблоком.
+        if settings.automation.services == ["chatgpt", "claude", "gemini"] {
+            settings.automation.services = crate::services::DEFAULT_IDS.map(str::to_owned).to_vec();
+        }
         if legacy_theme {
             settings.theme = if settings.dark_theme {
                 ThemePreference::Dark

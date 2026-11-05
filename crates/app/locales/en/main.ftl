@@ -768,6 +768,7 @@ statistics-event-test = Strategy check completed
 statistics-event-cancelled = Strategy check interrupted
 statistics-event-recovered = winws automatically restarted
 statistics-event-recovery-failed = Could not automatically restart winws
+statistics-event-service-down = { $service } was unreachable for { $duration }
 
 # Startup: real preparation stages shown before the main interface.
 startup-settings = Loading settings…
