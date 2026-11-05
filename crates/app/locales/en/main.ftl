@@ -43,7 +43,7 @@ ui-home = Home
 # Used in: root/navigation.rs
 ui-strategies = Strategies
 
-# Used in: root/navigation.rs, views/statistics.rs
+# Used in: root/navigation.rs, views/statistics/
 ui-statistics = Statistics
 
 # Used in: root/navigation.rs
@@ -91,34 +91,34 @@ ui-event-log = Event log
 # Used in: views/logs.rs
 ui-clear-log = Clear log
 
-# Used in: views/statistics.rs
+# Used in: i18n/time.rs
 ui-just-now = just now
 
-# Used in: views/statistics.rs
+# Used in: views/statistics/
 ui-not-yet = Not yet
 
-# Used in: views/statistics.rs
+# Used in: views/statistics/
 ui-zui-uptime = Total uptime
 
-# Used in: views/statistics.rs
+# Used in: views/statistics/
 ui-last-successful-test = Last successful test
 
-# Used in: views/statistics.rs
+# Used in: views/statistics/
 ui-strategy-changes = Strategy changes
 
-# Used in: views/statistics.rs
+# Used in: views/statistics/
 ui-winws-restarts = Automatic restarts
 
-# Used in: components/cards/banner.rs
+# Used in: components/cards/install_card.rs
 ui-zapret-is-not-installed = Zapret is not installed
 
-# Used in: components/cards/banner.rs
+# Used in: components/cards/install_card.rs
 ui-the-latest-zapret-discord-youtube-release-will = The latest zapret-discord-youtube release will be downloaded into the runtime folder.
 
-# Used in: components/cards/banner.rs
+# Used in: components/cards/install_card.rs
 ui-installing = Installing…
 
-# Used in: components/cards/banner.rs
+# Used in: components/cards/install_card.rs
 ui-install-zapret = Install Zapret
 
 # Used in: components/cards/update_banner.rs
@@ -241,10 +241,10 @@ ui-notifications-appear-when-the-window-is-minimized = Notifications appear when
 # Used in: views/settings/behavior.rs, views/overlays/onboarding/mod.rs
 ui-startup = Startup
 
-# Used in: views/settings/behavior.rs, views/overlays/onboarding/services.rs
+# Used in: views/settings/behavior.rs, views/overlays/onboarding/components.rs
 ui-start-zapret-with-zui = Start Zapret with zUI
 
-# Used in: views/settings/behavior.rs, views/overlays/onboarding/services.rs
+# Used in: views/settings/behavior.rs, views/overlays/onboarding/components.rs
 ui-start-telegram-proxy-with-zui = Start Telegram proxy with zUI
 
 # Used in: views/settings/behavior.rs
@@ -296,7 +296,7 @@ ui-failed-to-start = failed to start
 ui-select = Select
 
 # Used in: views/strategies/card.rs
-ui-running-2 = Running
+strategy-running = Running
 
 # Used in: views/strategies/card.rs
 ui-selected = Selected
@@ -328,7 +328,7 @@ ui-select-best = Select best
 # Used in: views/telegram/connection.rs
 ui-downloading = Downloading…
 
-# Used in: views/telegram/connection.rs, views/overlays/onboarding/services.rs
+# Used in: views/telegram/connection.rs, views/overlays/onboarding/components.rs
 ui-installed = Installed
 
 # Used in: views/telegram/connection.rs
@@ -412,10 +412,10 @@ ui-viewing-and-telegram-proxy-work-without-elevation = Viewing and Telegram prox
 # Used in: views/overlays/onboarding/permissions.rs
 ui-restart-as-administrator = Restart as administrator
 
-# Used in: views/overlays/onboarding/services.rs
+# Used in: views/overlays/onboarding/components.rs
 ui-install = Install
 
-# Used in: views/overlays/onboarding/services.rs
+# Used in: views/overlays/onboarding/components.rs
 ui-telegram-proxy = Telegram proxy
 
 # Used in: views/overlays/onboarding/startup.rs
@@ -542,7 +542,7 @@ update-error = Update error: { $error }
 # Used in: components/cards/update_banner.rs, controllers/zapret/poll.rs
 zapret-update-available = New Zapret version available: { $version }
 
-# Used in: components/cards/status_card.rs, views/telegram/files.rs
+# Used in: views/telegram/files.rs
 data-directory = Directory: { $directory }
 
 # Used in: views/strategies/testing.rs
@@ -560,7 +560,7 @@ test-score = { $passed }/{ $total }, { $latency } ms
 # Used in: root/lifecycle.rs
 tray-unavailable = Tray unavailable: { $error }. Use the button in Settings to exit.
 
-# Used in: platform/startup.rs
+# Used in: platform/autostart.rs
 uac-launch-failed = UAC: launch cancelled or unavailable ({ $code })
 
 # Used in: controllers/telegram.rs
@@ -629,16 +629,16 @@ strategy-changed = Strategy changed: { $strategy }
 # Used in: state/background.rs
 update-ready-version = Update ready. Restart the app: { $version }
 
-# Used in: views/statistics.rs
+# Used in: i18n/time.rs
 duration-days-hours = { $days } d { $hours } h
 
-# Used in: views/statistics.rs
+# Used in: i18n/time.rs
 duration-hours-minutes = { $hours } h { $minutes } min
 
-# Used in: views/statistics.rs
+# Used in: i18n/time.rs
 duration-minutes = { $minutes } min
 
-# Used in: views/statistics.rs
+# Used in: i18n/time.rs
 time-ago = { $duration } ago
 
 # Used in: views/dns/preset_card.rs

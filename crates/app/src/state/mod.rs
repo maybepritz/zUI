@@ -1,11 +1,11 @@
 //! Состояние и сценарии приложения без GPUI Context или Window.
 mod background;
 mod events;
+mod launch;
 mod lifecycle;
 mod preparation;
 mod reports;
 mod settings;
-mod startup;
 mod strategies;
 mod testing;
 mod updates;
@@ -34,4 +34,14 @@ pub(crate) struct AppState {
     pub(crate) runtime_dir: PathBuf,
     pub(crate) diagnostics: DiagnosticsController,
     pub(crate) background: Background,
+}
+
+impl AppState {
+    /// Папка данных zUI: настройки, статистика и история лежат рядом с runtime.
+    pub fn data_dir(&self) -> PathBuf {
+        self.runtime_dir
+            .parent()
+            .unwrap_or(&self.runtime_dir)
+            .to_path_buf()
+    }
 }

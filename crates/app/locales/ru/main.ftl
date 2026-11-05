@@ -43,7 +43,7 @@ ui-home = Главная
 # Used in: root/navigation.rs
 ui-strategies = Стратегии
 
-# Used in: root/navigation.rs, views/statistics.rs
+# Used in: root/navigation.rs, views/statistics/
 ui-statistics = Статистика
 
 # Used in: root/navigation.rs
@@ -91,34 +91,34 @@ ui-event-log = Журнал событий
 # Used in: views/logs.rs
 ui-clear-log = Очистить журнал
 
-# Used in: views/statistics.rs
+# Used in: i18n/time.rs
 ui-just-now = только что
 
-# Used in: views/statistics.rs
+# Used in: views/statistics/
 ui-not-yet = Ещё не было
 
-# Used in: views/statistics.rs
+# Used in: views/statistics/
 ui-zui-uptime = Общее время работы
 
-# Used in: views/statistics.rs
+# Used in: views/statistics/
 ui-last-successful-test = Последний успешный тест
 
-# Used in: views/statistics.rs
+# Used in: views/statistics/
 ui-strategy-changes = Смен стратегии
 
-# Used in: views/statistics.rs
+# Used in: views/statistics/
 ui-winws-restarts = Автоперезапуски
 
-# Used in: components/cards/banner.rs
+# Used in: components/cards/install_card.rs
 ui-zapret-is-not-installed = Zapret не установлен
 
-# Used in: components/cards/banner.rs
+# Used in: components/cards/install_card.rs
 ui-the-latest-zapret-discord-youtube-release-will = Будет скачан последний релиз zapret-discord-youtube в папку runtime рядом с программой.
 
-# Used in: components/cards/banner.rs
+# Used in: components/cards/install_card.rs
 ui-installing = Установка…
 
-# Used in: components/cards/banner.rs
+# Used in: components/cards/install_card.rs
 ui-install-zapret = Установить Zapret
 
 # Used in: components/cards/update_banner.rs
@@ -241,10 +241,10 @@ ui-notifications-appear-when-the-window-is-minimized = Уведомления п
 # Used in: views/settings/behavior.rs, views/overlays/onboarding/mod.rs
 ui-startup = Запуск
 
-# Used in: views/settings/behavior.rs, views/overlays/onboarding/services.rs
+# Used in: views/settings/behavior.rs, views/overlays/onboarding/components.rs
 ui-start-zapret-with-zui = Запускать Zapret вместе с zUI
 
-# Used in: views/settings/behavior.rs, views/overlays/onboarding/services.rs
+# Used in: views/settings/behavior.rs, views/overlays/onboarding/components.rs
 ui-start-telegram-proxy-with-zui = Запускать Telegram-прокси вместе с zUI
 
 # Used in: views/settings/behavior.rs
@@ -296,7 +296,7 @@ ui-failed-to-start = не запустилась
 ui-select = Выбрать
 
 # Used in: views/strategies/card.rs
-ui-running-2 = Работает
+strategy-running = Работает
 
 # Used in: views/strategies/card.rs
 ui-selected = Выбрана
@@ -328,7 +328,7 @@ ui-select-best = Выбрать лучшую
 # Used in: views/telegram/connection.rs
 ui-downloading = Загрузка…
 
-# Used in: views/telegram/connection.rs, views/overlays/onboarding/services.rs
+# Used in: views/telegram/connection.rs, views/overlays/onboarding/components.rs
 ui-installed = Установлен
 
 # Used in: views/telegram/connection.rs
@@ -412,10 +412,10 @@ ui-viewing-and-telegram-proxy-work-without-elevation = Без повышения
 # Used in: views/overlays/onboarding/permissions.rs
 ui-restart-as-administrator = Перезапустить от администратора
 
-# Used in: views/overlays/onboarding/services.rs
+# Used in: views/overlays/onboarding/components.rs
 ui-install = Установить
 
-# Used in: views/overlays/onboarding/services.rs
+# Used in: views/overlays/onboarding/components.rs
 ui-telegram-proxy = Telegram-прокси
 
 # Used in: views/overlays/onboarding/startup.rs
@@ -542,7 +542,7 @@ update-error = Ошибка обновления: { $error }
 # Used in: components/cards/update_banner.rs, controllers/zapret/poll.rs
 zapret-update-available = Доступна новая версия Zapret: { $version }
 
-# Used in: components/cards/status_card.rs, views/telegram/files.rs
+# Used in: views/telegram/files.rs
 data-directory = Каталог: { $directory }
 
 # Used in: views/strategies/testing.rs
@@ -562,7 +562,7 @@ test-score = { $passed }/{ $total }, { $latency } мс
 # Used in: root/lifecycle.rs
 tray-unavailable = Трей недоступен: { $error }. Для выхода используйте кнопку в настройках.
 
-# Used in: platform/startup.rs
+# Used in: platform/autostart.rs
 uac-launch-failed = UAC: запуск отменён или недоступен ({ $code })
 
 # Used in: controllers/telegram.rs
@@ -631,16 +631,16 @@ strategy-changed = Стратегия изменена: { $strategy }
 # Used in: state/background.rs
 update-ready-version = Обновление готово. Перезапустите приложение: { $version }
 
-# Used in: views/statistics.rs
+# Used in: i18n/time.rs
 duration-days-hours = { $days } д { $hours } ч
 
-# Used in: views/statistics.rs
+# Used in: i18n/time.rs
 duration-hours-minutes = { $hours } ч { $minutes } мин
 
-# Used in: views/statistics.rs
+# Used in: i18n/time.rs
 duration-minutes = { $minutes } мин
 
-# Used in: views/statistics.rs
+# Used in: i18n/time.rs
 time-ago = { $duration } назад
 
 # Used in: views/dns/preset_card.rs

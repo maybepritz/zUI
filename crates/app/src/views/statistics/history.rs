@@ -1,4 +1,4 @@
-use super::formatting::ago;
+use crate::i18n::time::ago;
 use crate::{
     components::empty_state::empty_state,
     i18n::{tr, tr_args},
@@ -42,7 +42,7 @@ pub(super) fn render(stats: &Statistics, now: u64, cx: &App) -> Div {
                         ),
                         (
                             "duration",
-                            super::formatting::duration(to.saturating_sub(*from)).into(),
+                            crate::i18n::time::duration(to.saturating_sub(*from)).into(),
                         ),
                     ],
                 ),

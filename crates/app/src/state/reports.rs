@@ -1,17 +1,10 @@
-//! Каталог данных и отчёты с очищенными журналами.
+//! Отчёты о проблеме с очищенными журналами.
 
 use super::AppState;
 use crate::{i18n::tr, notifications::EventKind};
 use std::path::PathBuf;
 
 impl AppState {
-    pub fn data_dir(&self) -> PathBuf {
-        self.runtime_dir
-            .parent()
-            .unwrap_or(&self.runtime_dir)
-            .to_path_buf()
-    }
-
     pub fn issue_report(&self) -> String {
         let tests = self
             .diagnostics

@@ -1,4 +1,4 @@
-//! Разметка мастера первого запуска — services.
+//! Мастер первого запуска: установка zapret и прокси Telegram, автозапуск.
 use crate::components::service_row::service_row;
 use crate::{components::preference::toggle, state::Preference};
 use crate::{i18n::tr, root::RootView, root::view_data::ViewData, state::AppState};
@@ -7,7 +7,7 @@ use gpui_kit::{
     *,
 };
 
-pub(super) fn services(
+pub(super) fn components(
     state: &AppState,
     data: &ViewData,
     cx: &mut Context<RootView>,

@@ -15,13 +15,13 @@ use gpui_kit::{
 
 use crate::root::{OnboardingStep as Step, STEPS};
 
+mod components;
 mod language;
 mod permissions;
-mod services;
 mod startup;
+use components::components;
 use language::language;
 use permissions::permissions;
-use services::services;
 use startup::startup;
 
 pub fn render(
@@ -36,7 +36,7 @@ pub fn render(
     let content = match step {
         Step::Language => language(&state.settings.language, cx),
         Step::Permissions => permissions(data.administrator, cx),
-        Step::Services => services(state, data, cx),
+        Step::Components => components(state, data, cx),
         Step::Startup => startup(state, cx),
     };
 

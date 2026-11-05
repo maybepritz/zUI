@@ -1,7 +1,5 @@
-use crate::i18n::tr;
-use crate::root::RootView;
+//! Простая плашка: текст слева, действия справа.
 use gpui_kit::component::{
-    button::*,
     group_box::{GroupBox, GroupBoxVariants},
     label::Label,
     *,

@@ -1,16 +1,16 @@
 //! Главная: работает ли обход, открываются ли сервисы и как менялась задержка за сутки.
 use crate::components::{
-    banner::install_card,
     card::card,
+    install_card::install_card,
     latency_chart::{Series, latency_chart},
     tone::{self, status_dot},
     update_banner::{app_update_banner, zapret_update_banner},
 };
+use crate::i18n::time::{ago, duration};
 use crate::i18n::{tr, tr_args};
 use crate::root::view_data::ViewData;
 use crate::root::{RootView, Tab};
 use crate::state::AppState;
-use crate::views::statistics::formatting::{ago, duration};
 use gpui_kit::component::{button::*, switch::Switch, *};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;

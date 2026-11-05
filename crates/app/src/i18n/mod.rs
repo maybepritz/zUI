@@ -1,6 +1,7 @@
 //! Поиск каталогов переводов и потокобезопасный выбор языка.
 //! Переводчики правят locales/<код BCP-47>/{locale.json,main.ftl}, а не строки в Rust.
 mod text;
+pub(crate) mod time;
 pub(crate) use text::{Text, text, text_args};
 
 use rust_embed::RustEmbed;

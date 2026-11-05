@@ -8,7 +8,7 @@ pub enum OnboardingStep {
     #[default]
     Language,
     Permissions,
-    Services,
+    Components,
     Startup,
 }
 
@@ -17,7 +17,7 @@ impl OnboardingStep {
         match self {
             Self::Language => 0,
             Self::Permissions => 1,
-            Self::Services => 2,
+            Self::Components => 2,
             Self::Startup => 3,
         }
     }
@@ -26,7 +26,7 @@ impl OnboardingStep {
         match i {
             0 => Self::Language,
             1 => Self::Permissions,
-            2 => Self::Services,
+            2 => Self::Components,
             _ => Self::Startup,
         }
     }

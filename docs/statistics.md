@@ -23,7 +23,7 @@ Total uptime includes all application sessions, including time spent hidden.
 - `state/testing.rs`: capture the final diagnostic snapshot.
 - `state/strategies.rs`: record strategy changes.
 - `state/background.rs`: record watchdog recovery attempts and persist statistics.
-- `views/statistics/`: layout, relative-time formatting, summary and event rows.
+- `views/statistics/`: layout, summary and event rows; `i18n/time.rs` formats durations.
 - `components/cards/stat_card.rs`: reusable metric presentation.
 
 Events store typed data rather than translated sentences. Their descriptions are formatted

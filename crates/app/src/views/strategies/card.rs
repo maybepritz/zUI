@@ -118,7 +118,7 @@ pub(super) fn strategy_card(
                         .text_xs()
                         .child(status_dot(state_dot))
                         .child(if running {
-                            tr("ui-running-2")
+                            tr("strategy-running")
                         } else {
                             tr("ui-selected")
                         }),

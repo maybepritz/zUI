@@ -1,4 +1,4 @@
-use super::formatting::ago;
+use crate::i18n::time::ago;
 use crate::{
     components::{empty_state::empty_state, tone},
     i18n::{tr, tr_args},

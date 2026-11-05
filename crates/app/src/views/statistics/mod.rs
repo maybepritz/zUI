@@ -1,5 +1,5 @@
 //! Разметка статистики. Отрисовка читает сохранённые снимки и не меняет состояние.
-pub(crate) mod formatting;
+
 mod history;
 mod summary;
 
@@ -25,7 +25,7 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
         .w_full()
         .child(stat_card(
             tr("ui-zui-uptime"),
-            formatting::duration(stats.uptime_seconds),
+            crate::i18n::time::duration(stats.uptime_seconds),
             tr("statistics-uptime-hint"),
             IconName::Clock,
             cx,

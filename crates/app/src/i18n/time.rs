@@ -1,3 +1,4 @@
+//! Человекочитаемые длительности и «N минут назад» на текущем языке.
 use crate::i18n::{tr, tr_args};
 
 pub(crate) fn duration(secs: u64) -> String {
