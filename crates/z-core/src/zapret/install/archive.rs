@@ -123,7 +123,10 @@ pub(super) fn move_into_place(staging: &Path, dir: &Path) -> Result<()> {
     fs::rename(dir, &backup).context("Не удалось сохранить предыдущую установку")?;
     if let Err(error) = fs::rename(staging, dir) {
         fs::rename(&backup, dir).with_context(|| {
-            format!("Ошибка установки: {error}. Восстановите папку {} вручную", backup.display())
+            format!(
+                "Ошибка установки: {error}. Восстановите папку {} вручную",
+                backup.display()
+            )
         })?;
         return Err(error).context("Установка отменена; предыдущая версия восстановлена");
     }
@@ -146,7 +149,10 @@ mod tests {
         fs::write(installed.join(".version"), "previous").unwrap();
         // A missing staging directory forces the final rename to fail.
         assert!(move_into_place(&root.join("missing"), &installed).is_err());
-        assert_eq!(fs::read_to_string(installed.join(".version")).unwrap(), "previous");
+        assert_eq!(
+            fs::read_to_string(installed.join(".version")).unwrap(),
+            "previous"
+        );
         fs::remove_dir_all(root).unwrap();
     }
 }
