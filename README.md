@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <strong>0.1.0 Lyra</strong> · Windows x64 · Rust + GPUI
+  <strong>0.1.1 Lyra</strong> · Windows x64 · Rust + GPUI
 </p>
 
 <p align="center">

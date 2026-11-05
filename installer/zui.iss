@@ -3,7 +3,7 @@
   #define RepoRoot SourcePath + ".."
 #endif
 #ifndef MyAppVersion
-  #define MyAppVersion "0.1.0"
+  #define MyAppVersion "0.1.1"
 #endif
 #ifndef MyAppExe
   #if FileExists(RepoRoot + "\target\x86_64-pc-windows-msvc\release\zUI.exe")
