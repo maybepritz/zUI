@@ -1,8 +1,8 @@
-use std::{fs, path::PathBuf};
+use super::{model::*, presets::presets, scripts::*, system::*};
+use crate::statistics::now;
 use anyhow::{Result, anyhow, bail};
 use serde_json::json;
-use super::{model::*, scripts::*, system::*, presets::presets};
-use crate::statistics::now;
+use std::{fs, path::PathBuf};
 
 #[derive(Clone)]
 pub struct DnsManager {

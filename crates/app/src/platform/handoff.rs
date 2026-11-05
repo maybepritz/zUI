@@ -11,7 +11,10 @@ pub fn wait_for_previous() -> bool {
         if arg != "--wait-for-pid" {
             continue;
         }
-        let Some(pid) = args.next().and_then(|arg| arg.to_str()?.parse::<u32>().ok()) else {
+        let Some(pid) = args
+            .next()
+            .and_then(|arg| arg.to_str()?.parse::<u32>().ok())
+        else {
             return false;
         };
         if pid == std::process::id() {

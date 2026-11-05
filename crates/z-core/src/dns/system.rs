@@ -1,10 +1,10 @@
-use std::process::Command;
+use super::{model::*, scripts::*};
 use anyhow::{Result, anyhow, bail};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde_json::Value;
-use super::{model::*, scripts::*};
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
+use std::process::Command;
 
 #[cfg(windows)]
 pub fn is_elevated() -> bool {

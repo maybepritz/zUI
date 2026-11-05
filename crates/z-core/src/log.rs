@@ -29,5 +29,4 @@ impl Log {
             l.clear();
         }
     }
-
 }

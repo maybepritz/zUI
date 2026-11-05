@@ -1,5 +1,5 @@
-use std::collections::{HashMap, HashSet};
 use crate::services::{Availability, CheckBatch};
+use std::collections::{HashMap, HashSet};
 /// Three consecutive transport failures of a previously reachable service are
 /// required. HTTP challenges and general internet outages do not trigger a test.
 
@@ -53,7 +53,10 @@ impl RestartBudget {
             return false;
         }
         let delay = [5, 15, 60][self.attempts as usize];
-        if self.last_attempt.is_some_and(|last| now.saturating_sub(last) < delay) {
+        if self
+            .last_attempt
+            .is_some_and(|last| now.saturating_sub(last) < delay)
+        {
             return false;
         }
         self.attempts += 1;
@@ -73,10 +76,10 @@ mod tests {
             checks: vec![Check {
                 id: "chatgpt".into(),
                 availability: Availability::Reachable,
-                latency_ms: 1
+                latency_ms: 1,
             }],
             internet_available: true,
-            checked_at: 0
+            checked_at: 0,
         };
         assert!(!tracker.observe(&batch));
         batch.checks[0].availability = Availability::Http(403);

@@ -1,11 +1,22 @@
-use std::{fs, path::{Path, PathBuf}};
 use anyhow::Result;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 /// Keep the report human-reviewable. Proxy config and secrets are deliberately
 /// excluded; high-risk log lines are redacted in full.
 pub fn redact(line: &str) -> String {
     let lower = line.to_ascii_lowercase();
-    if ["secret", "token", "password", "authorization", "tg://", "cookie"]
-        .iter().any(|key| lower.contains(key))
+    if [
+        "secret",
+        "token",
+        "password",
+        "authorization",
+        "tg://",
+        "cookie",
+    ]
+    .iter()
+    .any(|key| lower.contains(key))
     {
         return "[redacted sensitive log entry]".into();
     }
@@ -21,7 +32,14 @@ pub fn redact(line: &str) -> String {
 }
 
 pub fn build(version: &str, diagnostic: &str, logs: &[String]) -> String {
-    let logs = logs.iter().rev().take(250).rev().map(|s| redact(s)).collect::<Vec<_>>().join("\n");
+    let logs = logs
+        .iter()
+        .rev()
+        .take(250)
+        .rev()
+        .map(|s| redact(s))
+        .collect::<Vec<_>>()
+        .join("\n");
     format!(
         "## Problem / Проблема\n\nDescribe what happened and how to reproduce it.\n\n\
         ## Environment\n\nVersion: {version}\nOS: {}\nArchitecture: {}\n\n{}\n\n\
@@ -40,7 +58,10 @@ pub fn save(directory: &Path, report: &str) -> Result<PathBuf> {
         .duration_since(std::time::UNIX_EPOCH)?
         .as_nanos();
     let path = directory.join(format!("issue-{timestamp}-{}.md", std::process::id()));
-    let mut output = fs::OpenOptions::new().write(true).create_new(true).open(&path)?;
+    let mut output = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&path)?;
     output.write_all(report.as_bytes())?;
     Ok(path)
 }
@@ -50,7 +71,11 @@ mod tests {
     use super::*;
     #[test]
     fn proxy_credentials_never_enter_reports() {
-        let report = build("1.0", "status: ready", &["tg://proxy?secret=abc".into(), "TOKEN=123".into()]);
+        let report = build(
+            "1.0",
+            "status: ready",
+            &["tg://proxy?secret=abc".into(), "TOKEN=123".into()],
+        );
         assert!(!report.contains("abc"));
         assert!(!report.contains("123"));
         assert!(report.contains("redacted"));

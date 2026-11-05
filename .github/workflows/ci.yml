@@ -15,10 +15,13 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy
+          components: clippy, rustfmt
 
       # Reuses compiled dependencies between runs; the first run takes the longest.
       - uses: Swatinem/rust-cache@v2
+
+      - name: Format
+        run: cargo fmt --all --check
 
       - name: Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
