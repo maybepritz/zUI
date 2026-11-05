@@ -67,6 +67,31 @@ pub struct DnsState {
     pub updated_at: u64,
 }
 
+impl DnsState {
+    fn knows_doh(&self, address: &str) -> bool {
+        self.doh_added.iter().any(|e| e.server_address == address)
+            || self
+                .doh_modified
+                .iter()
+                .any(|e| e.server_address == address)
+    }
+
+    /// Запоминает, что было с DoH-серверами до наших изменений. Сервер, уже известный
+    /// по одному из списков, пропускаем: нужно самое первое, исходное состояние.
+    pub(super) fn remember_doh(&mut self, added: Vec<DohEntry>, modified: Vec<DohBackup>) {
+        for entry in added {
+            if !self.knows_doh(&entry.server_address) {
+                self.doh_added.push(entry);
+            }
+        }
+        for entry in modified {
+            if !self.knows_doh(&entry.server_address) {
+                self.doh_modified.push(entry);
+            }
+        }
+    }
+}
+
 /// Ответ PowerShell-скриптов
 #[derive(Default, Deserialize)]
 #[serde(default)]
@@ -77,4 +102,36 @@ pub(super) struct PsOut {
     pub(super) registered: Vec<String>,
     #[serde(deserialize_with = "de_list")]
     pub(super) warnings: Vec<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn added(address: &str) -> DohEntry {
+        DohEntry {
+            server_address: address.into(),
+            ..Default::default()
+        }
+    }
+
+    fn modified(address: &str, template: &str) -> DohBackup {
+        DohBackup {
+            server_address: address.into(),
+            doh_template: template.into(),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn remember_doh_keeps_the_original_state() {
+        let mut state = DnsState::default();
+        state.remember_doh(vec![], vec![modified("1.1.1.1", "исходный")]);
+        // Повторное применение не должно превратить изменённый сервер в добавленный:
+        // иначе при возврате его удалят вместо восстановления.
+        state.remember_doh(vec![added("1.1.1.1")], vec![modified("1.1.1.1", "наш")]);
+        assert!(state.doh_added.is_empty());
+        assert_eq!(state.doh_modified.len(), 1);
+        assert_eq!(state.doh_modified[0].doh_template, "исходный");
+    }
 }

@@ -133,36 +133,7 @@ impl DnsManager {
         // Persist recovery information BEFORE changing Windows settings. If the
         // process exits during PowerShell, a later launch can still restore DNS.
         let recovery = parse_out(&run_ps(PREPARE_DOH, Some(&payload.to_string()))?)?;
-        for entry in recovery.added {
-            if !self
-                .state
-                .doh_added
-                .iter()
-                .any(|e| e.server_address == entry.server_address)
-                && !self
-                    .state
-                    .doh_modified
-                    .iter()
-                    .any(|e| e.server_address == entry.server_address)
-            {
-                self.state.doh_added.push(entry);
-            }
-        }
-        for entry in recovery.modified {
-            if !self
-                .state
-                .doh_added
-                .iter()
-                .any(|e| e.server_address == entry.server_address)
-                && !self
-                    .state
-                    .doh_modified
-                    .iter()
-                    .any(|e| e.server_address == entry.server_address)
-            {
-                self.state.doh_modified.push(entry);
-            }
-        }
+        self.state.remember_doh(recovery.added, recovery.modified);
         self.state.active = true;
         if let Err(error) = self.save() {
             self.state = previous_state;
@@ -172,32 +143,7 @@ impl DnsManager {
         match run_ps(APPLY, Some(&payload.to_string())) {
             Ok(out) => {
                 let res = parse_out(&out)?;
-                for e in res.added {
-                    if !self
-                        .state
-                        .doh_added
-                        .iter()
-                        .any(|x| x.server_address == e.server_address)
-                    {
-                        self.state.doh_added.push(e);
-                    }
-                }
-                for m in res.modified {
-                    // нужно самое первое (исходное) значение, поэтому не перезаписываем
-                    if !self
-                        .state
-                        .doh_modified
-                        .iter()
-                        .any(|x| x.server_address == m.server_address)
-                        && !self
-                            .state
-                            .doh_added
-                            .iter()
-                            .any(|x| x.server_address == m.server_address)
-                    {
-                        self.state.doh_modified.push(m);
-                    }
-                }
+                self.state.remember_doh(res.added, res.modified);
                 self.state.doh_active = !doh.is_empty() && !res.registered.is_empty();
                 self.state.warnings = res.warnings;
                 self.state.active = true;
