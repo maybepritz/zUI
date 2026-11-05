@@ -1,7 +1,7 @@
 use crate::services::{Availability, CheckBatch};
 use std::collections::{HashMap, HashSet};
-/// Three consecutive transport failures of a previously reachable service are
-/// required. HTTP challenges and general internet outages do not trigger a test.
+/// Нужны три подряд сетевых сбоя у сервиса, который раньше открывался.
+/// Проверки HTTP (капча) и пропажа интернета тест не запускают.
 
 #[derive(Default)]
 pub struct FailureTracker {
@@ -35,7 +35,7 @@ impl FailureTracker {
         degraded
     }
 }
-/// Bounded backoff prevents crash loops. A stable minute resets the budget.
+/// Ограниченные повторы не дают уйти в цикл падений. Минута стабильной работы сбрасывает счётчик.
 
 #[derive(Default)]
 pub struct RestartBudget {

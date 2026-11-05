@@ -4,7 +4,7 @@ use super::AppState;
 use crate::notifications::EventKind;
 use z_core::preferences::{Language, ThemePreference};
 
-/// Persisted boolean preferences shared by settings and first-run setup.
+/// Сохраняемые флажки, общие для настроек и мастера первого запуска.
 #[derive(Clone, Copy)]
 pub(crate) enum Preference {
     StartupZapret,
@@ -20,7 +20,7 @@ pub(crate) enum Preference {
 }
 
 impl AppState {
-    /// Change a preference using the same save/error path as the original UI.
+    /// Меняет настройку тем же путём сохранения и обработки ошибок, что и основной интерфейс.
     pub(crate) fn set_preference(&mut self, preference: Preference, value: bool) {
         match preference {
             Preference::StartupZapret => self.settings.startup.zapret = value,
@@ -50,7 +50,7 @@ impl AppState {
         self.settings.onboarded = false;
     }
 
-    /// Keep the changelog visible when saving the acknowledged version fails.
+    /// Если не удалось сохранить просмотренную версию, список изменений остаётся на экране.
     pub(crate) fn acknowledge_version(&mut self, version: &str) -> bool {
         self.settings.last_seen_version = version.into();
         self.save_settings()

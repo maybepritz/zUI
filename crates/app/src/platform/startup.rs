@@ -27,7 +27,7 @@ pub fn set_autostart(enabled: bool) -> Result<(), String> {
 }
 
 fn quote_path(path: &Path) -> String {
-    // A quoted Windows argument ending in a backslash must double that suffix.
+    // В аргументе Windows в кавычках обратную косую черту в конце нужно удвоить.
     let value = path.to_string_lossy();
     let trailing = value.chars().rev().take_while(|c| *c == '\\').count();
     format!("\"{}{}\"", value, "\\".repeat(trailing))
@@ -48,8 +48,8 @@ pub fn relaunch_elevated() -> Result<(), String> {
     );
     let exe: Vec<u16> = exe.as_os_str().encode_wide().chain(Some(0)).collect();
     let args: Vec<u16> = args.encode_utf16().chain(Some(0)).collect();
-    // ShellExecute performs the ordinary Windows UAC consent flow. Cancellation
-    // leaves the current application and its processes running.
+    // ShellExecute показывает обычный запрос UAC Windows. Отказ
+    // оставляет текущее приложение и его процессы работать.
     let result = unsafe {
         ShellExecuteW(
             None,

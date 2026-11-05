@@ -1,4 +1,4 @@
-//! Telegram proxy facade; config and process lifecycle remain independently readable.
+//! Точка входа прокси Telegram; конфиг и жизненный цикл процесса читаются отдельно.
 mod config;
 mod install;
 mod process;

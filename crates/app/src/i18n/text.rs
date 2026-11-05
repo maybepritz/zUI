@@ -1,4 +1,4 @@
-//! Deferred status messages update when the selected language changes.
+//! Отложенные сообщения о статусе обновляются при смене языка.
 use super::{tr, tr_args};
 use gpui_kit::SharedString;
 use z_i18n::FluentValue;

@@ -1,4 +1,4 @@
-//! Sequential strategy testing with cancellation and process cleanup.
+//! Поочерёдный тест стратегий с отменой и уборкой процессов.
 use super::probe::probe;
 use super::{Options, Progress, Score};
 use crate::{
@@ -12,16 +12,16 @@ use std::{
     time::{Duration, Instant},
 };
 
-/// Rank by successful targets, then by increasing average latency.
+/// Сортировка по числу открывшихся адресов, затем по средней задержке по возрастанию.
 pub fn sort_scores(v: &mut [Score]) {
     v.sort_by(|a, b| b.passed.cmp(&a.passed).then(a.avg_ms.cmp(&b.avg_ms)));
 }
 
-/// Test strategies sequentially using a dedicated winws process.
+/// Тестирует стратегии по очереди в отдельном процессе winws.
 ///
-/// Call from a worker thread: this function waits for network probes and process
-/// setup. Cancellation returns completed scores and stops the owned process.
-/// The caller must stop its regular Zapret process before starting this run.
+/// Вызывать из рабочего потока: функция ждёт сетевых проверок и запуска
+/// процесса. При отмене возвращает готовые оценки и останавливает свой процесс.
+/// Перед запуском вызывающий код должен остановить свой обычный процесс Zapret.
 pub fn run(
     dir: &Path,
     strategies: Vec<Strategy>,

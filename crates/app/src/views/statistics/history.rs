@@ -10,7 +10,7 @@ use gpui_kit::{
 };
 use z_core::statistics::{Statistics, StatisticsEventKind};
 
-/// Newest entries first; the persisted buffer is capped separately in z-core.
+/// Сначала новые записи; размер сохранённой истории ограничен отдельно в z-core.
 pub(super) fn render(stats: &Statistics, now: u64, cx: &App) -> Div {
     let muted = cx.theme().muted_foreground;
     let mut rows = div().v_flex().w_full();

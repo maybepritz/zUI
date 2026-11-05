@@ -1,4 +1,4 @@
-//! Windows notification icon, owned and accessed only on the GPUI thread.
+//! Значок в области уведомлений Windows; принадлежит потоку GPUI и используется только в нём.
 #[cfg(windows)]
 mod native {
     use crate::i18n::tr;
@@ -35,8 +35,8 @@ mod native {
                 return Err(crate::i18n::tr("tray-window-unavailable"));
             };
             let hwnd = HWND(handle.hwnd.get() as *mut _);
-            // SAFETY: initialization runs on the owning window's UI thread.
-            // LoadIconW returns a shared resource icon, which must not be destroyed.
+            // SAFETY: инициализация идёт в UI-потоке окна-владельца.
+            // LoadIconW возвращает общий значок из ресурсов, его нельзя уничтожать.
             unsafe {
                 let module = GetModuleHandleW(None).map_err(|e| e.to_string())?;
                 let icon = LoadIconW(
@@ -49,7 +49,7 @@ mod native {
                 if callback == 0 || taskbar_created == 0 {
                     return Err(crate::i18n::tr("tray-registration-failed"));
                 }
-                // Explorer normally runs without elevation, even when zUI runs as admin.
+                // Проводник обычно работает без прав администратора, даже если zUI запущен от администратора.
                 ChangeWindowMessageFilterEx(hwnd, callback, MSGFLT_ALLOW, None)
                     .and_then(|_| {
                         ChangeWindowMessageFilterEx(hwnd, taskbar_created, MSGFLT_ALLOW, None)
@@ -97,7 +97,7 @@ mod native {
             if !self.0.attached.get() || (!self.0.available.get() && !self.0.add_icon()) {
                 return false;
             }
-            // Queue the visibility change to avoid re-entering GPUI during its close callback.
+            // Откладываем смену видимости, чтобы не войти в GPUI повторно во время его обработчика закрытия.
             unsafe { ShowWindowAsync(self.0.data.hWnd, SW_HIDE).as_bool() }
         }
 
@@ -111,7 +111,7 @@ mod native {
             }
         }
 
-        /// Refresh the tooltip after a locale change; menu labels resolve on open.
+        /// Обновляет подсказку после смены языка; подписи меню берутся при открытии.
         pub fn refresh_language(&self) {
             let data = self.0.localized_data();
             unsafe {
@@ -146,7 +146,7 @@ mod native {
             if !self.attached.get() {
                 return;
             }
-            // SW_SHOW preserves maximized windows; only minimized windows need restoring.
+            // SW_SHOW сохраняет развёрнутое окно; восстанавливать нужно только свёрнутое.
             unsafe {
                 let command = if IsIconic(self.data.hWnd).as_bool() {
                     SW_RESTORE
@@ -161,8 +161,8 @@ mod native {
         fn menu(&self) {
             let open: Vec<u16> = tr("tray-open").encode_utf16().chain(Some(0)).collect();
             let exit: Vec<u16> = tr("tray-exit").encode_utf16().chain(Some(0)).collect();
-            // The native menu runs a nested message loop. The callback holds an Rc so
-            // State remains alive even if GPUI quits and drops Tray while this is open.
+            // Системное меню запускает вложенный цикл сообщений. Обработчик держит Rc, чтобы
+            // State оставался живым, даже если GPUI завершится и удалит Tray, пока меню открыто.
             unsafe {
                 let Ok(menu) = CreatePopupMenu() else {
                     self.show();
@@ -185,7 +185,7 @@ mod native {
                     )
                     .0 as usize;
                     if self.attached.get() {
-                        // Required for the menu to dismiss properly on the next invocation.
+                        // Нужно, чтобы меню правильно закрывалось при следующем вызове.
                         let _ = PostMessageW(Some(self.data.hWnd), WM_NULL, WPARAM(0), LPARAM(0));
                         match command {
                             OPEN => self.show(),
@@ -225,8 +225,8 @@ mod native {
         _id: usize,
         data: usize,
     ) -> LRESULT {
-        // SAFETY: Tray retains this Rc while the subclass is registered; both are
-        // confined to the UI thread. Keep a temporary owner across reentrant messages.
+        // SAFETY: Tray держит этот Rc, пока подкласс зарегистрирован; оба
+        // живут только в UI-потоке. Временный владелец сохраняется на время повторных сообщений.
         let state = unsafe {
             let pointer = data as *const State;
             Rc::increment_strong_count(pointer);
@@ -234,13 +234,13 @@ mod native {
         };
         if message == state.taskbar_created {
             if !state.add_icon() {
-                // Explorer may have restarted: never leave the app hidden without an icon.
+                // Проводник мог перезапуститься: нельзя оставлять приложение скрытым без значка.
                 state.show();
             }
             return LRESULT(0);
         }
         if message == state.data.uCallbackMessage {
-            // Legacy notify-icon protocol: wParam is the icon ID, lParam is the event.
+            // Старый протокол значка уведомлений: wParam — ID значка, lParam — событие.
             if wparam.0 == state.data.uID as usize {
                 match lparam.0 as u32 {
                     WM_LBUTTONUP | WM_LBUTTONDBLCLK => state.show(),

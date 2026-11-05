@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
-/// Persisted BCP-47 code; adding a translation no longer requires a Rust enum variant.
+/// Сохраняемый код BCP-47; для нового перевода не нужен новый вариант перечисления в Rust.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct Language(Cow<'static, str>);

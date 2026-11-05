@@ -10,7 +10,7 @@ use crate::i18n::Text;
 use z_core::{log::Log, settings::Settings};
 
 impl AppState {
-    /// Prepare local data off the GPUI thread. No managed services are launched here.
+    /// Готовит локальные данные вне потока GPUI. Управляемые сервисы здесь не запускаются.
     pub fn prepare(mut report: impl FnMut(PreparationStage)) -> Self {
         report(PreparationStage::Settings);
         let log = Log::new();

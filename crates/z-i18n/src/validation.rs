@@ -151,8 +151,8 @@ fn schema(text: &str) -> Result<BTreeMap<String, BTreeSet<String>>, String> {
         .collect()
 }
 
-/// Check key parity, variables and actual resolution, including references/selectors.
-/// Partial runtime packs are allowed by Localizer, but contribution validation is strict.
+/// Проверяет совпадение ключей, переменные и фактическую подстановку, включая ссылки и селекторы.
+/// Localizer допускает неполные переводы, но проверка присланного перевода строгая.
 pub fn validate(reference: &Catalog, translation: &Catalog) -> Result<(), Vec<String>> {
     let reference_schema = schema(&reference.resource).map_err(|e| vec![e])?;
     let translated = schema(&translation.resource).map_err(|e| vec![e])?;

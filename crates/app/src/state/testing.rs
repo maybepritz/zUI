@@ -69,7 +69,7 @@ impl AppState {
             .results
             .iter()
             .find(|score| score.file_name == run.previous);
-        // Only switch on full reachability. If both work, require a 20% improvement.
+        // Переключаемся только при полной доступности. Если работают обе, нужна выгода от 20%.
         let better = best
             .filter(|best| {
                 completed
@@ -81,7 +81,7 @@ impl AppState {
                     })
             })
             .map(|score| score.file_name.clone());
-        // Disabling automatic switching while a test runs prevents applying its result.
+        // Если во время теста выключить автопереключение, его результат не применяется.
         let replacement = better
             .as_ref()
             .filter(|_| self.settings.automation.auto_switch)

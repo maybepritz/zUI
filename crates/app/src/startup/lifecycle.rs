@@ -18,7 +18,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-/// Network latency must not hold the first usable screen indefinitely.
+/// Задержка сети не должна бесконечно задерживать первый рабочий экран.
 const UPDATE_WAIT: Duration = Duration::from_millis(1500);
 const FRAME_INTERVAL: Duration = Duration::from_millis(33);
 const INACTIVE_INTERVAL: Duration = Duration::from_millis(200);
@@ -26,19 +26,19 @@ const INACTIVE_INTERVAL: Duration = Duration::from_millis(200);
 impl StartupView {
     pub(crate) fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
         i18n::set_language(&z_core::preferences::Language::default());
-        // Settings are not loaded yet, so follow Windows to avoid a white flash in dark mode.
+        // Настройки ещё не загружены, поэтому берём тему Windows, чтобы не мигнуть белым в тёмной теме.
         let mode = if crate::platform::system_dark() {
             ThemeMode::Dark
         } else {
             ThemeMode::Light
         };
         Theme::change(mode, None, cx);
-        // Before the normal root/tray exists, closing means exiting.
+        // Пока нет основного окна и трея, закрытие означает выход.
         window.on_window_should_close(cx, |_, cx| {
             cx.defer(|cx| cx.quit());
             true
         });
-        // Start local I/O only after the loading screen has actually painted.
+        // Локальный ввод-вывод начинаем только после того, как экран загрузки отрисован.
         cx.on_next_frame(window, |this, window, cx| this.begin(window, cx));
         Self {
             root: None,
@@ -60,8 +60,8 @@ impl StartupView {
         self.stage = PreparationStage::Settings;
         self.progress.store(self.stage as u8, Ordering::Relaxed);
         let progress = self.progress.clone();
-        // AppState contains no GPUI entities or tray handles. Services are not
-        // started here, so closing this window cannot orphan a launched process.
+        // AppState не содержит сущностей GPUI и дескрипторов трея. Сервисы здесь
+        // не запускаются, поэтому закрытие окна не оставит процесс без владельца.
         self.worker.spawn(move || {
             AppState::prepare(|stage| {
                 progress.store(stage as u8, Ordering::Relaxed);
@@ -111,8 +111,8 @@ impl StartupView {
                 .is_some_and(|started| started.elapsed() >= UPDATE_WAIT);
             if !checking || expired {
                 let state = self.prepared.take().expect("prepared application state");
-                // RootView keeps the existing onboarding, what's-new, tray and
-                // close behavior, and starts configured services exactly once.
+                // RootView сохраняет мастер первого запуска, «Что нового», трей и
+                // поведение закрытия и запускает настроенные сервисы ровно один раз.
                 self.root = Some(cx.new(|cx| RootView::new(state, window, cx)));
                 self.particles.clear();
                 cx.notify();

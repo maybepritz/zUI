@@ -221,7 +221,7 @@ fn check_keys(path: &Path, localizer: &Localizer) {
                     continue;
                 };
                 let key = rest.split('"').next().unwrap();
-                // Check existence independently of each caller's argument values.
+                // Проверяем наличие независимо от значений аргументов в каждом вызове.
                 assert!(
                     localizer.contains("en", key),
                     "{}: unknown key {key}",

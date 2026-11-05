@@ -1,4 +1,4 @@
-//! Inputs, progress and scores shared by diagnostics workers and the UI.
+//! Входные данные, прогресс и оценки, общие для задач диагностики и интерфейса.
 use std::sync::{
     Mutex,
     atomic::{AtomicBool, AtomicUsize},

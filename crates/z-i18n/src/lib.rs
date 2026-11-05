@@ -1,4 +1,4 @@
-//! Fluent catalogs and validation, independent of GPUI and application services.
+//! Каталоги Fluent и их проверка, без зависимости от GPUI и сервисов приложения.
 mod catalog;
 mod files;
 mod validation;

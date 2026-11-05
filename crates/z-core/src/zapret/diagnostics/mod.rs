@@ -1,4 +1,4 @@
-//! Diagnostics facade: models, runner and HTTP probes have separate responsibilities.
+//! Точка входа диагностики: модели, запуск тестов и HTTP-проверки разделены.
 mod model;
 mod probe;
 mod runner;

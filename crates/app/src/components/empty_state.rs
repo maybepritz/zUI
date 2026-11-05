@@ -1,4 +1,4 @@
-//! One empty state for every list: an icon, a short title and what to do next.
+//! Одно пустое состояние для всех списков: иконка, короткий заголовок и что делать дальше.
 use gpui_kit::{
     assets::IconName,
     component::{
@@ -8,7 +8,7 @@ use gpui_kit::{
     *,
 };
 
-/// The caller adds an action with `.content(...)` when there is one.
+/// Действие, если оно есть, вызывающий код добавляет через `.content(...)`.
 pub fn empty_state(
     icon: IconName,
     title: impl Into<SharedString>,

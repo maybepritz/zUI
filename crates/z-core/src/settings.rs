@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// Only settings implemented by the UI are persisted here.
+/// Здесь сохраняются только настройки, которые есть в интерфейсе.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(default)]
 pub struct Settings {
@@ -45,17 +45,17 @@ impl Default for Settings {
     }
 }
 
-/// Why a data file was not used as-is and what was loaded instead.
+/// Почему файл данных не использован как есть и что загружено вместо него.
 #[derive(Debug)]
 pub struct Recovery {
     pub error: anyhow::Error,
-    /// The unreadable file, moved aside so the next save cannot overwrite it.
+    /// Нечитаемый файл, отложенный в сторону, чтобы следующее сохранение его не затёрло.
     pub quarantined: Option<PathBuf>,
-    /// The previous readable copy was loaded instead of defaults.
+    /// Вместо значений по умолчанию загружена предыдущая читаемая копия.
     pub from_backup: bool,
 }
 
-/// One log line: the error, where the damaged file went and what was loaded.
+/// Одна строка лога: ошибка, куда отложен повреждённый файл и что загружено.
 impl std::fmt::Display for Recovery {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let moved = self.quarantined.as_deref().map(Path::display);
@@ -76,8 +76,8 @@ impl std::fmt::Display for Recovery {
 }
 
 impl Settings {
-    /// Load settings; an unreadable file is moved aside and the backup is tried
-    /// before falling back to defaults.
+    /// Загружает настройки; нечитаемый файл откладывается, пробуется резервная копия,
+    /// и только потом значения по умолчанию.
     pub fn load(path: &Path) -> (Self, Option<Recovery>) {
         load_recovering(path, Self::read)
     }
@@ -86,7 +86,7 @@ impl Settings {
         save_with_backup(path, self, Self::read)
     }
 
-    /// `Ok(None)` when the file does not exist yet.
+    /// `Ok(None)`, если файла ещё нет.
     fn read(path: &Path) -> Result<Option<Self>> {
         match fs::read_to_string(path) {
             Ok(text) => Self::from_json(&text).map(Some),
@@ -120,7 +120,7 @@ impl Settings {
     }
 }
 
-/// `read` returns `Ok(None)` for a missing file, which loads defaults silently.
+/// `read` возвращает `Ok(None)` для отсутствующего файла, тогда молча загружаются значения по умолчанию.
 pub(crate) fn load_recovering<T: Default>(
     path: &Path,
     read: impl Fn(&Path) -> Result<Option<T>>,
@@ -145,8 +145,8 @@ pub(crate) fn save_with_backup<T>(
     value: &impl Serialize,
     read: impl Fn(&Path) -> Result<Option<T>>,
 ) -> Result<()> {
-    // Keep the last readable version; a damaged file must not replace a good backup.
-    // Best effort: a failed backup should not block saving the data itself.
+    // Храним последнюю читаемую версию; повреждённый файл не должен заменить хорошую копию.
+    // По возможности: неудачная резервная копия не должна мешать сохранить сами данные.
     if matches!(read(path), Ok(Some(_))) {
         let _ = fs::copy(path, backup_path(path));
     }
@@ -157,8 +157,8 @@ fn backup_path(path: &Path) -> PathBuf {
     path.with_extension("json.bak")
 }
 
-/// Write beside the destination, then replace it so interrupted writes cannot
-/// truncate the last usable settings / DNS recovery snapshot.
+/// Пишем рядом с файлом, затем заменяем его, чтобы прерванная запись не могла
+/// обрезать последние рабочие настройки или снимок для восстановления DNS.
 pub(crate) fn save_json(path: &Path, value: &impl Serialize) -> Result<()> {
     if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
         fs::create_dir_all(parent)?;
@@ -203,7 +203,7 @@ mod tests {
         let quarantined = recovery.quarantined.unwrap();
         assert_eq!(fs::read(&quarantined).unwrap(), b"{\"onboarded\": tru");
 
-        // The first save after recovery must not replace the good backup.
+        // Первое сохранение после восстановления не должно заменить хорошую копию.
         loaded.save(&path).unwrap();
         let backup = Settings::read(&backup_path(&path)).unwrap().unwrap();
         assert_eq!(backup.selected_strategy, "first.bat");

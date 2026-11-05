@@ -21,7 +21,7 @@ use std::borrow::Cow;
 #[folder = "assets/"]
 struct EmbeddedAssets;
 
-// Extend the default GPUI Kit icons with the Lucide variants used by zUI.
+// Добавляем к стандартным иконкам GPUI Kit варианты Lucide, которые использует zUI.
 gpui_kit::assets::icon_assets!(
     AppIcons,
     [

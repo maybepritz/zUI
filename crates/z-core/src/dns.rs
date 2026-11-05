@@ -1,4 +1,4 @@
-//! DNS state, Windows operations and presets are separated to keep recovery logic auditable.
+//! Состояние DNS, операции Windows и пресеты разделены, чтобы логику восстановления было легко проверить.
 mod manager;
 mod model;
 mod presets;

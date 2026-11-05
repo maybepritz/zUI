@@ -1,4 +1,4 @@
-//! Close choice content; action and persistence belong to the root handler.
+//! Содержимое выбора при закрытии; действие и сохранение выполняет корневой обработчик.
 use crate::i18n::{Text, tr};
 use gpui_kit::{
     component::{checkbox::Checkbox, label::Label, *},

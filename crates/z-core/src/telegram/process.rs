@@ -1,4 +1,4 @@
-//! Owns the proxy process; readiness only checks its local TCP socket.
+//! Владеет процессом прокси; готовность проверяется только по локальному TCP-сокету.
 use super::config::{asset_name, config_endpoint, new_secret, read_config};
 use anyhow::{Context, Result, bail};
 use serde_json::json;
@@ -11,7 +11,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-/// Structured observations let a UI localize state without translating log text.
+/// Структурированные наблюдения позволяют интерфейсу переводить состояние, не переводя текст лога.
 #[derive(Clone, Debug)]
 pub enum ProxyStatus {
     Stopped,
@@ -57,10 +57,10 @@ impl TelegramProxy {
         self.dir.join(asset_name())
     }
 
-    /// Start the portable proxy, creating a default config only if it is absent.
+    /// Запускает переносимый прокси и создаёт конфиг по умолчанию, только если его нет.
     ///
-    /// Rejects invalid/public bind addresses and unavailable ports. Use `poll`
-    /// to observe local readiness; successful spawn alone does not imply it.
+    /// Отклоняет неверные и публичные адреса и занятые порты. Готовность
+    /// смотрите через `poll`: успешный запуск процесса её не означает.
     pub fn start(&mut self) -> Result<()> {
         if self.running() {
             return Ok(());
@@ -81,7 +81,7 @@ impl TelegramProxy {
         }
         let config = read_config(&path)?;
         let endpoint = config_endpoint(&config)?;
-        // Binding also detects another copy of the proxy or unrelated software.
+        // Привязка к порту заодно обнаруживает вторую копию прокси или чужую программу.
         let probe = TcpListener::bind(endpoint).with_context(|| {
             format!(
                 "Порт {} занят или недоступен. Закройте другой прокси либо измените config.json",
@@ -106,7 +106,7 @@ impl TelegramProxy {
         Ok(())
     }
 
-    /// Observe process exit and probe the configured loopback socket (at most 30ms).
+    /// Следит за завершением процесса и проверяет локальный сокет (не дольше 30 мс).
     pub fn poll(&mut self) {
         let Some(child) = &mut self.child else {
             return;
@@ -128,8 +128,8 @@ impl TelegramProxy {
             Ok(None) => {}
         }
         if let Some(endpoint) = self.endpoint {
-            // Loopback only, at most 30ms. This is socket readiness, not an
-            // end-to-end Telegram connectivity test.
+            // Только локальный адрес, не дольше 30 мс. Это готовность сокета, а не
+            // проверка связи с Telegram целиком.
             self.ready = TcpStream::connect_timeout(&endpoint, Duration::from_millis(30)).is_ok();
             self.status_kind = if self.ready {
                 ProxyStatus::Listening(endpoint)
@@ -154,7 +154,7 @@ impl TelegramProxy {
         }
     }
 
-    /// Stop the owned process tree and wait for exit, retaining it on failure.
+    /// Останавливает дерево своих процессов и ждёт выхода; при неудаче сохраняет владение.
     pub fn stop(&mut self) -> Result<()> {
         let Some(child) = &mut self.child else {
             return Ok(());

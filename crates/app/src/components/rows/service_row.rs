@@ -1,4 +1,4 @@
-//! Service name, status and caller-supplied action with an optional spinner.
+//! Название сервиса, статус и действие вызывающего кода с необязательным индикатором загрузки.
 use gpui_kit::component::progress::ProgressCircle;
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
@@ -6,7 +6,7 @@ use gpui_kit::{
     *,
 };
 
-/// Render a service row; the screen supplies labels, busy state and action.
+/// Строка сервиса; подписи, состояние загрузки и действие передаёт экран.
 pub fn service_row(title: Label, status: Label, installing: bool, action: Button) -> Div {
     div()
         .h_flex()

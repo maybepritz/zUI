@@ -1,4 +1,4 @@
-//! A compact metric tile; state and value formatting belong to the caller.
+//! Компактная плитка с показателем; состояние и форматирование значения задаёт вызывающий код.
 use super::card::card;
 use gpui_kit::{
     assets::IconName,

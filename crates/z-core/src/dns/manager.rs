@@ -130,8 +130,8 @@ impl DnsManager {
             "doh": doh,
         });
 
-        // Persist recovery information BEFORE changing Windows settings. If the
-        // process exits during PowerShell, a later launch can still restore DNS.
+        // Сохраняем данные для восстановления ДО изменения настроек Windows. Если
+        // процесс завершится во время PowerShell, следующий запуск всё равно вернёт DNS.
         let recovery = parse_out(&run_ps(PREPARE_DOH, Some(&payload.to_string()))?)?;
         self.state.remember_doh(recovery.added, recovery.modified);
         self.state.active = true;

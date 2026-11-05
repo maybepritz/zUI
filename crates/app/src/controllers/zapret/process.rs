@@ -3,7 +3,7 @@
 use super::ZapretController;
 
 impl ZapretController {
-    /// Stop the regular process and reserve Zapret for the diagnostics worker.
+    /// Останавливает обычный процесс и отдаёт Zapret задаче диагностики.
     pub fn lock(&mut self) -> bool {
         self.stop();
         if self.zapret.pid.is_some() {
@@ -26,7 +26,7 @@ impl ZapretController {
         running
     }
 
-    /// Start the selected strategy unless installation or diagnostics owns Zapret.
+    /// Запускает выбранную стратегию, если Zapret не занят установкой или диагностикой.
     pub fn start(&mut self) -> bool {
         if self.installing() {
             self.status = crate::i18n::text("zapret-installing");

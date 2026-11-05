@@ -1,4 +1,4 @@
-//! Owns the first window frame and hands prepared state to the regular RootView.
+//! Отвечает за первый кадр окна и передаёт подготовленное состояние обычному RootView.
 mod lifecycle;
 mod render;
 

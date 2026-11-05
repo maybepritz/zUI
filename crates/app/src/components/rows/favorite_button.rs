@@ -1,4 +1,4 @@
-//! Presentation-only favorite toggle. The caller attaches its event handler.
+//! Только отображение кнопки «Избранное». Обработчик подключает вызывающий код.
 use gpui_kit::assets::IconName as LucideIcon;
 use gpui_kit::{
     component::{button::*, *},

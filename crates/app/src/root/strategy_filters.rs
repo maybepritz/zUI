@@ -1,4 +1,4 @@
-//! Transient search state for the Strategies page; does not change service settings.
+//! Временное состояние поиска на экране стратегий; настройки сервиса не меняет.
 use super::RootView;
 use crate::i18n::tr;
 use gpui_kit::{

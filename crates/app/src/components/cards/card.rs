@@ -1,7 +1,7 @@
-//! Bordered container for screens that need a card without a titled section.
+//! Рамка-контейнер для экранов, которым нужна карточка без заголовка раздела.
 use gpui_kit::{component::*, *};
 
-/// One frame for every card: the same padding, radius and hairline everywhere.
+/// Одна рамка для всех карточек: везде одинаковые отступы, скругление и тонкая граница.
 pub fn card(cx: &App) -> Div {
     div()
         .v_flex()

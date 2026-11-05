@@ -1,7 +1,7 @@
-//! Snapshot of process/file observations used by rendering.
+//! Снимок наблюдений за процессами и файлами для отрисовки.
 //!
-//! Refreshed on the GPUI thread after events and polling. Rendering reads this
-//! data without inspecting processes, accessing the filesystem or locking logs.
+//! Обновляется в потоке GPUI после событий и опроса. Отрисовка читает эти
+//! данные, не проверяя процессы, не обращаясь к файлам и не блокируя логи.
 use crate::i18n::{Text, text, text_args};
 use crate::state::AppState;
 use z_core::telegram::ProxyStatus;

@@ -45,7 +45,7 @@ impl<T: Send + 'static> Job<T> {
         }
     }
 
-    /// Wait for a cancelled worker to release its resources before app exit.
+    /// Перед выходом ждём, пока отменённая задача освободит ресурсы.
     pub fn wait(&mut self) {
         if let Some(receiver) = self.0.take() {
             let _ = receiver.recv();

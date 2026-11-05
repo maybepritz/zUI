@@ -1,4 +1,4 @@
-//! Load strategies and validate their referenced files before starting winws.
+//! Загружает стратегии и проверяет нужные им файлы до запуска winws.
 use super::Strategy;
 #[cfg(test)]
 use super::strategy_parser::parse_bat_args;
@@ -86,7 +86,7 @@ pub(super) fn validate_args(args: &str) -> Result<()> {
     if args.is_empty() || args.contains('%') {
         bail!("Стратегия пуста или содержит неизвестные переменные BAT");
     }
-    // All file arguments in the supported Flowseal strategies are quoted.
+    // В поддерживаемых стратегиях Flowseal все пути к файлам в кавычках.
     for (index, part) in args.split('"').enumerate() {
         if index % 2 == 1 && !Path::new(part).is_file() {
             bail!("Не найден файл стратегии: {part}");

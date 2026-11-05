@@ -3,7 +3,7 @@ use serde::Deserialize;
 use std::collections::BTreeMap;
 use unic_langid::LanguageIdentifier;
 
-/// Native language names let people select a locale before understanding the UI.
+/// Названия языков на самих языках позволяют выбрать язык, ещё не понимая интерфейс.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct LocaleInfo {
@@ -21,7 +21,7 @@ pub struct Catalog {
 }
 
 impl Catalog {
-    /// Reject malformed resources and duplicate entries instead of silently losing text.
+    /// Отклоняем испорченные ресурсы и повторы ключей, а не теряем текст молча.
     pub fn parse(code: &str, metadata: &str, text: &str) -> Result<Self, String> {
         let locale: LanguageIdentifier = code.parse().map_err(|e| format!("{code}: {e}"))?;
         let mut info: LocaleInfo =
@@ -54,7 +54,7 @@ impl Catalog {
     }
 }
 
-/// Multiple catalogs for a language allow a local pack to override bundled messages.
+/// Несколько каталогов на язык позволяют локальному переводу заменить встроенные строки.
 pub struct Localizer {
     catalogs: BTreeMap<String, Vec<Catalog>>,
     fallback: String,
@@ -93,7 +93,7 @@ impl Localizer {
         })
     }
 
-    /// Prefer exact BCP-47 locale, then its language subtag, then English.
+    /// Сначала точный код BCP-47, затем код языка, затем английский.
     pub fn resolve(&self, requested: &str) -> &str {
         if let Ok(id) = requested.parse::<LanguageIdentifier>() {
             let canonical = id.to_string();
@@ -107,7 +107,7 @@ impl Localizer {
         &self.fallback
     }
 
-    /// Missing or invalid messages fall back per key, including partial local packs.
+    /// Отсутствующие или ошибочные строки заменяются по одному ключу, в том числе в неполных переводах.
     pub fn format(&self, locale: &str, key: &str, args: Option<&FluentArgs<'_>>) -> String {
         let selected = self.resolve(locale);
         for code in [selected, self.fallback.as_str()] {
@@ -119,7 +119,7 @@ impl Localizer {
                 }
             }
         }
-        // A visible key is preferable to an empty button or a crash.
+        // Видимый ключ лучше пустой кнопки или падения.
         key.to_owned()
     }
 }

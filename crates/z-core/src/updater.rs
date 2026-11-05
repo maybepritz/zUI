@@ -1,4 +1,4 @@
-//updater.rs
+//! Обновление самого zUI из релизов GitHub.
 use self_update::backends::github::{ReleaseList, Update, UpdateBuilder};
 
 const OWNER: &str = "maybepritz";

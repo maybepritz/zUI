@@ -1,4 +1,4 @@
-//! Close-button policy and explicit Hide / Exit actions.
+//! Поведение кнопки закрытия и явные действия «Скрыть» и «Выйти».
 use super::super::RootView;
 use crate::{
     components::modal::modal,
@@ -17,7 +17,7 @@ use gpui_kit::{
 
 impl RootView {
     pub(crate) fn on_close_requested(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        // Native close callback must return before rebuilding a dialog layer.
+        // Системный обработчик закрытия должен вернуться до перестройки слоя диалога.
         cx.defer_in(window, |this, window, cx| {
             this.show_close_choice(window, cx)
         });
@@ -32,7 +32,7 @@ impl RootView {
             if self.finish_close_choice(hide, false, cx).is_ok() {
                 return;
             }
-            // A missing tray must never make a remembered Hide choice trap the user.
+            // Если значка в трее нет, запомненный выбор «Скрыть» не должен запереть пользователя.
             self.state.settings.remember_close_action = false;
             self.state.save_settings();
         }

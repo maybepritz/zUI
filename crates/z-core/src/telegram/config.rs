@@ -1,4 +1,4 @@
-//! Portable config, validated connection links and media preferences.
+//! Переносимый конфиг, проверенные ссылки подключения и настройки медиа.
 use super::TelegramProxy;
 use anyhow::{Context, Result, bail};
 use serde_json::{Value, json};
@@ -17,12 +17,12 @@ impl TelegramProxy {
         self.dir.join("TgWsProxy_data/proxy.log")
     }
 
-    /// Read the portable config and build a validated Telegram connection link.
+    /// Читает переносимый конфиг и строит проверенную ссылку подключения Telegram.
     pub fn link(&self) -> Result<String> {
         proxy_link(&read_config(&self.config_path())?)
     }
 
-    /// Update DC-to-IP overrides while stopped; `clear` removes all overrides.
+    /// Меняет привязку DC к IP, пока прокси остановлен; `clear` убирает все привязки.
     pub fn fix_media(&self, clear: bool) -> Result<()> {
         if self.running() {
             bail!("Сначала остановите TG WS Proxy");
@@ -81,7 +81,7 @@ fn proxy_link(config: &Value) -> Result<String> {
     if secret.len() != 32 || !secret.bytes().all(|b| b.is_ascii_hexdigit()) {
         bail!("Secret должен содержать 32 шестнадцатеричных символа");
     }
-    // Matches tg_proxy_url in Flowseal's tray application.
+    // Совпадает с tg_proxy_url в приложении трея Flowseal.
     let host = endpoint.ip().to_string().replace(':', "%3A");
     Ok(format!(
         "tg://proxy?server={host}&port={}&secret=dd{secret}",

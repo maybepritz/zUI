@@ -38,7 +38,7 @@ pub fn render(
     let query = filters.query.to_lowercase();
     let terms: Vec<_> = query.split_whitespace().collect();
 
-    // Keep controller indices attached to each row before changing display order.
+    // Сохраняем индекс контроллера у каждой строки до смены порядка отображения.
     let mut strategies: Vec<_> = state
         .zapret
         .strategies
@@ -64,7 +64,7 @@ pub fn render(
         })
         .collect();
 
-    // Stable sort: favorites first, original strategy order within each group.
+    // Устойчивая сортировка: сначала избранное, внутри групп исходный порядок стратегий.
     strategies.sort_by_key(|entry| !entry.2);
     let shown = strategies.len();
 

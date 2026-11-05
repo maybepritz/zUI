@@ -27,7 +27,7 @@ impl RootView {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        // Programmatic set_value does not emit Change, so reset the query explicitly.
+        // Программный set_value не вызывает Change, поэтому сбрасываем запрос явно.
         self.strategy_filters.query.clear();
         self.strategy_filters.favorites_only = false;
         self.strategy_filters

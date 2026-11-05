@@ -1,4 +1,4 @@
-//! Language choices discovered from catalog metadata rather than a Rust enum.
+//! Список языков берётся из метаданных каталогов, а не из перечисления Rust.
 use crate::{i18n, root::RootView};
 use gpui_kit::{
     component::{button::*, *},

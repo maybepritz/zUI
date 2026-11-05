@@ -1,4 +1,4 @@
-//! Standalone checker: translators do not need to compile GPUI to validate a pack.
+//! Отдельная проверка: переводчикам не нужно собирать GPUI, чтобы проверить перевод.
 use std::{fs, path::PathBuf, process::ExitCode};
 use z_i18n::{load_pack, validate};
 

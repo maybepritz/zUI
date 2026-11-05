@@ -1,4 +1,4 @@
-//! Display names are separate from the numeric version used by Cargo and updates.
+//! Название выпуска хранится отдельно от числовой версии для Cargo и обновлений.
 pub(crate) const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub(crate) fn codename() -> &'static str {

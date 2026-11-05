@@ -15,7 +15,7 @@ fn main() {
         res.compile().unwrap();
     }
     println!("cargo:rerun-if-changed=assets/icon.ico");
-    // Discover added language folders even when no Rust source has changed.
+    // Находим новые папки языков, даже если исходники Rust не менялись.
     println!("cargo:rerun-if-changed=locales");
     println!("cargo:rerun-if-changed=release-name.txt");
 }

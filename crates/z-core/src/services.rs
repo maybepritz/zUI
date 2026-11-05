@@ -1,4 +1,4 @@
-//! Availability checks for the services the user picked.
+//! Проверка доступности выбранных пользователем сервисов.
 use std::time::Duration;
 
 /// Что снимает блокировку сервиса.
@@ -92,7 +92,7 @@ pub struct CheckBatch {
     pub checked_at: u64,
 }
 
-/// Services whose id is in `ids`, in the order of `SERVICES`.
+/// Сервисы, чей id есть в `ids`, в порядке `SERVICES`.
 fn selected(ids: &[String]) -> impl Iterator<Item = &'static Service> + '_ {
     SERVICES.iter().filter(|s| ids.iter().any(|id| id == s.id))
 }

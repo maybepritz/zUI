@@ -1,4 +1,4 @@
-//E:\zui\crates\app\src\views\settings\support.rs
+//! Раздел настроек «О программе»: версия, обновления, папка данных и отчёт о проблеме.
 use crate::{
     components::hint::hint,
     components::section::{button_row, section},

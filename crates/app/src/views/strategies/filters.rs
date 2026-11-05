@@ -1,4 +1,4 @@
-//! Search and favorites controls; event handlers own all filter mutations.
+//! Поиск и избранное; все изменения фильтра делают обработчики событий.
 use crate::{
     components::{rows::favorite_button::favorite_color, section::section},
     i18n::{tr, tr_args},

@@ -92,7 +92,7 @@ impl RootView {
         view
     }
 
-    /// Observe external resources before rendering, preserving Home's reload rule.
+    /// Перед отрисовкой читаем внешние ресурсы, соблюдая правило обновления главной.
     fn refresh_view_data(&mut self) {
         if self.tab == Tab::Home
             && self.state.settings.onboarded

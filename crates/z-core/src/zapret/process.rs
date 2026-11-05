@@ -1,4 +1,4 @@
-//! Owns one winws process and drains its output into the application log.
+//! Владеет одним процессом winws и перекладывает его вывод в лог приложения.
 use super::strategies::{ensure_user_lists, validate_args};
 use crate::log::Log;
 use anyhow::{Context as _, Result, bail};
@@ -26,10 +26,10 @@ impl Zapret {
         }
     }
 
-    /// Start winws with validated strategy files and raw Windows arguments.
+    /// Запускает winws с проверенными файлами стратегии и аргументами Windows как есть.
     ///
-    /// Requires elevation and stops any previously owned process. An error
-    /// leaves a process that could not be stopped owned by this instance.
+    /// Нужны права администратора; прежний свой процесс останавливается. При ошибке
+    /// процесс, который не удалось остановить, остаётся во владении этого экземпляра.
     pub fn start(&mut self, bin_dir: &Path, lists_dir: &Path, raw_args: &str) -> Result<u32> {
         if !crate::dns::is_elevated() {
             bail!(
@@ -87,7 +87,7 @@ impl Zapret {
         Ok(pid)
     }
 
-    /// Stop and reap the owned process; retain ownership if termination fails.
+    /// Останавливает свой процесс и дожидается его; если завершить не удалось, владение сохраняется.
     pub fn stop(&mut self) {
         if let Some(mut c) = self.child.take() {
             let pid = self.pid.unwrap_or(0);
@@ -104,7 +104,7 @@ impl Zapret {
         }
     }
 
-    /// Check for exit and clear the child handle and PID once it has finished.
+    /// Проверяет, завершился ли процесс, и после этого очищает дескриптор и PID.
     pub fn is_running(&mut self) -> bool {
         match &mut self.child {
             Some(c) => match c.try_wait() {

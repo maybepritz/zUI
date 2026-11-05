@@ -4,7 +4,7 @@ use gpui_kit::{
     *,
 };
 
-/// Render a preference row; the caller owns mutation, persistence and notification.
+/// Строка настройки; изменение, сохранение и уведомление выполняет вызывающий код.
 pub fn toggle(
     id: &'static str,
     title: impl Into<SharedString>,

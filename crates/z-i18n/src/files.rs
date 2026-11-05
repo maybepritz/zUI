@@ -1,4 +1,4 @@
-//! Filesystem packs are shared by the application and the standalone checker.
+//! Переводы из файлов общие для приложения и отдельной проверки.
 use crate::{Catalog, Localizer};
 use std::{collections::BTreeSet, fs, path::Path};
 
@@ -15,8 +15,8 @@ pub fn load_pack(path: &Path) -> Result<Catalog, String> {
 }
 
 impl Localizer {
-    /// Discover installed packs without an enum or registration file.
-    /// Errors skip only the affected pack; a missing directory is normal.
+    /// Находит установленные переводы без перечисления и файла регистрации.
+    /// Ошибка пропускает только затронутый перевод; отсутствие папки — нормально.
     pub fn load_directory(&mut self, directory: &Path) -> Vec<String> {
         let mut issues = Vec::new();
         let entries = match fs::read_dir(directory) {

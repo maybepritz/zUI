@@ -2,7 +2,7 @@
  * page.rs
  * zui
  *
- * Created by maybepritz on 2026-10-12.
+ * Создан maybepritz 2026-10-12.
  */
 use gpui_kit::{
     component::{scroll::ScrollableElement as _, *},
@@ -20,8 +20,8 @@ fn centered(content: Div) -> Div {
         .flex_shrink_0()
 }
 
-/// Scroll the whole tab area, including the gutters around its centered content.
-/// Each calling view retains its own scroll position.
+/// Прокручивает всю область вкладки, включая поля вокруг содержимого по центру.
+/// Каждый экран сохраняет свою позицию прокрутки.
 #[track_caller]
 pub fn page(content: Div) -> AnyElement {
     div()
@@ -34,7 +34,7 @@ pub fn page(content: Div) -> AnyElement {
         .into_any_element()
 }
 
-/// Keep the heading fixed while scrolling the body over the full tab width.
+/// Заголовок остаётся на месте, а тело прокручивается на всю ширину вкладки.
 #[track_caller]
 pub fn page_with_header(header: Div, content: Div) -> AnyElement {
     div()

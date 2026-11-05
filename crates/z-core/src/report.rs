@@ -3,8 +3,8 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
-/// Keep the report human-reviewable. Proxy config and secrets are deliberately
-/// excluded; high-risk log lines are redacted in full.
+/// Отчёт должен читаться человеком. Настройки прокси и секреты намеренно
+/// исключены; опасные строки лога скрываются целиком.
 pub fn redact(line: &str) -> String {
     let lower = line.to_ascii_lowercase();
     if [

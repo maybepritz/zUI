@@ -1,5 +1,5 @@
-//! Application catalog discovery and thread-safe language selection.
-//! Translators edit locales/<BCP-47 code>/{locale.json,main.ftl}, never Rust strings.
+//! Поиск каталогов переводов и потокобезопасный выбор языка.
+//! Переводчики правят locales/<код BCP-47>/{locale.json,main.ftl}, а не строки в Rust.
 mod text;
 pub(crate) use text::{Text, text, text_args};
 
@@ -37,7 +37,7 @@ fn bundled() -> Localizer {
     localizer
 }
 
-/// Load installed packs once at startup. Bad user files are reported and skipped.
+/// Загружает установленные переводы один раз при запуске. Ошибочные файлы пользователя попадают в отчёт и пропускаются.
 pub(crate) fn initialize(directory: &Path, language: &Language) -> Vec<String> {
     let mut issues = Vec::new();
     if LOCALIZER.get().is_none() {
@@ -116,8 +116,8 @@ pub(crate) fn tr_args<'a>(key: &str, values: &[(&str, FluentValue<'a>)]) -> Stri
         .format(&current, key, Some(&args))
 }
 
-/// Format the first frame without initializing the application's main catalog.
-/// Otherwise an early `tr` call would make `initialize` skip user-installed packs.
+/// Форматирует первый кадр, не инициализируя основной каталог приложения.
+/// Иначе ранний вызов `tr` заставил бы `initialize` пропустить переводы пользователя.
 pub(crate) fn startup_tr(key: &str) -> String {
     if LOCALIZER.get().is_some() {
         return tr(key);

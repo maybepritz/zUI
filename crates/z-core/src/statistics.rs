@@ -1,4 +1,4 @@
-//! Persistent counters, the latest diagnostic snapshot and a bounded event history.
+//! Сохраняемые счётчики, последний результат диагностики и ограниченная история событий.
 use crate::settings::Recovery;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -15,7 +15,7 @@ pub fn now() -> u64 {
         .as_secs()
 }
 
-/// A saved diagnostic result; it does not describe live connection health.
+/// Сохранённый результат диагностики; текущее состояние связи он не описывает.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TestSummary {
     pub finished_at: u64,
@@ -45,7 +45,7 @@ pub struct StatisticsEvent {
     pub kind: StatisticsEventKind,
 }
 
-/// Store semantic data so history can be translated when the UI is rendered.
+/// Храним смысл, а не текст, чтобы историю можно было перевести при отрисовке.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum StatisticsEventKind {
@@ -79,8 +79,8 @@ pub struct Statistics {
 }
 
 impl Statistics {
-    /// Load statistics; an unreadable file is moved aside and the backup is tried
-    /// before falling back to empty statistics.
+    /// Загружает статистику; нечитаемый файл откладывается, пробуется резервная копия,
+    /// и только потом пустая статистика.
     pub fn load(path: &Path) -> (Self, Option<Recovery>) {
         crate::settings::load_recovering(path, Self::read)
     }
@@ -89,7 +89,7 @@ impl Statistics {
         crate::settings::save_with_backup(path, self, Self::read)
     }
 
-    /// `Ok(None)` when the file does not exist yet.
+    /// `Ok(None)`, если файла ещё нет.
     fn read(path: &Path) -> anyhow::Result<Option<Self>> {
         match std::fs::read(path) {
             Ok(bytes) => {

@@ -1,4 +1,4 @@
-//! Release overview with plain cards and a full-width scroll area.
+//! Обзор выпуска: простые карточки и прокрутка на всю ширину.
 use crate::{i18n::tr, release, root::RootView};
 use gpui_kit::assets::IconName as LucideIcon;
 use gpui_kit::{
@@ -17,7 +17,7 @@ struct NotesSection {
     items: Vec<String>,
 }
 
-/// Translators keep the familiar heading/bullet format in one Fluent message.
+/// Переводчики сохраняют привычный формат «заголовок и пункты» в одном сообщении Fluent.
 fn sections(text: &str) -> Vec<NotesSection> {
     let mut sections: Vec<NotesSection> = Vec::new();
     for line in text.lines().map(str::trim).filter(|line| !line.is_empty()) {
@@ -90,7 +90,7 @@ pub fn render(cx: &mut Context<RootView>) -> AnyElement {
         .map(|(ix, section)| change_card(section, icons[ix % icons.len()], cx))
         .collect();
 
-    // A plain heading: the release name carries the screen, not a tinted box.
+    // Простой заголовок: экран держит название выпуска, а не цветная плашка.
     let hero = div()
         .v_flex()
         .w_full()

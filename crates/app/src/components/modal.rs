@@ -1,7 +1,7 @@
-//! Shared dialog surface; callers own the content, actions and state.
+//! Общая основа диалогов; содержимое, действия и состояние задаёт вызывающий код.
 use gpui_kit::{SharedString, component::dialog::Dialog, px};
 
-/// One width and overlay behaviour for every dialog; the caller adds its footer.
+/// Одна ширина и поведение затемнения для всех диалогов; нижнюю панель добавляет вызывающий код.
 pub(crate) fn modal(dialog: Dialog, title: impl Into<SharedString>) -> Dialog {
     let title: SharedString = title.into();
     dialog

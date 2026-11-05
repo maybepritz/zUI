@@ -1,4 +1,4 @@
-/// A replacement instance must not start services until the old owner has exited.
+/// Новый экземпляр не запускает сервисы, пока старый владелец не завершился.
 #[cfg(windows)]
 pub fn wait_for_previous() -> bool {
     use windows::Win32::{
@@ -20,10 +20,10 @@ pub fn wait_for_previous() -> bool {
         if pid == std::process::id() {
             return false;
         }
-        // SYNCHRONIZE grants only waiting, with no ability to terminate the process.
+        // SYNCHRONIZE даёт право только ждать, завершить процесс с ним нельзя.
         let process = match unsafe { OpenProcess(PROCESS_SYNCHRONIZE, false, pid) } {
             Ok(process) => process,
-            // The parent may have already exited before this process opened it.
+            // Родитель мог завершиться ещё до того, как этот процесс его открыл.
             Err(error) => return error.code() == ERROR_INVALID_PARAMETER.to_hresult(),
         };
         let result = unsafe { WaitForSingleObject(process, 60_000) };

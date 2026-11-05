@@ -1,4 +1,4 @@
-//! Zapret integration; reexports preserve the public API across internal modules.
+//! Интеграция с Zapret; реэкспорты сохраняют публичный API при перестановке внутренних модулей.
 pub mod diagnostics;
 pub mod install;
 mod model;

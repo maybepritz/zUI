@@ -3,7 +3,7 @@ pub(crate) fn strategy_sort_key(name: &str) -> (u8, usize, String) {
         return (0, 0, name.to_string());
     }
     if name.starts_with("general (ALT") {
-        // extract number if any
+        // достаём номер, если он есть
         let num_part = name
             .trim_start_matches("general (ALT")
             .trim_end_matches(')');
@@ -34,8 +34,8 @@ pub(crate) fn parse_with_game_filter(
     lists_str: &str,
     ports: (&str, &str),
 ) -> Option<String> {
-    // ASCII case conversion preserves UTF-8 byte offsets, unlike to_lowercase.
-    // Ignore mentions in comments and stop exactly at the end of the command.
+    // Смена регистра ASCII сохраняет смещения байтов UTF-8, в отличие от to_lowercase.
+    // Пропускаем упоминания в комментариях и останавливаемся ровно в конце команды.
     let command = content.lines().find(|line| {
         let lower = line.trim().to_ascii_lowercase();
         !lower.starts_with("rem ")

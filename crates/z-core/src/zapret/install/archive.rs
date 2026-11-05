@@ -95,8 +95,8 @@ pub(super) fn extract_zip(zip_path: &Path, dest: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Prepare user files before touching the active installation; roll back a
-/// failed final rename. The previous installation is retained for recovery.
+/// Готовит файлы пользователя до изменения рабочей установки; откатывает
+/// неудачное последнее переименование. Прошлая установка сохраняется для восстановления.
 pub(super) fn move_into_place(staging: &Path, dir: &Path) -> Result<()> {
     if !dir.exists() {
         return fs::rename(staging, dir).context("Не удалось установить файлы");
@@ -147,7 +147,7 @@ mod tests {
         let installed = root.join("zapret");
         fs::create_dir_all(&installed).unwrap();
         fs::write(installed.join(".version"), "previous").unwrap();
-        // A missing staging directory forces the final rename to fail.
+        // Отсутствующая временная папка заставляет последнее переименование упасть.
         assert!(move_into_place(&root.join("missing"), &installed).is_err());
         assert_eq!(
             fs::read_to_string(installed.join(".version")).unwrap(),

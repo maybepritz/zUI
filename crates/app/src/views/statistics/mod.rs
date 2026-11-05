@@ -1,4 +1,4 @@
-//! Statistics layout. Rendering reads saved snapshots and never mutates state.
+//! Разметка статистики. Отрисовка читает сохранённые снимки и не меняет состояние.
 pub(crate) mod formatting;
 mod history;
 mod summary;

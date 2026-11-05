@@ -1,5 +1,5 @@
-//! Small monochrome canvas effect, driven only by its host's loading timer.
-//! No assets, random-number dependency, global listeners or independent animation loop.
+//! Небольшой одноцветный эффект на canvas, который двигает только таймер загрузки.
+//! Без ресурсов, генератора случайных чисел, глобальных слушателей и своего цикла анимации.
 use gpui_kit::*;
 use std::{
     collections::VecDeque,
@@ -90,7 +90,7 @@ impl ParticleField {
         if distance < 2. && !self.trail.is_empty() {
             return;
         }
-        // Interpolate fast movements without allocating an unbounded event trail.
+        // Сглаживаем быстрые движения, не накапливая бесконечный след событий.
         let steps = ((distance / 6.).ceil() as usize).clamp(1, 8);
         for step in 1..=steps {
             let ratio = step as f32 / steps as f32;
@@ -118,7 +118,7 @@ impl ParticleField {
         self.pointer = None;
     }
 
-    /// `ink` is the theme's text color; dots use it at low opacity in both themes.
+    /// `ink` — цвет текста темы; точки рисуются им с низкой непрозрачностью в обеих темах.
     pub(crate) fn canvas(&self, ink: Hsla) -> impl IntoElement + Styled + use<> {
         let particles = self.particles.clone();
         let trail = self.trail.clone();
@@ -143,7 +143,7 @@ impl ParticleField {
                             y += dy / distance * proximity * 14.;
                         }
                     }
-                    // Keep the logo and status area quieter than the edges.
+                    // Область логотипа и статуса спокойнее, чем края.
                     let quiet = ((x - width * 0.5).abs() / 190.)
                         .max((y - height * 0.5).abs() / 155.)
                         .clamp(0.2, 1.);

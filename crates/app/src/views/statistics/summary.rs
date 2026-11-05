@@ -72,7 +72,7 @@ pub(super) fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootVie
         } else {
             "statistics-check-failed"
         };
-        // Only the result badge carries status color; the surrounding UI stays neutral.
+        // Цвет статуса есть только у плашки результата; остальной интерфейс нейтральный.
         let color = if test.completed
             && test
                 .best
@@ -156,7 +156,7 @@ pub(super) fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootVie
             tr("statistics-check-empty"),
             tr("statistics-check-empty-hint"),
         ));
-        // Older statistics only contain a timestamp, so do not invent a detailed result.
+        // В старой статистике есть только время, поэтому подробный результат не придумываем.
         if let Some(timestamp) = stats.last_successful_test {
             card = card.child(
                 Label::new(tr_args(

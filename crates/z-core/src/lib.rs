@@ -14,6 +14,6 @@ pub mod telegram;
 pub mod updater;
 pub mod zapret;
 
-/// Process creation flag that keeps console tools from opening a window.
+/// Флаг создания процесса, чтобы консольные утилиты не открывали окно.
 #[cfg(windows)]
 pub(crate) const CREATE_NO_WINDOW: u32 = 0x0800_0000;
