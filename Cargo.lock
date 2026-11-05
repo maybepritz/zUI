@@ -3293,7 +3293,6 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tower-service",
- "webpki-roots",
 ]
 
 [[package]]
@@ -5791,44 +5790,6 @@ checksum = "19b30a45b0cd0bcca8037f3d0dc3421eaf95327a17cad11964fb8179b4fc4832"
 
 [[package]]
 name = "reqwest"
-version = "0.12.28"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eddd3ca559203180a307f12d114c268abf583f59b03cb906fd0b3ff8646c1147"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "futures-core",
- "http",
- "http-body",
- "http-body-util",
- "hyper",
- "hyper-rustls",
- "hyper-util",
- "js-sys",
- "log",
- "percent-encoding",
- "pin-project-lite",
- "quinn",
- "rustls",
- "rustls-pki-types",
- "serde",
- "serde_json",
- "serde_urlencoded",
- "sync_wrapper",
- "tokio",
- "tokio-rustls",
- "tower",
- "tower-http",
- "tower-service",
- "url",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "webpki-roots",
-]
-
-[[package]]
-name = "reqwest"
 version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "16a1cfa75cc186dd73d5818e510e042e40927bccc9c236b061cea97e1eb08029"
@@ -6323,7 +6284,7 @@ dependencies = [
  "http",
  "log",
  "regex",
- "reqwest 0.13.5",
+ "reqwest",
  "self-replace",
  "semver",
  "serde",
@@ -6331,7 +6292,7 @@ dependencies = [
  "tempfile",
  "ureq",
  "urlencoding",
- "zip 8.6.0",
+ "zip",
  "zipsign-api",
 ]
 
@@ -9162,13 +9123,13 @@ version = "0.1.1"
 dependencies = [
  "anyhow",
  "base64 0.23.1",
- "reqwest 0.12.28",
+ "reqwest",
  "self_update",
  "serde",
  "serde_json",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "tokio",
- "zip 9.0.0",
+ "zip",
 ]
 
 [[package]]
@@ -9476,20 +9437,6 @@ dependencies = [
  "indexmap",
  "memchr",
  "time",
- "typed-path",
- "zopfli",
-]
-
-[[package]]
-name = "zip"
-version = "9.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "711e8c9646791c49b7eb799a19c4ae70a9b8372ddc6a1fa4778defd1e2aa5d5e"
-dependencies = [
- "crc32fast",
- "flate2",
- "indexmap",
- "memchr",
  "typed-path",
  "zopfli",
 ]
