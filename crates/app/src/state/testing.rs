@@ -30,8 +30,10 @@ impl AppState {
             automatic,
             services: self.settings.automation.services.clone(),
         };
-        if automatic {
-            let targets = z_core::services::targets(&self.settings.automation.services);
+        // Без выбранных сервисов, которые чинит zapret, проверяем стандартный набор адресов,
+        // иначе автоматический тест молча не запустится.
+        let targets = z_core::services::targets(&self.settings.automation.services);
+        if automatic && !targets.is_empty() {
             self.diagnostics
                 .start_with_targets(&mut self.zapret, targets);
         } else {

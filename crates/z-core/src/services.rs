@@ -1,34 +1,60 @@
 //! Availability checks for the services the user picked.
 use std::time::{Duration, Instant};
 
+/// Что снимает блокировку сервиса.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Fix {
+    /// Блокировка по DPI: помогает стратегия zapret.
+    Zapret,
+    /// Геоблок: zapret не поможет, нужен DNS-обход.
+    Dns,
+}
+
 #[derive(Clone, Copy)]
 pub struct Service {
     pub id: &'static str,
     pub name: &'static str,
     pub url: &'static str,
+    pub fix: Fix,
 }
 
-const fn service(id: &'static str, name: &'static str, url: &'static str) -> Service {
-    Service { id, name, url }
+const fn service(id: &'static str, name: &'static str, url: &'static str, fix: Fix) -> Service {
+    Service { id, name, url, fix }
 }
 
 pub const SERVICES: &[Service] = &[
-    //блокировка по DPI
-    service("youtube", "YouTube", "https://www.youtube.com"),
-    service("discord", "Discord", "https://discord.com"),
-    service("instagram", "Instagram", "https://www.instagram.com"),
-    service("x", "X", "https://x.com"),
-    service("roblox", "Roblox", "https://www.roblox.com"),
-    //геоблок DNS-обход
-    service("chatgpt", "ChatGPT", "https://chatgpt.com"),
-    service("claude", "Claude", "https://claude.ai"),
-    service("gemini", "Gemini", "https://gemini.google.com"),
-    service("copilot", "Copilot", "https://copilot.microsoft.com"),
-    service("perplexity", "Perplexity", "https://www.perplexity.ai"),
-    service("grok", "Grok", "https://grok.com"),
-    service("mistral", "Mistral", "https://chat.mistral.ai"),
-    service("spotify", "Spotify", "https://open.spotify.com"),
+    service("youtube", "YouTube", "https://www.youtube.com", Fix::Zapret),
+    service("discord", "Discord", "https://discord.com", Fix::Zapret),
+    service(
+        "instagram",
+        "Instagram",
+        "https://www.instagram.com",
+        Fix::Zapret,
+    ),
+    service("x", "X", "https://x.com", Fix::Zapret),
+    service("roblox", "Roblox", "https://www.roblox.com", Fix::Zapret),
+    service("chatgpt", "ChatGPT", "https://chatgpt.com", Fix::Dns),
+    service("claude", "Claude", "https://claude.ai", Fix::Dns),
+    service("gemini", "Gemini", "https://gemini.google.com", Fix::Dns),
+    service(
+        "copilot",
+        "Copilot",
+        "https://copilot.microsoft.com",
+        Fix::Dns,
+    ),
+    service(
+        "perplexity",
+        "Perplexity",
+        "https://www.perplexity.ai",
+        Fix::Dns,
+    ),
+    service("grok", "Grok", "https://grok.com", Fix::Dns),
+    service("mistral", "Mistral", "https://chat.mistral.ai", Fix::Dns),
+    service("spotify", "Spotify", "https://open.spotify.com", Fix::Dns),
 ];
+
+/// Сервисы, которые проверяются по умолчанию.
+pub const DEFAULT_IDS: [&str; 2] = ["youtube", "discord"];
 
 const CONTROL_URL: &str = "https://example.com";
 
@@ -58,8 +84,13 @@ fn selected(ids: &[String]) -> impl Iterator<Item = &'static Service> + '_ {
     SERVICES.iter().filter(|s| ids.iter().any(|id| id == s.id))
 }
 
+/// Адреса для теста стратегий: только сервисы, которые чинит zapret.
+/// Сайт с геоблоком не откроется ни с одной стратегией и забракует все.
 pub fn targets(ids: &[String]) -> Vec<String> {
-    selected(ids).map(|s| s.url.to_string()).collect()
+    selected(ids)
+        .filter(|s| s.fix == Fix::Zapret)
+        .map(|s| s.url.to_string())
+        .collect()
 }
 
 pub fn check(ids: &[String]) -> anyhow::Result<CheckBatch> {

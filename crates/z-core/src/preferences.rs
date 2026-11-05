@@ -75,7 +75,7 @@ impl Default for Automation {
             watchdog: false,
             auto_switch: false,
             daily_retest: false,
-            services: ["chatgpt", "claude", "gemini"].map(str::to_owned).to_vec(),
+            services: crate::services::DEFAULT_IDS.map(str::to_owned).to_vec(),
         }
     }
 }
