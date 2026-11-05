@@ -1,5 +1,5 @@
 //! Statistics layout. Rendering reads saved snapshots and never mutates state.
-mod formatting;
+pub(crate) mod formatting;
 mod history;
 mod summary;
 

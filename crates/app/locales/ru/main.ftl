@@ -37,15 +37,6 @@ ui-zui-strategy = zUI — стратегия
 # Used in: notifications.rs
 ui-zui-update = zUI — обновление
 
-# Used in: components/log_preview.rs
-ui-no-events-yet-start-zapret-to-begin = Логи пока пусты. Запустите Zapret для начала работы.
-
-# Used in: components/log_preview.rs
-ui-recent-events = Последние события
-
-# Used in: components/log_preview.rs
-ui-all-logs = Все логи →
-
 # Used in: root/navigation.rs
 ui-home = Главная
 
@@ -91,33 +82,6 @@ ui-test-complete-current-strategy-retained = Тест завершён. Теку
 # Used in: state/testing.rs
 ui-test-cancelled-previous-state-restored = Тест отменён. Предыдущее состояние восстановлено
 
-# Used in: views/home.rs
-ui-not-selected = Не выбрана
-
-# Used in: views/home.rs
-ui-stop-zapret = Остановить Zapret
-
-# Used in: views/home.rs
-ui-start-zapret = Запустить Zapret
-
-# Used in: views/home.rs
-ui-current-configuration = Текущая конфигурация
-
-# Used in: views/home.rs
-ui-strategy = Стратегия:
-
-# Used in: views/home.rs
-ui-choose-another = Выбрать другую
-
-# Used in: views/home.rs
-ui-dns-server = DNS сервер:
-
-# Used in: views/home.rs
-ui-configure-dns = Настроить DNS
-
-# Used in: views/home.rs
-ui-configure-proxy = Настроить proxy
-
 # Used in: views/logs.rs
 ui-no-events-yet-start-zapret-on-the = Лог пуст. Запустите службу Zapret на вкладке «Главная» для просмотра событий.
 
@@ -156,12 +120,6 @@ ui-installing = Установка…
 
 # Used in: components/cards/banner.rs
 ui-install-zapret = Установить Zapret
-
-# Used in: components/cards/status_card.rs
-ui-running = Работает
-
-# Used in: components/cards/status_card.rs
-ui-stopped = Остановлено
 
 # Used in: components/cards/update_banner.rs
 ui-later = Позже
@@ -691,9 +649,6 @@ dns-preset-public-description = Публичный DNS. Не обходит DPI 
 # Used in: views/dns/preset_card.rs
 dns-preset-comss-description = Comss One DNS: обход блокировок и геоблока (сторонний сервис)
 
-# Used in: views/home.rs
-telegram-proxy-label = Telegram-прокси:
-
 # Used in: views/telegram/mod.rs
 telegram-title = Telegram · TG WS Proxy
 
@@ -781,3 +736,28 @@ startup-network-hint = При медленной сети проверка об�
 startup-failed = Не удалось подготовить приложение
 startup-failed-hint = Повторите запуск подготовки. Если ошибка повторится, перезапустите zUI.
 startup-retry = Повторить
+
+# Used in: views/home.rs, root/sidebar.rs
+ui-advanced = Для опытных
+home-bypass-on = Обход работает
+home-bypass-off = Обход выключен
+home-bypass-off-hint = YouTube и Discord могут не открываться
+home-bypass-switch = Обход блокировок
+home-service-down = { $service } не открывается
+home-service-down-hint = Провайдер мог сменить блокировку
+home-checking = Проверяем сервисы
+home-checked = Проверено { $ago }
+home-latency-day = Задержка за сутки
+home-axis-day-ago = сутки назад
+home-axis-12h = 12 ч назад
+home-axis-now = сейчас
+home-service-no-outages = без сбоев за сутки
+home-service-outages = не открывался { $duration } за сутки
+home-service-not-responding = не отвечает
+home-service-not-checked = не проверяется
+home-latency-ms = { $ms } мс
+home-strategy = Способ обхода: { $strategy }
+home-strategy-none = не выбран
+home-change = Сменить
+home-check-now = Проверить сейчас
+home-retest = Подобрать заново

@@ -26,15 +26,11 @@ impl Tab {
         }
     }
 
-    pub(super) const ALL: [Tab; 7] = [
-        Tab::Home,
-        Tab::Strategies,
-        Tab::Dns,
-        Tab::Telegram,
-        Tab::Statistics,
-        Tab::Logs,
-        Tab::Settings,
-    ];
+    /// Вкладки для всех.
+    pub(super) const MAIN: [Tab; 4] = [Tab::Home, Tab::Telegram, Tab::Statistics, Tab::Settings];
+
+    /// Ручная настройка обхода: отдельная группа «Для опытных».
+    pub(super) const ADVANCED: [Tab; 3] = [Tab::Strategies, Tab::Dns, Tab::Logs];
 
     pub(super) fn title(self) -> String {
         match self {

@@ -37,15 +37,6 @@ ui-zui-strategy = zUI — strategy
 # Used in: notifications.rs
 ui-zui-update = zUI — update
 
-# Used in: components/log_preview.rs
-ui-no-events-yet-start-zapret-to-begin = No events yet. Start Zapret to begin.
-
-# Used in: components/log_preview.rs
-ui-recent-events = Recent events
-
-# Used in: components/log_preview.rs
-ui-all-logs = All logs →
-
 # Used in: root/navigation.rs
 ui-home = Home
 
@@ -91,33 +82,6 @@ ui-test-complete-current-strategy-retained = Test complete. Current strategy ret
 # Used in: state/testing.rs
 ui-test-cancelled-previous-state-restored = Test cancelled. Previous state restored
 
-# Used in: views/home.rs
-ui-not-selected = Not selected
-
-# Used in: views/home.rs
-ui-stop-zapret = Stop Zapret
-
-# Used in: views/home.rs
-ui-start-zapret = Start Zapret
-
-# Used in: views/home.rs
-ui-current-configuration = Current configuration
-
-# Used in: views/home.rs
-ui-strategy = Strategy:
-
-# Used in: views/home.rs
-ui-choose-another = Choose another
-
-# Used in: views/home.rs
-ui-dns-server = DNS server:
-
-# Used in: views/home.rs
-ui-configure-dns = Configure DNS
-
-# Used in: views/home.rs
-ui-configure-proxy = Configure proxy
-
 # Used in: views/logs.rs
 ui-no-events-yet-start-zapret-on-the = No events yet. Start Zapret on the Home page to view events.
 
@@ -156,12 +120,6 @@ ui-installing = Installing…
 
 # Used in: components/cards/banner.rs
 ui-install-zapret = Install Zapret
-
-# Used in: components/cards/status_card.rs
-ui-running = Running
-
-# Used in: components/cards/status_card.rs
-ui-stopped = Stopped
 
 # Used in: components/cards/update_banner.rs
 ui-later = Later
@@ -689,9 +647,6 @@ dns-preset-public-description = Public DNS. Does not bypass DPI or geographic re
 # Used in: views/dns/preset_card.rs
 dns-preset-comss-description = Comss One DNS: bypassing blocks and geographic restrictions (third-party service)
 
-# Used in: views/home.rs
-telegram-proxy-label = Telegram proxy:
-
 # Used in: views/telegram/mod.rs
 telegram-title = Telegram · TG WS Proxy
 
@@ -779,3 +734,28 @@ startup-network-hint = On a slow connection, update checks will continue in the 
 startup-failed = Could not prepare the application
 startup-failed-hint = Try preparing again. If the problem persists, restart zUI.
 startup-retry = Retry
+
+# Used in: views/home.rs, root/sidebar.rs
+ui-advanced = Advanced
+home-bypass-on = Bypass is on
+home-bypass-off = Bypass is off
+home-bypass-off-hint = YouTube and Discord may not open
+home-bypass-switch = Block bypass
+home-service-down = { $service } doesn't open
+home-service-down-hint = Your provider may have changed the block
+home-checking = Checking services
+home-checked = Checked { $ago }
+home-latency-day = Latency over the day
+home-axis-day-ago = a day ago
+home-axis-12h = 12 h ago
+home-axis-now = now
+home-service-no-outages = no outages in the last day
+home-service-outages = unreachable for { $duration } in the last day
+home-service-not-responding = not responding
+home-service-not-checked = not checked
+home-latency-ms = { $ms } ms
+home-strategy = Bypass method: { $strategy }
+home-strategy-none = not selected
+home-change = Change
+home-check-now = Check now
+home-retest = Find another

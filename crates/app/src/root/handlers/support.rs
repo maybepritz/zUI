@@ -46,6 +46,13 @@ impl RootView {
         self.refresh_and_notify(cx);
     }
 
+    /// Проверить сервисы сейчас, не дожидаясь минутного интервала.
+    pub(crate) fn on_check_services(&mut self, cx: &mut Context<Self>) {
+        let ids = self.state.settings.automation.services.clone();
+        self.state.background.services.check(&ids);
+        self.refresh_and_notify(cx);
+    }
+
     pub(crate) fn on_show_whats_new(&mut self, cx: &mut Context<Self>) {
         self.show_whats_new = true;
         self.refresh_and_notify(cx);

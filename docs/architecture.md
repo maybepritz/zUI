@@ -84,7 +84,7 @@ app/src/
       close_dialog.rs       # выбор выхода или скрытия и флаг запоминания
     logs.rs
     statistics/             # результат проверки, счётчики, история
-  components/               # cards, rows, layout, log_preview, modal
+  components/               # cards, rows, layout, latency_chart, modal
   platform/                 # startup, handoff
   tray.rs
   i18n/                     # каталог языков, выбор языка, отложенный Text

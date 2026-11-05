@@ -1,6 +1,6 @@
 use crate::i18n::{tr, tr_args};
 
-pub(super) fn duration(secs: u64) -> String {
+pub(crate) fn duration(secs: u64) -> String {
     let (d, h, m) = (secs / 86400, secs / 3600 % 24, secs / 60 % 60);
     if d > 0 {
         tr_args(
@@ -17,7 +17,7 @@ pub(super) fn duration(secs: u64) -> String {
     }
 }
 
-pub(super) fn ago(timestamp: u64, now: u64) -> String {
+pub(crate) fn ago(timestamp: u64, now: u64) -> String {
     let secs = now.saturating_sub(timestamp);
     if secs < 60 {
         tr("ui-just-now")

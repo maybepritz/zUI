@@ -8,18 +8,20 @@ use gpui_kit::*;
 
 impl RootView {
     pub(super) fn sidebar(&self, cx: &mut Context<Self>) -> AnyElement {
-        let mut menu = SidebarMenu::new();
-
-        for tab in Tab::ALL {
-            menu = menu.child(
-                SidebarMenuItem::new(tab.title())
-                    .icon(tab.icon())
-                    .active(self.tab == tab)
-                    .on_click(cx.listener(move |this, _, _, cx| {
-                        this.on_navigate(tab, cx);
-                    })),
-            );
-        }
+        let menu = |tabs: &[Tab]| {
+            tabs.iter().fold(SidebarMenu::new(), |menu, &tab| {
+                menu.child(
+                    SidebarMenuItem::new(tab.title())
+                        .icon(tab.icon())
+                        .active(self.tab == tab)
+                        .on_click(cx.listener(move |this, _, _, cx| {
+                            this.on_navigate(tab, cx);
+                        })),
+                )
+            })
+        };
+        let main = menu(&Tab::MAIN);
+        let advanced = menu(&Tab::ADVANCED);
 
         Sidebar::new("sidebar")
             .header(
@@ -37,7 +39,8 @@ impl RootView {
                         ),
                 ),
             )
-            .child(SidebarGroup::new("").child(menu))
+            .child(SidebarGroup::new("").child(main))
+            .child(SidebarGroup::new(crate::i18n::tr("ui-advanced")).child(advanced))
             .footer(SidebarFooter::new().child(crate::release::label()))
             .into_any_element()
     }
