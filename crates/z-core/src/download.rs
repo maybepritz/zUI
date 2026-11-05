@@ -29,24 +29,11 @@ pub fn fetch_latest(
 ) -> Result<String> {
     let runtime = tokio::runtime::Runtime::new()?;
     runtime.block_on(async {
-        let client = reqwest::Client::builder()
-            .user_agent(concat!("zUI/", env!("CARGO_PKG_VERSION")))
-            .connect_timeout(Duration::from_secs(15))
-            .timeout(Duration::from_secs(300))
-            .build()?;
+        let client = crate::net::client(Duration::from_secs(15), Duration::from_secs(300))?;
 
         log("Запрашиваю информацию о последнем релизе...");
 
-        let metadata = client
-            .get(source.api_url)
-            .send()
-            .await?
-            .error_for_status()?
-            .text()
-            .await?;
-
-        let release: Value = serde_json::from_str(&metadata)?;
-
+        let release = latest_release(&client, source.api_url).await?;
         let tag = release["tag_name"]
             .as_str()
             .unwrap_or("unknown")
@@ -114,7 +101,8 @@ pub fn fetch_latest(
                     log(&format!("Загружено {}%", step * 25));
                 }
             }
-            verify(size, received, digest, &format!("{:x}", hash.finalize()))?;
+            let actual: String = hash.finalize().iter().map(|b| format!("{b:02x}")).collect();
+            verify(size, received, digest, &actual)?;
             if header != source.magic {
                 bail!("Загруженный файл не является ZIP-архивом");
             }
@@ -132,19 +120,22 @@ pub fn fetch_latest(
     })
 }
 
+/// Описание последнего релиза из GitHub API.
+async fn latest_release(client: &reqwest::Client, api_url: &str) -> Result<Value> {
+    let body = client
+        .get(api_url)
+        .send()
+        .await?
+        .error_for_status()?
+        .text()
+        .await?;
+    Ok(serde_json::from_str(&body)?)
+}
+
 pub fn latest_tag(api_url: &str) -> Result<String> {
     tokio::runtime::Runtime::new()?.block_on(async {
-        let body = reqwest::Client::builder()
-            .user_agent(concat!("zUI/", env!("CARGO_PKG_VERSION")))
-            .timeout(Duration::from_secs(30))
-            .build()?
-            .get(api_url)
-            .send()
-            .await?
-            .error_for_status()?
-            .text()
-            .await?;
-        let release: Value = serde_json::from_str(&body)?;
+        let client = crate::net::client(Duration::from_secs(15), Duration::from_secs(30))?;
+        let release = latest_release(&client, api_url).await?;
         release["tag_name"]
             .as_str()
             .map(str::to_string)

@@ -1,5 +1,5 @@
 //! Availability checks for the services the user picked.
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 /// Что снимает блокировку сервиса.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -65,6 +65,14 @@ pub enum Availability {
     NetworkError,
 }
 
+impl Availability {
+    /// Сервер ответил, значит соединение прошло через DPI. Код ответа (403, капча)
+    /// говорит о самом сайте, а не о блокировке: по HTTPS провайдер подменить его не может.
+    pub fn connected(self) -> bool {
+        !matches!(self, Self::NetworkError)
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Check {
     pub id: String,
@@ -96,19 +104,21 @@ pub fn targets(ids: &[String]) -> Vec<String> {
 pub fn check(ids: &[String]) -> anyhow::Result<CheckBatch> {
     let runtime = tokio::runtime::Runtime::new()?;
     runtime.block_on(async {
-        let client = reqwest::Client::builder()
-            .user_agent("zUI availability check")
-            .connect_timeout(Duration::from_secs(4))
-            .timeout(Duration::from_secs(8))
-            .redirect(reqwest::redirect::Policy::limited(5))
-            .build()?;
+        let client = crate::net::client(Duration::from_secs(4), Duration::from_secs(8))?;
 
         let mut jobs = tokio::task::JoinSet::new();
         for service in selected(ids) {
             let client = client.clone();
-            jobs.spawn(async move { probe(&client, service.id, service.url).await });
+            jobs.spawn(async move {
+                let (availability, latency_ms) = crate::net::probe(&client, service.url).await;
+                Check {
+                    id: service.id.into(),
+                    availability,
+                    latency_ms,
+                }
+            });
         }
-        let control = probe(&client, "control", CONTROL_URL).await;
+        let (control, _) = crate::net::probe(&client, CONTROL_URL).await;
 
         let mut checks = Vec::new();
         while let Some(result) = jobs.join_next().await {
@@ -118,22 +128,8 @@ pub fn check(ids: &[String]) -> anyhow::Result<CheckBatch> {
 
         Ok(CheckBatch {
             checks,
-            internet_available: control.availability == Availability::Reachable,
+            internet_available: control.connected(),
             checked_at: crate::statistics::now(),
         })
     })
-}
-
-async fn probe(client: &reqwest::Client, id: &str, url: &str) -> Check {
-    let started = Instant::now();
-    let availability = match client.get(url).send().await {
-        Ok(response) if response.status().is_success() => Availability::Reachable,
-        Ok(response) => Availability::Http(response.status().as_u16()),
-        Err(_) => Availability::NetworkError,
-    };
-    Check {
-        id: id.into(),
-        availability,
-        latency_ms: started.elapsed().as_millis() as u64,
-    }
 }
