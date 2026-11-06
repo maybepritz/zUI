@@ -2,8 +2,21 @@
 #ifndef RepoRoot
   #define RepoRoot SourcePath + ".."
 #endif
+; Версия и имя выпуска берутся из тех же файлов, что и у приложения.
 #ifndef MyAppVersion
-  #define MyAppVersion "0.1.1"
+  #define VersionFile FileOpen(RepoRoot + "\Cargo.toml")
+  #define VersionLine ""
+  #sub FindVersion
+    #expr VersionLine = Trim(FileRead(VersionFile))
+  #endsub
+  #for {VersionLine = ""; !FileEof(VersionFile) && Copy(VersionLine, 1, 10) != "version = "; 0} FindVersion
+  #expr FileClose(VersionFile)
+  #define MyAppVersion Copy(VersionLine, 12, Len(VersionLine) - 12)
+#endif
+#ifndef MyAppCodename
+  #define CodenameFile FileOpen(RepoRoot + "\crates\app\release-name.txt")
+  #define MyAppCodename Trim(FileRead(CodenameFile))
+  #expr FileClose(CodenameFile)
 #endif
 #ifndef MyAppExe
   #if FileExists(RepoRoot + "\target\x86_64-pc-windows-msvc\release\zUI.exe")
@@ -17,7 +30,7 @@
 AppId=zUI
 AppName=zUI
 AppVersion={#MyAppVersion}
-AppVerName=zUI {#MyAppVersion} Lyra
+AppVerName=zUI {#MyAppVersion} {#MyAppCodename}
 AppPublisher=maybepritz
 DefaultDirName={localappdata}\zUI
 DefaultGroupName=zUI
@@ -37,7 +50,7 @@ WizardSmallImageFile={#RepoRoot}\installer\assets\app-logo.png
 Compression=lzma2
 SolidCompression=yes
 OutputDir={#RepoRoot}\dist
-OutputBaseFilename=zUI-{#MyAppVersion}-Lyra-Setup
+OutputBaseFilename=zUI-{#MyAppVersion}-{#MyAppCodename}-Setup
 CloseApplications=yes
 RestartApplications=no
 UninstallDisplayName=zUI
@@ -207,7 +220,7 @@ begin
 
   LabelControl := TextLabel(WizardForm.WelcomePage, 104, 22, 340, 36, 23, TextColor, 'zUI', True);
   LabelControl := TextLabel(WizardForm.WelcomePage, 106, 64, 340, 20, 9, MutedColor,
-    'Lyra  /  {#MyAppVersion}', False);
+    '{#MyAppCodename}  /  {#MyAppVersion}', False);
   LabelControl := TextLabel(WizardForm.WelcomePage, 28, 110, 504, 26, 13, TextColor,
     'Всё готово к установке', True);
   LabelControl := TextLabel(WizardForm.WelcomePage, 28, 140, 504, 24, 9, MutedColor,

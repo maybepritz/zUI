@@ -422,27 +422,25 @@ ui-enable = Enable
 ui-disable = Disable
 
 # Used in: views/overlays/whats_new.rs
-whats-new-summary = Favorite strategies, quick search and a clearer window-close flow — with an interface that is easier to use and translate.
+whats-new-summary = The home screen shows whether YouTube and Discord open, bypass errors no longer go unnoticed, and startup is clearer.
 whats-new-footer = You can open these notes again in Settings → About
-whats-new-notes = ## Strategies, closer at hand
-    - Mark strategies with a star: favorites stay at the top.
-    - Search by name or file and show favorites only.
-    - See how many strategies match, then clear filters in one click.
+whats-new-notes = ## What matters, on the home screen
+    - One bypass switch and a list of services: you see at once what opens.
+    - Latency over the day. Time when zUI was closed is shown dashed.
+    - When a service stops opening, "Pick again" appears next to it.
 
-    ## A clear choice when closing
-    - Choose whether to hide zUI to the tray or exit the application.
-    - Remember your choice, or bring the question back in Settings.
-    - Hiding keeps services running; exiting stops them.
+    ## Clear errors
+    - If the bypass doesn't start, the reason shows on the home screen and in a popup.
+    - Without administrator rights, zUI offers to restart with them.
 
-    ## Ready for more languages
-    - The interface and release notes use Fluent language files.
-    - Add a translation without editing Rust code.
-    - Community language packs can be installed without rebuilding the app.
+    ## A new startup screen
+    - Loading, the update check and the rights question come one after another.
+    - The rights question can be turned off in Settings.
 
-    ## More comfortable navigation
-    - Lucide icons make the sidebar easier to scan.
-    - Scroll over the content or the free space beside it.
-    - Filters follow strategy testing; empty results explain what to do next.
+    ## More reliable
+    - Strategy tests check only services zapret can unblock.
+    - Applying DNS again no longer loses the original DoH state.
+    - Damaged settings.json and statistics.json are kept next to the new ones instead of being overwritten.
 
 # Dynamic UI messages
 
