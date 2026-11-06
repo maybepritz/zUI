@@ -1,9 +1,14 @@
-use super::StartupView;
+use super::{Phase, StartupView};
+use crate::components::{signal_field::ANCHOR, tone};
 use crate::{i18n::startup_tr as tr, release, state::PreparationStage};
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     component::{button::*, *},
     *,
 };
+
+/// Все шаги экрана, по которым заполняется линия под названием.
+const STEPS: f32 = 6.;
 
 impl Render for StartupView {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
@@ -11,32 +16,39 @@ impl Render for StartupView {
             return div().size_full().child(root.clone()).into_any_element();
         }
 
-        let status = tr(if self.failed {
-            "startup-failed"
-        } else {
-            match self.stage {
-                PreparationStage::Settings => "startup-settings",
-                PreparationStage::Languages => "startup-languages",
-                PreparationStage::Components => "startup-components",
-                PreparationStage::Updates => "startup-updates",
+        let (status, step) = match (self.failed, self.phase) {
+            (true, _) => (tr("startup-failed"), 0.),
+            (false, Phase::Preparing) => {
+                let (key, step) = match self.stage {
+                    PreparationStage::Settings => ("startup-settings", 1.),
+                    PreparationStage::Languages => ("startup-languages", 2.),
+                    PreparationStage::Components => ("startup-components", 3.),
+                    PreparationStage::Updates => ("startup-updates", 4.),
+                };
+                (tr(key), step)
             }
-        });
+            (false, Phase::UpdateResult(_)) => (self.update_note.clone().unwrap_or_default(), 5.),
+            (false, Phase::AskElevation) => (tr("startup-no-admin"), STEPS),
+        };
         let theme = cx.theme();
         let (ink, muted, border) = (theme.foreground, theme.muted_foreground, theme.border);
         let background = theme.background;
-        let mut details = div().v_flex().items_center().gap_4().w_full().child(
-            div()
-                .h_flex()
-                .items_center()
-                .gap_2()
-                .children((0..3).map(|index| {
-                    div()
-                        .size(px(3.))
-                        .rounded_full()
-                        .bg(ink.opacity(self.particles.indicator_alpha(index)))
-                }))
-                .child(div().text_sm().text_color(muted).child(status)),
-        );
+
+        // Линия под названием — индикатор: заполняется по мере шагов.
+        let progress = div()
+            .w(px(48.))
+            .h(px(2.))
+            .rounded_full()
+            .bg(border)
+            .overflow_hidden()
+            .child(div().h_full().w(px(48. * step / STEPS)).bg(ink));
+
+        let mut details = div()
+            .v_flex()
+            .items_center()
+            .gap_3()
+            .w_full()
+            .child(div().text_sm().text_color(muted).child(status));
 
         if self.failed {
             details = details
@@ -52,8 +64,39 @@ impl Render for StartupView {
                         .label(tr("startup-retry"))
                         .on_click(cx.listener(|this, _, window, cx| this.begin(window, cx))),
                 );
+        } else if self.phase == Phase::AskElevation {
+            details = details
+                .child(
+                    div()
+                        .max_w(px(340.))
+                        .text_center()
+                        .text_sm()
+                        .text_color(muted)
+                        .child(tr("startup-no-admin-hint")),
+                )
+                .child(
+                    div()
+                        .h_flex()
+                        .gap_2()
+                        .mt_1()
+                        .child(
+                            Button::new("startup-elevate")
+                                .primary()
+                                .label(tr("ui-restart-as-administrator"))
+                                .on_click(cx.listener(|this, _, _, cx| this.restart_elevated(cx))),
+                        )
+                        .child(
+                            Button::new("startup-continue")
+                                .outline()
+                                .label(tr("startup-continue"))
+                                .on_click(
+                                    cx.listener(|this, _, window, cx| this.open_app(window, cx)),
+                                ),
+                        ),
+                );
         }
 
+        let preparing = !self.failed && self.phase == Phase::Preparing;
         div()
             .id("startup-screen")
             .relative()
@@ -63,36 +106,44 @@ impl Render for StartupView {
             .text_color(ink)
             .on_mouse_move(cx.listener(|this, event: &MouseMoveEvent, _, cx| {
                 if !this.failed && !cx.reduce_motion() {
-                    this.particles.pointer_moved(event.position);
+                    this.pointer_moved(event.position);
                 }
             }))
             .on_hover(cx.listener(|this, hovered: &bool, _, _| {
                 if !*hovered {
-                    this.particles.pointer_left();
+                    this.pointer_left();
                 }
             }))
-            .child(self.particles.canvas(ink).absolute().inset_0().size_full())
+            .child(
+                self.field
+                    .canvas(ink, tone::ok(cx))
+                    .absolute()
+                    .inset_0()
+                    .size_full(),
+            )
+            // Логотип стоит на постоянной высоте, туда же сходятся ленты фона:
+            // появление вопроса о правах не сдвигает его.
             .child(
                 div()
-                    .relative()
-                    .size_full()
+                    .absolute()
+                    .left_0()
+                    .right_0()
+                    .top(relative(ANCHOR))
+                    .px_8()
                     .v_flex()
                     .items_center()
-                    .justify_center()
-                    .p_8()
                     .child(
                         div()
                             .v_flex()
                             .items_center()
-                            .gap_5()
                             .w_full()
-                            .max_w(px(380.))
+                            .max_w(px(400.))
                             .child(img("icon.svg").size(px(80.)))
                             .child(
                                 div()
+                                    .mt_3()
                                     .v_flex()
                                     .items_center()
-                                    .gap_1()
                                     .child(
                                         div()
                                             .text_3xl()
@@ -103,21 +154,23 @@ impl Render for StartupView {
                                         div().text_xs().text_color(muted).child(release::label()),
                                     ),
                             )
-                            .child(div().h(px(1.)).w(px(32.)).bg(border))
-                            .child(details),
+                            .child(div().mt_5().child(progress))
+                            .child(div().mt_4().w_full().child(details)),
                     ),
             )
-            .child(
-                div()
-                    .absolute()
-                    .bottom_6()
-                    .left_6()
-                    .right_6()
-                    .text_center()
-                    .text_xs()
-                    .text_color(muted)
-                    .child(tr("startup-network-hint")),
-            )
+            .when(preparing, |screen| {
+                screen.child(
+                    div()
+                        .absolute()
+                        .bottom_6()
+                        .left_6()
+                        .right_6()
+                        .text_center()
+                        .text_xs()
+                        .text_color(muted)
+                        .child(tr("startup-network-hint")),
+                )
+            })
             .into_any_element()
     }
 }

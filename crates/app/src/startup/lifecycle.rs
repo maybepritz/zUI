@@ -1,6 +1,6 @@
-use super::StartupView;
+use super::{Phase, StartupView};
 use crate::{
-    components::particle_background::ParticleField,
+    components::signal_field::SignalField,
     controllers::{
         job::{Job, JobPoll},
         update::UpdateState,
@@ -22,6 +22,8 @@ use std::{
 const UPDATE_WAIT: Duration = Duration::from_millis(1500);
 const FRAME_INTERVAL: Duration = Duration::from_millis(33);
 const INACTIVE_INTERVAL: Duration = Duration::from_millis(200);
+/// Сколько держим на экране итог проверки обновлений.
+const RESULT_HOLD: Duration = Duration::from_millis(900);
 
 impl StartupView {
     pub(crate) fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
@@ -47,7 +49,9 @@ impl StartupView {
             stage: PreparationStage::Settings,
             prepared: None,
             update_wait_started: None,
-            particles: ParticleField::new(),
+            field: SignalField::new(),
+            phase: Phase::Preparing,
+            update_note: None,
             failed: false,
         }
     }
@@ -57,6 +61,8 @@ impl StartupView {
             return;
         }
         self.failed = false;
+        self.phase = Phase::Preparing;
+        self.update_note = None;
         self.stage = PreparationStage::Settings;
         self.progress.store(self.stage as u8, Ordering::Relaxed);
         let progress = self.progress.clone();
@@ -83,6 +89,9 @@ impl StartupView {
     }
 
     fn tick(&mut self, window: &mut Window, cx: &mut Context<Self>) -> Option<Duration> {
+        if self.root.is_some() {
+            return None;
+        }
         let next_stage = PreparationStage::from_progress(self.progress.load(Ordering::Relaxed));
         let mut changed = self.stage != next_stage;
         self.stage = next_stage;
@@ -104,25 +113,45 @@ impl StartupView {
         if let Some(state) = &mut self.prepared {
             state.update.poll();
             state.zapret.poll();
-            let checking = matches!(state.update.state, UpdateState::Checking)
-                || state.zapret.checking_update();
-            let expired = self
-                .update_wait_started
-                .is_some_and(|started| started.elapsed() >= UPDATE_WAIT);
-            if !checking || expired {
-                let state = self.prepared.take().expect("prepared application state");
-                // RootView сохраняет мастер первого запуска, «Что нового», трей и
-                // поведение закрытия и запускает настроенные сервисы ровно один раз.
-                self.root = Some(cx.new(|cx| RootView::new(state, window, cx)));
-                self.particles.clear();
-                cx.notify();
-                return None;
+            match self.phase {
+                Phase::Preparing => {
+                    let checking = matches!(state.update.state, UpdateState::Checking)
+                        || state.zapret.checking_update();
+                    let expired = self
+                        .update_wait_started
+                        .is_some_and(|started| started.elapsed() >= UPDATE_WAIT);
+                    if !checking || expired {
+                        self.update_note = Some(match &state.update.state {
+                            UpdateState::Available(version) => i18n::tr_args(
+                                "startup-update-available",
+                                &[("version", version.clone().into())],
+                            ),
+                            // Сеть медленная: проверка доделается в фоне, экран не ждёт.
+                            UpdateState::Checking => i18n::tr("startup-update-background"),
+                            _ => i18n::tr("startup-update-none"),
+                        });
+                        self.field.flash();
+                        self.phase = Phase::UpdateResult(Instant::now());
+                        changed = true;
+                    }
+                }
+                Phase::UpdateResult(since) if since.elapsed() >= RESULT_HOLD => {
+                    if Self::should_ask_elevation(state) {
+                        self.phase = Phase::AskElevation;
+                        self.field.set_waiting(true);
+                        changed = true;
+                    } else {
+                        self.open_app(window, cx);
+                        return None;
+                    }
+                }
+                _ => {}
             }
         }
 
         let active = window.is_window_active();
         let animate = active && !cx.reduce_motion();
-        self.particles.advance(animate);
+        self.field.advance(animate);
         if animate || changed {
             cx.notify();
         }
@@ -131,5 +160,36 @@ impl StartupView {
         } else {
             INACTIVE_INTERVAL
         })
+    }
+
+    /// Спрашиваем про права только тех, кто уже прошёл мастер: в мастере есть свой шаг.
+    fn should_ask_elevation(state: &AppState) -> bool {
+        state.settings.onboarded && state.settings.ask_elevation && !z_core::dns::is_elevated()
+    }
+
+    /// Передаёт подготовленное состояние обычному окну приложения.
+    pub(super) fn open_app(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(state) = self.prepared.take() else {
+            return;
+        };
+        // RootView сохраняет мастер первого запуска, «Что нового», трей и
+        // поведение закрытия и запускает настроенные сервисы ровно один раз.
+        self.root = Some(cx.new(|cx| RootView::new(state, window, cx)));
+        cx.notify();
+    }
+
+    /// Сохраняет настройки и перезапускает zUI через запрос UAC.
+    pub(super) fn restart_elevated(&mut self, cx: &mut Context<Self>) {
+        if self.prepared.as_mut().is_some_and(AppState::elevate) {
+            cx.quit();
+        }
+    }
+
+    pub(super) fn pointer_moved(&mut self, position: Point<Pixels>) {
+        self.field.pointer_moved(position);
+    }
+
+    pub(super) fn pointer_left(&mut self) {
+        self.field.pointer_left();
     }
 }

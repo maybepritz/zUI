@@ -730,6 +730,13 @@ startup-network-hint = При медленной сети проверка об�
 startup-failed = Не удалось подготовить приложение
 startup-failed-hint = Повторите запуск подготовки. Если ошибка повторится, перезапустите zUI.
 startup-retry = Повторить
+settings-ask-elevation = Предлагать запуск от администратора
+startup-update-available = Доступна новая версия { $version }
+startup-update-none = Обновлений нет
+startup-update-background = Проверка обновлений продолжится в фоне
+startup-no-admin = Нет прав администратора
+startup-no-admin-hint = Без них обход не включится: WinDivert работает только от администратора. Прокси Telegram и настройки доступны и так.
+startup-continue = Продолжить
 
 # Used in: views/home.rs, root/sidebar.rs
 ui-advanced = Для опытных

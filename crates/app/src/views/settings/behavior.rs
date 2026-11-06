@@ -55,6 +55,13 @@ pub fn render(state: &AppState, cx: &mut Context<RootView>) -> AnyElement {
 
     let app = section(tr("ui-application"))
         .child(toggle(
+            "ask-elevation",
+            tr("settings-ask-elevation"),
+            state.settings.ask_elevation,
+            cx,
+            |this, value, cx| this.on_preference(Preference::AskElevation, value, cx),
+        ))
+        .child(toggle(
             "remember-close-action",
             tr("close-remember-setting"),
             state.settings.remember_close_action,

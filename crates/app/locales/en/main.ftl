@@ -728,6 +728,13 @@ startup-network-hint = On a slow connection, update checks will continue in the 
 startup-failed = Could not prepare the application
 startup-failed-hint = Try preparing again. If the problem persists, restart zUI.
 startup-retry = Retry
+settings-ask-elevation = Offer to run as administrator
+startup-update-available = Version { $version } is available
+startup-update-none = No updates
+startup-update-background = Update check continues in the background
+startup-no-admin = No administrator rights
+startup-no-admin-hint = The bypass can't start without them: WinDivert needs administrator rights. The Telegram proxy and settings work anyway.
+startup-continue = Continue
 
 # Used in: views/home.rs, root/sidebar.rs
 ui-advanced = Advanced

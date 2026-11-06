@@ -13,6 +13,8 @@ pub struct Settings {
     pub remember_close_action: bool,
     pub onboarded: bool,
     pub autostart: bool,
+    /// Предлагать перезапуск от администратора на экране запуска, если прав нет.
+    pub ask_elevation: bool,
     pub language: Language,
     pub theme: ThemePreference,
     pub startup: StartupServices,
@@ -28,6 +30,7 @@ impl Default for Settings {
             selected_strategy: String::new(),
             dark_theme: false,
             close_to_tray: true,
+            ask_elevation: true,
             remember_close_action: false,
             onboarded: false,
             autostart: false,
