@@ -1,4 +1,4 @@
-//! Обзор выпуска: простые карточки и прокрутка на всю ширину.
+//! Обзор выпуска: карточки одной колонкой и прокрутка на всю ширину.
 use crate::{i18n::tr, release, root::RootView};
 use gpui_kit::assets::IconName as LucideIcon;
 use gpui_kit::{
@@ -43,28 +43,21 @@ fn sections(text: &str) -> Vec<NotesSection> {
     sections
 }
 
-fn change_card(section: NotesSection, icon: LucideIcon, cx: &App) -> AnyElement {
+/// Карточки идут одной колонкой на всю ширину: в сетке карточки разной высоты
+/// стояли вразнобой, а нечётная растягивалась одна.
+fn change_card(section: NotesSection, cx: &App) -> AnyElement {
     let muted = cx.theme().muted_foreground;
     GroupBox::new()
         .outline()
-        .w(px(320.))
-        .flex_1()
-        .min_w(px(280.))
+        .w_full()
         .child(
             div()
                 .v_flex()
                 .gap_2()
                 .child(
-                    div()
-                        .h_flex()
-                        .items_center()
-                        .gap_2()
-                        .child(Icon::new(icon).size_4().text_color(muted))
-                        .child(
-                            Label::new(section.title)
-                                .text_sm()
-                                .font_weight(FontWeight::MEDIUM),
-                        ),
+                    Label::new(section.title)
+                        .text_sm()
+                        .font_weight(FontWeight::MEDIUM),
                 )
                 .children(
                     section
@@ -78,16 +71,9 @@ fn change_card(section: NotesSection, icon: LucideIcon, cx: &App) -> AnyElement 
 
 pub fn render(cx: &mut Context<RootView>) -> AnyElement {
     let muted = cx.theme().muted_foreground;
-    let icons = [
-        LucideIcon::Star,
-        LucideIcon::Power,
-        LucideIcon::Globe,
-        LucideIcon::MousePointer2,
-    ];
     let cards: Vec<_> = sections(&tr("whats-new-notes"))
         .into_iter()
-        .enumerate()
-        .map(|(ix, section)| change_card(section, icons[ix % icons.len()], cx))
+        .map(|section| change_card(section, cx))
         .collect();
 
     // Простой заголовок: экран держит название выпуска, а не цветная плашка.
@@ -118,7 +104,7 @@ pub fn render(cx: &mut Context<RootView>) -> AnyElement {
         .mx_auto()
         .gap_4()
         .child(hero)
-        .child(div().h_flex().w_full().flex_wrap().gap_4().children(cards));
+        .child(div().v_flex().w_full().gap_3().children(cards));
 
     let footer = div()
         .w_full()
