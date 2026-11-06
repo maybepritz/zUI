@@ -8,7 +8,7 @@ mod system;
 pub use manager::DnsManager;
 pub use model::{AdapterSnapshot, DnsState, DohBackup, DohEntry};
 pub use presets::{DnsPreset, presets};
-pub use system::{doh_status, is_elevated, snapshot};
+pub use system::{is_elevated, snapshot};
 
 #[cfg(test)]
 use system::{parse_json_list, parse_out, validate};

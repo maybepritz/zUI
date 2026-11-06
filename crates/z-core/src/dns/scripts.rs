@@ -193,14 +193,3 @@ if ($warnings.Count -gt 0) { throw ('Не удалось восстановит�
 Clear-DnsClientCache | Out-Null
 ConvertTo-Json -InputObject ([pscustomobject]@{ warnings = @($warnings) }) -Compress
 "#;
-
-pub(super) const DOH_LIST: &str = r#"
-if (-not (Get-Command Get-DnsClientDohServerAddress -ErrorAction SilentlyContinue)) {
-  ConvertTo-Json -InputObject @() -Compress
-} else {
-  $rows = @(Get-DnsClientDohServerAddress | ForEach-Object {
-    [pscustomobject]@{ server_address = [string]$_.ServerAddress; doh_template = [string]$_.DohTemplate }
-  })
-  ConvertTo-Json -InputObject @($rows) -Compress
-}
-"#;

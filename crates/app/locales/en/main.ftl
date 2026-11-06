@@ -95,13 +95,7 @@ ui-clear-log = Clear log
 ui-just-now = just now
 
 # Used in: views/statistics/
-ui-not-yet = Not yet
-
-# Used in: views/statistics/
 ui-zui-uptime = Total uptime
-
-# Used in: views/statistics/
-ui-last-successful-test = Last successful test
 
 # Used in: views/statistics/
 ui-strategy-changes = Strategy changes

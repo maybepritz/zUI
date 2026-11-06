@@ -6,7 +6,6 @@ pub(crate) use text::{Text, text, text_args};
 
 use rust_embed::RustEmbed;
 use std::{
-    fs,
     path::Path,
     sync::{OnceLock, RwLock},
 };
@@ -43,29 +42,8 @@ pub(crate) fn initialize(directory: &Path, language: &Language) -> Vec<String> {
     let mut issues = Vec::new();
     if LOCALIZER.get().is_none() {
         let mut localizer = bundled();
-        match fs::read_dir(directory) {
-            Ok(entries) => {
-                for entry in entries {
-                    let result = (|| -> Result<(), String> {
-                        let entry = entry.map_err(|e| e.to_string())?;
-                        if !entry.file_type().map_err(|e| e.to_string())?.is_dir() {
-                            return Ok(());
-                        }
-                        let code = entry.file_name().to_string_lossy().into_owned();
-                        let metadata = fs::read_to_string(entry.path().join("locale.json"))
-                            .map_err(|e| e.to_string())?;
-                        let messages = fs::read_to_string(entry.path().join("main.ftl"))
-                            .map_err(|e| e.to_string())?;
-                        localizer.add(Catalog::parse(&code, &metadata, &messages)?);
-                        Ok(())
-                    })();
-                    if let Err(error) = result {
-                        issues.push(format!("Locale pack: {error}"));
-                    }
-                }
-            }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(error) => issues.push(format!("Locale directory: {error}")),
+        for issue in localizer.load_directory(directory) {
+            issues.push(format!("Locale pack: {issue}"));
         }
         let _ = LOCALIZER.set(localizer);
     }

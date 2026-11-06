@@ -129,9 +129,3 @@ pub fn snapshot() -> Result<Vec<AdapterSnapshot>> {
         .filter(|r| r.interface_index > 0 && !r.interface_alias.is_empty())
         .collect())
 }
-
-/// DoH-серверы, зарегистрированные в Windows (пусто, если DoH не поддерживается)
-pub fn doh_status() -> Result<Vec<DohEntry>> {
-    let out = run_ps(DOH_LIST, None)?;
-    Ok(parse_json_list(last_json(&out)))
-}

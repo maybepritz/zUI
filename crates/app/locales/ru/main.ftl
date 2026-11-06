@@ -95,13 +95,7 @@ ui-clear-log = Очистить журнал
 ui-just-now = только что
 
 # Used in: views/statistics/
-ui-not-yet = Ещё не было
-
-# Used in: views/statistics/
 ui-zui-uptime = Общее время работы
-
-# Used in: views/statistics/
-ui-last-successful-test = Последний успешный тест
 
 # Used in: views/statistics/
 ui-strategy-changes = Смен стратегии

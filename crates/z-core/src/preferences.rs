@@ -9,8 +9,6 @@ pub struct Language(Cow<'static, str>);
 impl Language {
     #[allow(non_upper_case_globals)]
     pub const Ru: Self = Self(Cow::Borrowed("ru"));
-    #[allow(non_upper_case_globals)]
-    pub const En: Self = Self(Cow::Borrowed("en"));
 
     pub fn from_code(code: &str) -> Self {
         Self(Cow::Owned(code.to_owned()))
