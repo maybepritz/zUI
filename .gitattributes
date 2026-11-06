@@ -1,0 +1,3 @@
+# rustfmt.toml требует LF. Без этого git на Windows-сборщике GitHub отдаёт файлы
+# с CRLF, и cargo fmt --check падает на каждом файле.
+* text=auto eol=lf
