@@ -422,9 +422,15 @@ ui-enable = Enable
 ui-disable = Disable
 
 # Used in: views/overlays/whats_new.rs
-whats-new-summary = The home screen shows whether YouTube and Discord open, bypass errors no longer go unnoticed, and startup is clearer.
+whats-new-summary = zUI picks a strategy and turns the bypass on by itself, the home screen shows whether YouTube and Discord open, and errors no longer go unnoticed.
 whats-new-footer = You can open these notes again in Settings → About
-whats-new-notes = ## What matters, on the home screen
+whats-new-notes = ## One-button pick
+    - "Pick" goes through the strategies, stops at the first one that works and turns the bypass on.
+    - It also checks your provider's real YouTube video node, not just the website.
+    - A site counts as open only if the start of the response arrives: a cut at 16–20 KB no longer passes as success.
+    - After the first-run wizard, picking starts by itself.
+
+    ## What matters, on the home screen
     - One bypass switch and a list of services: you see at once what opens.
     - Latency over the day. Time when zUI was closed is shown dashed.
     - When a service stops opening, "Pick again" appears next to it.
@@ -761,3 +767,8 @@ home-strategy-none = not selected
 home-change = Change
 home-check-now = Check now
 home-retest = Find another
+pick-running = Picking a strategy
+pick-progress = Checked { $done } of { $total }. The bypass will turn on by itself
+pick-found = Found a strategy that opens everything and turned the bypass on
+pick-partial = No strategy opened everything. Turned on the one that opened the most
+pick-nothing-found = No strategy opened anything. Check your internet connection and antivirus

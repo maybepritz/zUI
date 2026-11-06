@@ -86,7 +86,20 @@ fn header(
         .map(|r| r.checked_at);
     let now = data.now;
     let muted = cx.theme().muted_foreground;
+    // Во время подбора Zapret остановлен тестом: показываем ход подбора, а не «выключен».
+    let picking = state.picking();
     let (dot, title, hint) = match (running, broken) {
+        _ if picking => {
+            let (done, total) = state.diagnostics.progress();
+            (
+                tone::warning(cx),
+                tr("pick-running"),
+                tr_args(
+                    "pick-progress",
+                    &[("done", done.into()), ("total", total.into())],
+                ),
+            )
+        }
         // Переключатель нажали, но обход не запустился: без этого экран молчит.
         (false, _) if error.is_some() => (
             tone::error(cx),
@@ -144,18 +157,27 @@ fn header(
             )
         })
         // Действие рядом с причиной: сервис не открывается — подобрать другую стратегию.
-        .when(running && broken.is_some(), |d| {
+        .when(running && broken.is_some() && !picking, |d| {
             d.child(
                 Button::new("home-retest")
                     .primary()
                     .label(tr("home-retest"))
-                    .on_click(cx.listener(|this, _, _, cx| this.on_start_test(cx))),
+                    .on_click(cx.listener(|this, _, _, cx| this.on_pick_strategy(cx))),
+            )
+        })
+        .when(picking, |d| {
+            d.child(
+                Button::new("home-pick-cancel")
+                    .outline()
+                    .label(tr("ui-cancel"))
+                    .on_click(cx.listener(|this, _, _, cx| this.on_cancel_test(cx))),
             )
         })
         .child(
             div().flex_shrink_0().child(
                 Switch::new("bypass")
                     .checked(running)
+                    .disabled(picking)
                     .accessibility_label(tr("home-bypass-switch"))
                     .on_click(cx.listener(|this, _, window, cx| this.on_toggle_zapret(window, cx))),
             ),

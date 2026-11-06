@@ -91,7 +91,7 @@ impl AppState {
             && Instant::now() >= self.background.next_retest
             && self.zapret.is_running()
         {
-            self.start_test(true);
+            self.start_test(super::TestMode::Retest);
         }
     }
 

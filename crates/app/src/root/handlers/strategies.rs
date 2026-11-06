@@ -1,6 +1,6 @@
 //! Реакции GPUI на действия пользователя: strategies.
 use super::super::RootView;
-use crate::i18n::tr;
+use crate::{i18n::tr, state::TestMode};
 use gpui_kit::component::{WindowExt as _, input::InputState, notification::Notification};
 use gpui_kit::*;
 
@@ -43,7 +43,13 @@ impl RootView {
     }
 
     pub(crate) fn on_start_test(&mut self, cx: &mut Context<Self>) {
-        self.state.start_test(false);
+        self.state.start_test(TestMode::Manual);
+        self.refresh_and_notify(cx);
+    }
+
+    /// Находит рабочую стратегию и сам включает с ней обход.
+    pub(crate) fn on_pick_strategy(&mut self, cx: &mut Context<Self>) {
+        self.state.start_test(TestMode::Pick);
         self.refresh_and_notify(cx);
     }
 

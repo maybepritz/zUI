@@ -8,6 +8,7 @@ mod reports;
 mod settings;
 mod strategies;
 mod testing;
+pub use testing::TestMode;
 mod updates;
 
 use crate::i18n::Text;

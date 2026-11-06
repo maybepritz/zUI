@@ -39,6 +39,9 @@ impl Score {
 pub struct Options {
     pub targets: Vec<String>,
     pub stop_on_first_ok: bool,
+    /// Проверять ещё и видеоузел YouTube у провайдера: сайт может открываться,
+    /// а видео — нет.
+    pub video: bool,
 }
 
 impl Default for Options {
@@ -46,6 +49,7 @@ impl Default for Options {
         Self {
             targets: DEFAULT_TARGETS.iter().map(|s| s.to_string()).collect(),
             stop_on_first_ok: false,
+            video: true,
         }
     }
 }

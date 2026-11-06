@@ -1,18 +1,34 @@
 //! Параллельная проверка адресов; удаление JoinSet отменяет незавершённые запросы.
+use crate::net::{self, VIDEO_HOST};
 use anyhow::Result;
-use std::time::Duration;
+use std::{net::SocketAddr, time::Duration};
+
+const CONNECT: Duration = Duration::from_secs(5);
+const TOTAL: Duration = Duration::from_secs(8);
 
 /// Время ответа каждого адреса или `None`, если соединение не прошло.
-pub(super) async fn probe(targets: &[String]) -> Result<Vec<(String, Option<u64>)>> {
+/// `video` — видеоузел YouTube: проверяется отдельным клиентом, который идёт на его IP.
+pub(super) async fn probe(
+    targets: &[String],
+    video: Option<SocketAddr>,
+) -> Result<Vec<(String, Option<u64>)>> {
     // Новый клиент на каждую проверку: без keep-alive от прошлой стратегии.
-    let client = crate::net::client(Duration::from_secs(5), Duration::from_secs(8))?;
+    let client = net::client(CONNECT, TOTAL)?;
     // Если пользователь отменил тест, JoinSet удаляется и обрывает оставшиеся запросы.
     let mut handles = tokio::task::JoinSet::new();
     for url in targets {
         let (client, url) = (client.clone(), url.clone());
         handles.spawn(async move {
-            let (availability, ms) = crate::net::probe(&client, &url).await;
+            let (availability, ms) = net::probe(&client, &url).await;
             (url, availability.connected().then_some(ms))
+        });
+    }
+    if let Some(node) = video {
+        let client = net::video_client(CONNECT, TOTAL, node)?;
+        handles.spawn(async move {
+            let url = format!("https://{VIDEO_HOST}/generate_204");
+            let (availability, ms) = net::probe(&client, &url).await;
+            (video_label(node), availability.connected().then_some(ms))
         });
     }
     let mut out = Vec::new();
@@ -22,4 +38,9 @@ pub(super) async fn probe(targets: &[String]) -> Result<Vec<(String, Option<u64>
         }
     }
     Ok(out)
+}
+
+/// Так видеоузел показывается среди адресов, которые не открылись.
+pub(super) fn video_label(node: SocketAddr) -> String {
+    format!("YouTube video ({})", node.ip())
 }

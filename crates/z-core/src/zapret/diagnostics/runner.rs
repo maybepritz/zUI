@@ -41,12 +41,26 @@ pub fn run(
         }
     };
     let mut zapret = Zapret::new(log.clone());
+    // Узел ищем один раз, пока обычный Zapret остановлен: адрес не зависит от стратегии.
+    let video = if opts.video {
+        let node = rt.block_on(async {
+            let client = crate::net::client(Duration::from_secs(5), Duration::from_secs(8)).ok()?;
+            crate::net::video_node(&client).await
+        });
+        if node.is_none() {
+            log.add("[test] Видеоузел YouTube не найден, проверяем без него");
+        }
+        node
+    } else {
+        None
+    };
 
     for s in strategies {
         if progress.cancel.load(Ordering::SeqCst) {
             break;
         }
-        let Some(score) = check_one(&rt, &mut zapret, dir, &s, &opts.targets, progress) else {
+        let Some(score) = check_one(&rt, &mut zapret, dir, &s, &opts.targets, video, progress)
+        else {
             break;
         };
         log.add(match &score.error {
@@ -78,15 +92,18 @@ fn check_one(
     dir: &Path,
     s: &Strategy,
     targets: &[String],
+    video: Option<std::net::SocketAddr>,
     progress: &Progress,
 ) -> Option<Score> {
+    let mut failed = targets.to_vec();
+    failed.extend(video.map(super::probe::video_label));
     let mut score = Score {
         file_name: s.file_name.clone(),
         name: s.name.clone(),
         passed: 0,
-        total: targets.len(),
+        total: failed.len(),
         avg_ms: 0,
-        failed: targets.to_vec(),
+        failed,
         error: None,
     };
     if let Err(e) = zapret.start(&dir.join("bin"), &dir.join("lists"), &s.raw_args) {
@@ -99,7 +116,7 @@ fn check_one(
     }
     let result = rt.block_on(async {
         tokio::select! {
-            result = probe(targets) => Some(result),
+            result = probe(targets, video) => Some(result),
             _ = wait_for_cancel(progress) => None,
         }
     });

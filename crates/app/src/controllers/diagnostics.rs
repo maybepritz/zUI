@@ -5,7 +5,10 @@ use super::{
 use std::sync::{Arc, atomic::Ordering};
 use z_core::{
     log::Log,
-    zapret::diagnostics::{self, Options, Progress, Score},
+    zapret::{
+        Strategy,
+        diagnostics::{self, Options, Progress, Score},
+    },
 };
 
 pub struct DiagnosticsController {
@@ -13,7 +16,6 @@ pub struct DiagnosticsController {
     progress: Arc<Progress>,
     total: usize,
     pub results: Vec<Score>,
-    pub stop_on_first_ok: bool,
     log: Log,
 }
 
@@ -24,7 +26,6 @@ impl DiagnosticsController {
             progress: Arc::new(Progress::default()),
             total: 0,
             results: Vec::new(),
-            stop_on_first_ok: false,
             log,
         }
     }
@@ -63,13 +64,14 @@ impl DiagnosticsController {
         self.best().and_then(|s| zapret.index_of(&s.file_name))
     }
 
-    pub fn start(&mut self, zapret: &mut ZapretController) {
-        self.start_with_targets(zapret, Options::default().targets);
-    }
-
-    pub fn start_with_targets(&mut self, zapret: &mut ZapretController, targets: Vec<String>) {
-        if self.busy() || zapret.installing() || zapret.strategies.is_empty() || targets.is_empty()
-        {
+    /// Проверяет `strategies` в этом порядке. Обычный Zapret на время теста останавливается.
+    pub fn start(
+        &mut self,
+        zapret: &mut ZapretController,
+        strategies: Vec<Strategy>,
+        opts: Options,
+    ) {
+        if self.busy() || zapret.installing() || strategies.is_empty() || opts.targets.is_empty() {
             return;
         }
         if !zapret.lock() {
@@ -77,15 +79,10 @@ impl DiagnosticsController {
             return;
         }
         self.progress = Arc::new(Progress::default());
-        self.total = zapret.strategies.len();
+        self.total = strategies.len();
         self.results.clear();
 
-        let opts = Options {
-            stop_on_first_ok: self.stop_on_first_ok,
-            targets,
-        };
         let dir = zapret.runtime_dir.clone();
-        let strategies = zapret.strategies.clone();
         let (log, progress) = (self.log.clone(), self.progress.clone());
         self.job
             .spawn(move || diagnostics::run(&dir, strategies, opts, log, &progress));

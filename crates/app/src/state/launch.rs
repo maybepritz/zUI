@@ -55,6 +55,9 @@ impl AppState {
             return false;
         }
         self.start_selected_services();
+        // Мастер пройден, Zapret стоит: сразу подбираем стратегию и включаем обход,
+        // чтобы человеку не пришлось разбираться, что такое стратегия.
+        self.start_test(super::TestMode::Pick);
         true
     }
 }

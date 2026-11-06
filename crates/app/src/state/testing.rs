@@ -3,16 +3,29 @@ use std::time::{Duration, Instant};
 use super::AppState;
 use crate::{controllers::update::UpdateState, i18n::tr, notifications::EventKind};
 use z_core::statistics::{StrategyResult, TestSummary};
+use z_core::zapret::diagnostics::{DEFAULT_TARGETS, Options};
+
+/// Зачем запущен тест стратегий.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum TestMode {
+    /// Пользователь проверяет все стратегии на вкладке «Стратегии».
+    Manual,
+    /// Фоновая перепроверка: переключиться можно, только если новая заметно лучше.
+    Retest,
+    /// «Подобрать»: остановиться на первой стратегии, с которой открывается всё,
+    /// и включить с ней обход.
+    Pick,
+}
 
 pub(super) struct TestRun {
     previous: String,
     running: bool,
-    automatic: bool,
+    mode: TestMode,
     services: Vec<String>,
 }
 
 impl AppState {
-    pub fn start_test(&mut self, automatic: bool) {
+    pub fn start_test(&mut self, mode: TestMode) {
         if self.diagnostics.busy()
             || self.zapret.installing()
             || matches!(self.update.state, UpdateState::Installing)
@@ -20,31 +33,52 @@ impl AppState {
         {
             return;
         }
-        let run = TestRun {
-            previous: self
-                .zapret
-                .selected()
-                .map(|strategy| strategy.file_name.clone())
-                .unwrap_or_default(),
-            running: self.zapret.is_running(),
-            automatic,
-            services: self.settings.automation.services.clone(),
-        };
+        let services = self.settings.automation.services.clone();
+        let previous = self
+            .zapret
+            .selected()
+            .map(|strategy| strategy.file_name.clone())
+            .unwrap_or_default();
         // Без выбранных сервисов, которые чинит zapret, проверяем стандартный набор адресов,
-        // иначе автоматический тест молча не запустится.
-        let targets = z_core::services::targets(&self.settings.automation.services);
-        if automatic && !targets.is_empty() {
-            self.diagnostics
-                .start_with_targets(&mut self.zapret, targets);
-        } else {
-            self.diagnostics.start(&mut self.zapret);
+        // иначе тест молча не запустится.
+        let mut targets = z_core::services::targets(&services);
+        let video = targets.is_empty() || services.iter().any(|id| id == "youtube");
+        if mode == TestMode::Manual || targets.is_empty() {
+            targets = DEFAULT_TARGETS.iter().map(|url| url.to_string()).collect();
         }
+        let mut strategies = self.zapret.strategies.clone();
+        if mode == TestMode::Pick {
+            // Сначала избранные, текущая — в конце: её подбирают, потому что она сломалась.
+            let favorites = &self.settings.favorite_strategies;
+            strategies
+                .sort_by_key(|s| (s.file_name == previous, !favorites.contains(&s.file_name)));
+        }
+        let opts = Options {
+            targets,
+            stop_on_first_ok: mode == TestMode::Pick,
+            video,
+        };
+        let run = TestRun {
+            previous,
+            running: self.zapret.is_running(),
+            mode,
+            services,
+        };
+        self.diagnostics.start(&mut self.zapret, strategies, opts);
         if self.diagnostics.busy() {
             self.background.test = Some(run);
             self.background.next_retest = Instant::now() + Duration::from_secs(30 * 60);
             self.background.statistics.last_retest = Some(z_core::clock::now());
             self.persist_statistics();
         }
+    }
+
+    /// Идёт подбор: главная показывает его вместо состояния обхода.
+    pub fn picking(&self) -> bool {
+        self.background
+            .test
+            .as_ref()
+            .is_some_and(|run| run.mode == TestMode::Pick)
     }
 
     pub(super) fn finish_test(&mut self, completed: bool) {
@@ -63,6 +97,45 @@ impl AppState {
                 avg_ms: score.avg_ms,
             }),
         });
+        if run.mode == TestMode::Pick && completed {
+            self.finish_pick(&run);
+        } else {
+            self.finish_check(run, completed);
+        }
+        self.background.services.reset();
+        self.persist_statistics();
+    }
+
+    /// Включает обход с первой стратегией, при которой всё открылось. Если такой
+    /// нет, берёт ту, что открыла больше всего: это лучше, чем ничего.
+    fn finish_pick(&mut self, run: &TestRun) {
+        let full = self.diagnostics.results.iter().find(|s| s.is_ok());
+        let chosen = full
+            .or(self.diagnostics.best())
+            .map(|s| (s.file_name.clone(), s.is_ok()));
+        let Some((file, ok)) = chosen else {
+            // Не открылось ничего: возвращаем как было.
+            if let Some(index) = self.zapret.index_of(&run.previous) {
+                self.select_strategy(index);
+            }
+            if run.running {
+                self.zapret.start();
+            }
+            self.event(EventKind::Error, tr("pick-nothing-found"));
+            return;
+        };
+        if let Some(index) = self.zapret.index_of(&file) {
+            self.select_strategy(index);
+        }
+        if !self.zapret.is_running() && !self.zapret.start() {
+            self.event(EventKind::Error, self.zapret.status.to_string());
+            return;
+        }
+        let key = if ok { "pick-found" } else { "pick-partial" };
+        self.event(EventKind::Strategy, tr(key));
+    }
+
+    fn finish_check(&mut self, run: TestRun, completed: bool) {
         let best = self.diagnostics.results.iter().find(|score| score.is_ok());
         let baseline = self
             .diagnostics
@@ -73,7 +146,7 @@ impl AppState {
         let better = best
             .filter(|best| {
                 completed
-                    && run.automatic
+                    && run.mode == TestMode::Retest
                     && run.services == self.settings.automation.services
                     && best.file_name != run.previous
                     && baseline.is_some_and(|old| {
@@ -95,8 +168,7 @@ impl AppState {
             if let Some(index) = self.zapret.index_of(&run.previous) {
                 self.select_strategy(index);
             }
-            let restored = self.zapret.start();
-            let message = if restored {
+            let message = if self.zapret.start() {
                 tr("ui-could-not-start-the-selected-strategy-the")
             } else {
                 tr("ui-could-not-restore-zapret-after-testing-see")
@@ -114,7 +186,5 @@ impl AppState {
             };
             self.event(EventKind::Strategy, message);
         }
-        self.background.services.reset();
-        self.persist_statistics();
     }
 }
