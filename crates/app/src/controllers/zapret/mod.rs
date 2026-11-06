@@ -27,6 +27,8 @@ pub(crate) struct ZapretController {
     pub strategies: Vec<Strategy>,
     pub selected_index: usize,
     pub status: Text,
+    /// Почему обход не включился или остановился сам; `None`, если всё в порядке.
+    pub last_error: Option<Text>,
     pub update_state: ZapretUpdate,
     job: Job<Result<String, String>>,
     check_job: Job<Result<Option<String>, String>>,
@@ -76,6 +78,7 @@ impl ZapretController {
             check_job: Job::new(),
             restart_after: false,
             locked: false,
+            last_error: None,
             wanted_running: false,
         }
     }

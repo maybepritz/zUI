@@ -1,6 +1,7 @@
 //! Реакции GPUI на действия пользователя: strategies.
 use super::super::RootView;
-use gpui_kit::component::input::InputState;
+use crate::i18n::tr;
+use gpui_kit::component::{WindowExt as _, input::InputState, notification::Notification};
 use gpui_kit::*;
 
 impl RootView {
@@ -66,8 +67,16 @@ impl RootView {
         self.refresh_and_notify(cx);
     }
 
-    pub(crate) fn on_toggle_zapret(&mut self, cx: &mut Context<Self>) {
+    /// Включает или выключает обход. Если не вышло, показывает всплывающее
+    /// уведомление с причиной: строка в шапке главной остаётся, а это сообщает сразу.
+    pub(crate) fn on_toggle_zapret(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.state.zapret.toggle();
+        if let Some(error) = &self.state.zapret.last_error {
+            window.push_notification(
+                Notification::error(error.to_string()).title(tr("home-bypass-failed")),
+                cx,
+            );
+        }
         self.refresh_and_notify(cx);
     }
 }

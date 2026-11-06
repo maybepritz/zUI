@@ -22,12 +22,21 @@ impl ZapretController {
         let running = self.zapret.is_running();
         if had_process && !running {
             self.status = crate::i18n::text("zapret-exited");
+            self.last_error = Some(self.status.clone());
         }
         running
     }
 
     /// Запускает выбранную стратегию, если Zapret не занят установкой или диагностикой.
     pub fn start(&mut self) -> bool {
+        let started = self.try_start();
+        // Установка и тест стратегий временно занимают Zapret, это не ошибка.
+        let busy = self.locked || self.installing();
+        self.last_error = (!started && !busy).then(|| self.status.clone());
+        started
+    }
+
+    fn try_start(&mut self) -> bool {
         if self.installing() {
             self.status = crate::i18n::text("zapret-installing");
             return false;
@@ -67,11 +76,13 @@ impl ZapretController {
     pub fn stop(&mut self) {
         self.wanted_running = false;
         self.zapret.stop();
-        self.status = if self.zapret.pid.is_some() {
-            crate::i18n::text("zapret-stop-failed")
-        } else {
+        let stopped = self.zapret.pid.is_none();
+        self.status = if stopped {
             crate::i18n::text("zapret-stopped")
+        } else {
+            crate::i18n::text("zapret-stop-failed")
         };
+        self.last_error = (!stopped).then(|| self.status.clone());
     }
 
     pub fn toggle(&mut self) {

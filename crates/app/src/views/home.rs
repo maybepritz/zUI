@@ -2,7 +2,7 @@
 use crate::components::{
     card::card,
     install_card::install_card,
-    latency_chart::{Series, latency_chart},
+    latency_chart::{Series, has_gaps, latency_chart},
     tone::{self, status_dot},
     update_banner::{app_update_banner, zapret_update_banner},
 };
@@ -57,30 +57,42 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
             .when(!data.zapret_installed, |t| {
                 t.child(install_card(state.zapret.installing(), cx))
             })
-            .child(header(
-                running,
-                broken,
-                &rows,
-                result.map(|r| r.checked_at),
-                data.now,
-                cx,
-            ))
+            .child(header(state, data, broken, &rows, cx))
             .child(chart(state, data, running, cx))
-            .child(service_list(&rows, running, cx))
-            .child(footer(state, running, broken.is_some(), cx)),
+            .when(!rows.is_empty(), |t| {
+                t.child(service_list(&rows, running, cx))
+            })
+            .child(footer(state, running && broken.is_none(), cx)),
     )
 }
 
 fn header(
-    running: bool,
+    state: &AppState,
+    data: &ViewData,
     broken: Option<&Row>,
     rows: &[Row],
-    checked_at: Option<u64>,
-    now: u64,
     cx: &mut Context<RootView>,
 ) -> impl IntoElement {
+    let running = data.zapret_running;
+    // Без прав администратора winws не запустится.
+    let admin = data.administrator;
+    // Почему обход не включился; показывается вместо обычной подсказки.
+    let error = state.zapret.last_error.as_ref().map(ToString::to_string);
+    let checked_at = state
+        .background
+        .services
+        .result
+        .as_ref()
+        .map(|r| r.checked_at);
+    let now = data.now;
     let muted = cx.theme().muted_foreground;
     let (dot, title, hint) = match (running, broken) {
+        // Переключатель нажали, но обход не запустился: без этого экран молчит.
+        (false, _) if error.is_some() => (
+            tone::error(cx),
+            tr("home-bypass-failed"),
+            error.unwrap_or_default(),
+        ),
         (false, _) => (muted, tr("home-bypass-off"), tr("home-bypass-off-hint")),
         (true, Some(row)) => (
             tone::warning(cx),
@@ -106,9 +118,11 @@ fn header(
         .items_center()
         .gap_4()
         .child(
+            // min_w_0 даёт длинной причине переноситься, а не выталкивать переключатель.
             div()
                 .v_flex()
                 .flex_1()
+                .min_w_0()
                 .gap_1()
                 .child(
                     div()
@@ -120,11 +134,31 @@ fn header(
                 )
                 .child(div().pl_5().text_sm().text_color(muted).child(hint)),
         )
+        // Без прав администратора обход не включится: сразу предлагаем перезапуск.
+        .when(!admin, |d| {
+            d.child(
+                Button::new("home-elevate")
+                    .primary()
+                    .label(tr("ui-restart-as-administrator"))
+                    .on_click(cx.listener(|this, _, _, cx| this.on_elevate(cx))),
+            )
+        })
+        // Действие рядом с причиной: сервис не открывается — подобрать другую стратегию.
+        .when(running && broken.is_some(), |d| {
+            d.child(
+                Button::new("home-retest")
+                    .primary()
+                    .label(tr("home-retest"))
+                    .on_click(cx.listener(|this, _, _, cx| this.on_start_test(cx))),
+            )
+        })
         .child(
-            Switch::new("bypass")
-                .checked(running)
-                .accessibility_label(tr("home-bypass-switch"))
-                .on_click(cx.listener(|this, _, _, cx| this.on_toggle_zapret(cx))),
+            div().flex_shrink_0().child(
+                Switch::new("bypass")
+                    .checked(running)
+                    .accessibility_label(tr("home-bypass-switch"))
+                    .on_click(cx.listener(|this, _, window, cx| this.on_toggle_zapret(window, cx))),
+            ),
         )
 }
 
@@ -147,6 +181,8 @@ fn chart(
             buckets: state.background.health.day(id).to_vec(),
         })
         .collect();
+    let gaps = series.iter().any(|s| has_gaps(&s.buckets));
+    let empty = series.iter().all(|s| s.buckets.is_empty());
     let legend = ids.iter().zip(colors.iter().cycle()).fold(
         div().h_flex().gap_4(),
         |legend, (id, color)| {
@@ -160,6 +196,19 @@ fn chart(
             )
         },
     );
+    // Пунктир и серая полоса на графике: проверок не было.
+    let legend = legend.when(gaps, |legend| {
+        legend.child(
+            div()
+                .h_flex()
+                .items_center()
+                .gap_2()
+                .child((0..3).fold(div().h_flex().gap(px(2.)), |dash, _| {
+                    dash.child(div().w(px(3.)).h(px(1.)).bg(muted))
+                }))
+                .child(tr("home-no-data")),
+        )
+    });
     let axis = |text: String| div().text_xs().text_color(muted).child(text);
     card(cx)
         .gap_3()
@@ -178,13 +227,28 @@ fn chart(
                 )
                 .child(legend),
         )
-        .child(latency_chart(
-            series,
-            data.now,
-            running.then(|| tone::ok(cx)),
-            tone::warning(cx),
-            theme.border,
-        ))
+        .child(if empty {
+            // До первой 15-минутной корзины рисовать нечего: говорим, когда появится.
+            div()
+                .h(px(128.))
+                .flex()
+                .items_center()
+                .justify_center()
+                .text_sm()
+                .text_color(muted)
+                .child(tr("home-chart-empty"))
+                .into_any_element()
+        } else {
+            latency_chart(
+                series,
+                data.now,
+                running.then(|| tone::ok(cx)),
+                tone::warning(cx),
+                theme.border,
+                muted,
+            )
+            .into_any_element()
+        })
         .child(
             div()
                 .h_flex()
@@ -244,30 +308,15 @@ fn service_list(rows: &[Row], running: bool, cx: &mut Context<RootView>) -> impl
     list
 }
 
-fn footer(
-    state: &AppState,
-    running: bool,
-    broken: bool,
-    cx: &mut Context<RootView>,
-) -> impl IntoElement {
+/// `can_check` — обход работает и всё открывается: тогда есть смысл проверить вручную.
+fn footer(state: &AppState, can_check: bool, cx: &mut Context<RootView>) -> impl IntoElement {
     let muted = cx.theme().muted_foreground;
     let strategy = state
         .zapret
         .selected()
         .map(|s| s.name.clone())
         .unwrap_or_else(|| tr("home-strategy-none"));
-    let action = if broken {
-        Button::new("home-retest")
-            .primary()
-            .label(tr("home-retest"))
-            .on_click(cx.listener(|this, _, _, cx| this.on_start_test(cx)))
-    } else {
-        Button::new("home-check")
-            .outline()
-            .label(tr("home-check-now"))
-            .disabled(!running || state.background.services.busy())
-            .on_click(cx.listener(|this, _, _, cx| this.on_check_services(cx)))
-    };
+    let busy = state.background.services.busy();
     div()
         .h_flex()
         .items_center()
@@ -290,5 +339,13 @@ fn footer(
                         ),
                 ),
         )
-        .child(action)
+        .when(can_check, |d| {
+            d.child(
+                Button::new("home-check")
+                    .outline()
+                    .label(tr("home-check-now"))
+                    .loading(busy)
+                    .on_click(cx.listener(|this, _, _, cx| this.on_check_services(cx))),
+            )
+        })
 }
