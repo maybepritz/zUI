@@ -26,7 +26,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       new: ${{ steps.version.outputs.new }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Other edits to Cargo.toml keep the same version, so an existing tag means nothing to do.
       - id: version
@@ -47,7 +47,7 @@ jobs:
     if: needs.version.outputs.new == 'true'
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -116,7 +116,7 @@ jobs:
           )
           Add-Content dist/release-notes.md -Value $section -Encoding utf8
 
-      - uses: actions/attest-build-provenance@v2
+      - uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             target/x86_64-pc-windows-msvc/release/zUI.exe
@@ -129,7 +129,7 @@ jobs:
           git tag ${{ needs.version.outputs.tag }}
           git push origin ${{ needs.version.outputs.tag }}
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.version.outputs.tag }}
           name: ${{ steps.notes.outputs.title }}
