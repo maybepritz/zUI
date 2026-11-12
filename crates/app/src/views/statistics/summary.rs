@@ -15,38 +15,33 @@ pub(super) fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootVie
     let stats = &state.background.statistics;
     let muted = cx.theme().muted_foreground;
     let busy = state.diagnostics.busy();
-    let mut card = crate::components::cards::card::card(cx)
-        .gap_3()
-        .bg(cx.theme().muted.opacity(0.25))
-        .child(
-            div()
-                .h_flex()
-                .flex_wrap()
-                .items_center()
-                .justify_between()
-                .gap_3()
-                .child(
-                    div()
-                        .h_flex()
-                        .items_center()
-                        .gap_2()
-                        .child(Icon::new(IconName::Activity).size_4().text_color(muted))
-                        .child(
-                            Label::new(tr("statistics-last-check"))
-                                .text_sm()
-                                .font_weight(FontWeight::MEDIUM),
-                        ),
-                )
-                .child(
-                    Button::new("statistics-open-testing")
-                        .outline()
-                        .label(tr("statistics-open-testing"))
-                        .icon(IconName::ArrowRight)
-                        .on_click(
-                            cx.listener(|this, _, _, cx| this.on_navigate(Tab::Strategies, cx)),
-                        ),
-                ),
-        );
+    let mut card = crate::components::cards::card::card(cx).gap_3().child(
+        div()
+            .h_flex()
+            .flex_wrap()
+            .items_center()
+            .justify_between()
+            .gap_3()
+            .child(
+                div()
+                    .h_flex()
+                    .items_center()
+                    .gap_2()
+                    .child(Icon::new(IconName::Activity).size_4().text_color(muted))
+                    .child(
+                        Label::new(tr("statistics-last-check"))
+                            .text_sm()
+                            .font_weight(FontWeight::MEDIUM),
+                    ),
+            )
+            .child(
+                Button::new("statistics-open-testing")
+                    .outline()
+                    .label(tr("statistics-open-testing"))
+                    .icon(IconName::ArrowRight)
+                    .on_click(cx.listener(|this, _, _, cx| this.on_navigate(Tab::Strategies, cx))),
+            ),
+    );
     if busy {
         let (done, total) = state.diagnostics.progress();
         card = card.child(

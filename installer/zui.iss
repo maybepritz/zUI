@@ -28,6 +28,8 @@
 
 [Setup]
 AppId=zUI
+; Тот же мьютекс держит запущенный zUI: установка и удаление попросят сначала его закрыть.
+AppMutex=zUI.App.Instance
 AppName=zUI
 AppVersion={#MyAppVersion}
 AppVerName=zUI {#MyAppVersion} {#MyAppCodename}
@@ -73,6 +75,10 @@ Name: "{userdesktop}\zUI"; Filename: "{app}\zUI.exe"; WorkingDir: "{app}"; Check
 
 [Run]
 Filename: "{app}\zUI.exe"; WorkingDir: "{app}"; Flags: nowait skipifsilent; Check: LaunchAfterInstall
+
+; Возвращает DNS, который включил zUI, и убирает задачу автозапуска.
+[UninstallRun]
+Filename: "{app}\zUI.exe"; Parameters: "--cleanup"; RunOnceId: "zUICleanup"
 
 [Code]
 const

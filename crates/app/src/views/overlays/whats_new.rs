@@ -1,14 +1,15 @@
-//! Обзор выпуска: карточки одной колонкой и прокрутка на всю ширину.
+//! Обзор выпуска: главное изменение крупной карточкой с примером графика,
+//! остальные — карточками в два столбца, кнопка «Продолжить» закреплена внизу.
+use crate::components::{
+    card::card,
+    latency_chart::{LiveSeries, live_chart},
+    page_title::page_title,
+    palette, tone,
+};
 use crate::{i18n::tr, release, root::RootView};
 use gpui_kit::assets::IconName as LucideIcon;
 use gpui_kit::{
-    component::{
-        button::*,
-        group_box::{GroupBox, GroupBoxVariants},
-        label::Label,
-        scroll::ScrollableElement as _,
-        *,
-    },
+    component::{button::*, scroll::ScrollableElement as _, *},
     *,
 };
 
@@ -43,75 +44,150 @@ fn sections(text: &str) -> Vec<NotesSection> {
     sections
 }
 
-/// Карточки идут одной колонкой на всю ширину: в сетке карточки разной высоты
-/// стояли вразнобой, а нечётная растягивалась одна.
-fn change_card(section: NotesSection, cx: &App) -> AnyElement {
-    let muted = cx.theme().muted_foreground;
-    GroupBox::new()
-        .outline()
-        .w_full()
+/// Пункт заметок: точка-маркер и текст, который переносится под собой, а не под точкой.
+fn item(text: String, cx: &App) -> Div {
+    div()
+        .h_flex()
+        .items_start()
+        .gap_3()
+        .text_sm()
+        .text_color(cx.theme().muted_foreground)
+        .child(
+            div()
+                .flex_shrink_0()
+                .mt(px(8.))
+                .size_1()
+                .rounded_full()
+                .bg(palette::muted()),
+        )
+        .child(div().flex_1().min_w_0().child(text))
+}
+
+fn change_card(section: NotesSection, cx: &App) -> Div {
+    card(cx)
+        .gap_3()
+        .child(
+            div()
+                .text_sm()
+                .font_weight(FontWeight::MEDIUM)
+                .child(section.title),
+        )
+        .children(section.items.into_iter().map(|text| item(text, cx)))
+}
+
+/// Пример графика для карточки главного изменения. Точки условные: это иллюстрация
+/// того, как выглядит главная, а не измерение.
+fn sample_chart(cx: &App) -> impl IntoElement {
+    const SPAN: u64 = 15 * 60;
+    let line = |id: &str, index: usize, values: [u64; 16]| LiveSeries {
+        color: tone::service_color(id, index, cx),
+        points: values
+            .into_iter()
+            .enumerate()
+            .map(|(step, ms)| (step as u64 * 60, Some(ms)))
+            .collect(),
+    };
+    live_chart(
+        vec![
+            line(
+                "youtube",
+                0,
+                [
+                    52, 48, 55, 47, 51, 49, 58, 50, 46, 53, 49, 57, 48, 52, 47, 50,
+                ],
+            ),
+            line(
+                "discord",
+                1,
+                [
+                    118, 124, 109, 131, 115, 127, 112, 136, 121, 110, 129, 117, 133, 114, 125, 119,
+                ],
+            ),
+        ],
+        SPAN,
+        SPAN,
+        tone::warning(cx),
+        palette::hairline(),
+        palette::muted(),
+        cx.theme().mode.is_dark(),
+    )
+}
+
+/// Первая секция заметок — главное изменение выпуска: крупнее остальных и с примером.
+fn featured_card(section: NotesSection, cx: &App) -> Div {
+    card(cx)
+        .gap_4()
+        .child(
+            div()
+                .v_flex()
+                .gap_1()
+                .child(
+                    div()
+                        .text_xs()
+                        .font_family(tone::MONO)
+                        .text_color(palette::muted())
+                        .child(tr("whats-new-featured")),
+                )
+                .child(
+                    div()
+                        .text_lg()
+                        .font_weight(FontWeight::MEDIUM)
+                        .child(section.title),
+                ),
+        )
+        .child(sample_chart(cx))
         .child(
             div()
                 .v_flex()
                 .gap_2()
-                .child(
-                    Label::new(section.title)
-                        .text_sm()
-                        .font_weight(FontWeight::MEDIUM),
-                )
-                .children(
-                    section
-                        .items
-                        .into_iter()
-                        .map(|item| Label::new(item).text_sm().text_color(muted)),
-                ),
+                .children(section.items.into_iter().map(|text| item(text, cx))),
         )
-        .into_any_element()
 }
 
 pub fn render(cx: &mut Context<RootView>) -> AnyElement {
-    let muted = cx.theme().muted_foreground;
-    let cards: Vec<_> = sections(&tr("whats-new-notes"))
-        .into_iter()
-        .map(|section| change_card(section, cx))
-        .collect();
+    let mut notes = sections(&tr("whats-new-notes")).into_iter();
+    let featured = notes.next().map(|section| featured_card(section, cx));
+    // Карточки одной высоты в строке; нечётная последняя занимает всю ширину.
+    let cards = notes.fold(
+        div().h_flex().flex_wrap().items_stretch().gap_4(),
+        |row, section| row.child(change_card(section, cx).flex_1().min_w(px(280.))),
+    );
 
-    // Простой заголовок: экран держит название выпуска, а не цветная плашка.
     let hero = div()
         .v_flex()
         .w_full()
         .gap_2()
         .child(
-            Label::new(format!("{} · v{}", tr("ui-what-s-new"), release::VERSION))
-                .text_sm()
-                .text_color(muted),
+            div()
+                .text_xs()
+                .font_family(tone::MONO)
+                .text_color(palette::muted())
+                .child(format!("{} · {}", tr("ui-what-s-new"), release::VERSION)),
         )
-        .child(
-            Label::new(format!("zUI {}", release::codename()))
-                .text_3xl()
-                .font_weight(FontWeight::MEDIUM),
-        )
-        .child(
-            Label::new(tr("whats-new-summary"))
-                .text_sm()
-                .text_color(muted),
-        );
+        .child(page_title(
+            format!("zUI {}", release::codename()),
+            Some(tr("whats-new-tagline").into()),
+            Some(tr("whats-new-summary").into()),
+            cx,
+        ));
 
     let content = div()
         .v_flex()
         .w_full()
         .max_w(px(720.))
         .mx_auto()
-        .gap_4()
+        .gap_5()
         .child(hero)
-        .child(div().v_flex().w_full().gap_3().children(cards));
+        .children(featured)
+        .child(cards);
 
     let footer = div()
         .w_full()
         .flex_shrink_0()
         .border_t_1()
-        .border_color(cx.theme().border)
-        .p_4()
+        .border_color(palette::hairline())
+        .px_6()
+        .py_4()
         .child(
             div()
                 .h_flex()
@@ -121,11 +197,13 @@ pub fn render(cx: &mut Context<RootView>) -> AnyElement {
                 .items_center()
                 .gap_4()
                 .child(
-                    div().flex_1().min_w_0().child(
-                        Label::new(tr("whats-new-footer"))
-                            .text_xs()
-                            .text_color(muted),
-                    ),
+                    div()
+                        .flex_1()
+                        .min_w_0()
+                        .text_xs()
+                        .font_family(tone::MONO)
+                        .text_color(palette::muted())
+                        .child(tr("whats-new-footer")),
                 )
                 .child(
                     Button::new("dismiss-whats-new")

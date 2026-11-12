@@ -4,22 +4,19 @@ mod history;
 mod summary;
 
 use crate::{
-    components::{page::page, stat_card::stat_card},
+    components::{page::page, page_title::page_title, stat_card::stat_card},
     i18n::tr,
     root::{RootView, view_data::ViewData},
     state::AppState,
 };
-use gpui_kit::{
-    assets::IconName,
-    component::{label::Label, *},
-    *,
-};
+use gpui_kit::{component::*, *};
 
 pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> AnyElement {
     let stats = &state.background.statistics;
-    let muted = cx.theme().muted_foreground;
     let metrics = div()
         .h_flex()
+        // Плитки одной высоты, даже если подпись у одной из них в две строки.
+        .items_stretch()
         .flex_wrap()
         .gap_3()
         .w_full()
@@ -27,44 +24,32 @@ pub fn render(state: &AppState, data: &ViewData, cx: &mut Context<RootView>) -> 
             tr("ui-zui-uptime"),
             crate::i18n::time::duration(stats.uptime_seconds),
             tr("statistics-uptime-hint"),
-            IconName::Clock,
             cx,
         ))
         .child(stat_card(
             tr("ui-strategy-changes"),
             stats.strategy_changes.to_string(),
             tr("statistics-changes-hint"),
-            IconName::ArrowRightLeft,
             cx,
         ))
         .child(stat_card(
             tr("ui-winws-restarts"),
             stats.watchdog_restarts.to_string(),
             tr("statistics-restarts-hint"),
-            IconName::RotateCcw,
             cx,
         ));
 
     page(
         div()
             .v_flex()
-            .gap_4()
+            .gap_6()
             .w_full()
-            .child(
-                div()
-                    .v_flex()
-                    .gap_1()
-                    .child(
-                        Label::new(tr("ui-statistics"))
-                            .text_lg()
-                            .font_weight(FontWeight::MEDIUM),
-                    )
-                    .child(
-                        Label::new(tr("statistics-intro"))
-                            .text_xs()
-                            .text_color(muted),
-                    ),
-            )
+            .child(page_title(
+                tr("ui-statistics"),
+                None,
+                Some(tr("statistics-intro").into()),
+                cx,
+            ))
             .child(summary::render(state, data, cx))
             .child(metrics)
             .child(history::render(stats, data.now, cx)),

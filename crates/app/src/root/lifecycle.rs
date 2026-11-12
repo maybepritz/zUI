@@ -11,6 +11,9 @@ impl RootView {
         i18n::set_language(&state.settings.language);
         let show_whats_new = state.settings.onboarded
             && state.settings.last_seen_version != env!("CARGO_PKG_VERSION");
+        if state.settings.autostart {
+            crate::platform::upgrade_autostart();
+        }
         if state.settings.onboarded {
             state.start_selected_services();
         }
@@ -31,6 +34,8 @@ impl RootView {
             view.update(cx, |this, cx| this.on_close_requested(window, cx))
                 .is_err()
         });
+        let hwnd = crate::platform::window_handle(window);
+        crate::platform::set_title_bar_dark(hwnd, Self::dark_theme(state.settings.theme));
         Theme::change(
             if Self::dark_theme(state.settings.theme) {
                 ThemeMode::Dark
@@ -40,6 +45,30 @@ impl RootView {
             None,
             cx,
         );
+        crate::components::palette::apply(cx);
+        // Живая точка состояния мерцает, только пока обход работает, окно видно
+        // и в Windows не выключена анимация. В остальное время кадры не запрашиваются.
+        cx.spawn(async move |this, cx| {
+            loop {
+                cx.background_executor()
+                    .timer(std::time::Duration::from_millis(100))
+                    .await;
+                if this
+                    .update(cx, |this, cx| {
+                        if this.view_data.zapret_running
+                            && !this.state.background.hidden
+                            && !cx.reduce_motion()
+                        {
+                            cx.notify();
+                        }
+                    })
+                    .is_err()
+                {
+                    break;
+                }
+            }
+        })
+        .detach();
         cx.spawn(async move |this, cx| {
             loop {
                 cx.background_executor()
@@ -56,7 +85,9 @@ impl RootView {
                                 ThemeMode::Light
                             };
                             Theme::change(mode, None, cx);
+                            crate::platform::set_title_bar_dark(this.hwnd, dark);
                         }
+                        crate::components::palette::ensure(cx);
                         if this.tray.as_ref().is_some_and(Tray::take_quit_request) {
                             cx.defer(|cx| cx.quit());
                             return;
@@ -85,6 +116,9 @@ impl RootView {
             onboarding_step: OnboardingStep::default(),
             show_whats_new,
             close_prompt_open: false,
+            hwnd,
+            settings_advanced: false,
+            chart_hour: true,
             view_data: Default::default(),
             strategy_filters,
         };

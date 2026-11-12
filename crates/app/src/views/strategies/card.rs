@@ -1,5 +1,5 @@
 //! Разметка стратегий и результатов тестирования — card.
-use crate::components::list_card::list_card;
+use crate::components::list_card::{list_card, selected_list_card};
 use crate::components::rows::favorite_button::favorite_button;
 use crate::components::tone::{self, status_dot};
 use crate::{i18n::tr, root::RootView};
@@ -90,7 +90,12 @@ pub(super) fn strategy_card(
     let score = score.map(|score| score_label(score, cx));
     let state_dot = if running { tone::ok(cx) } else { muted };
 
-    list_card(
+    let frame = if selected {
+        selected_list_card
+    } else {
+        list_card
+    };
+    frame(
         div()
             .h_flex()
             .flex_1()
@@ -107,7 +112,8 @@ pub(super) fn strategy_card(
                 div()
                     .text_xs()
                     .text_color(muted)
-                    .child(format!("({file_name})")),
+                    .font_family(tone::MONO)
+                    .child(file_name.to_string()),
             )
             .when(selected, |this| {
                 this.child(
@@ -128,7 +134,7 @@ pub(super) fn strategy_card(
                 this.child(
                     div()
                         .text_xs()
-                        .font_family("Consolas")
+                        .font_family(crate::components::tone::MONO)
                         .text_color(color)
                         .child(text),
                 )

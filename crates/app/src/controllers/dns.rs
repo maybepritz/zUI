@@ -108,5 +108,10 @@ fn dns_name(manager: &DnsManager) -> Text {
         .into_iter()
         .find(|p| p.key == manager.state().preset)
         .map(|p| Text::from(p.name))
-        .unwrap_or_else(|| crate::i18n::text("dns-snapshot-present"))
+        // Пресета с таким ключом больше нет (например, Comss из 0.2.0): серверы при этом
+        // по-прежнему применены, поэтому называем их адресами, а не «неизвестно».
+        .unwrap_or_else(|| match manager.state().ipv4.as_slice() {
+            [] => crate::i18n::text("dns-snapshot-present"),
+            addresses => Text::from(addresses.join(", ")),
+        })
 }

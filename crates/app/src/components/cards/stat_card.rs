@@ -1,36 +1,36 @@
-//! Компактная плитка с показателем; состояние и форматирование значения задаёт вызывающий код.
+//! Плитка с показателем: подпись, крупное число и пояснение. Без значков и мини-графиков.
 use super::card::card;
-use gpui_kit::{
-    assets::IconName,
-    component::{label::Label, *},
-    *,
-};
+use crate::components::{palette, tone};
+use gpui_kit::{component::*, *};
 
 pub fn stat_card(
     title: impl Into<SharedString>,
     value: String,
     description: String,
-    icon: IconName,
     cx: &App,
 ) -> Div {
-    let muted = cx.theme().muted_foreground;
     card(cx)
         .gap_3()
         .flex_1()
-        .min_w(px(200.))
+        .min_w(px(160.))
         .child(
             div()
-                .h_flex()
-                .items_center()
-                .gap_2()
-                .child(Icon::new(icon).size_4().text_color(muted))
-                .child(Label::new(title.into()).text_xs().text_color(muted)),
+                .text_sm()
+                .text_color(cx.theme().muted_foreground)
+                .child(title.into()),
         )
         .child(
             div()
-                .text_2xl()
+                .text_size(px(30.))
+                .line_height(relative(1.))
                 .font_weight(FontWeight::MEDIUM)
                 .child(value),
         )
-        .child(Label::new(description).text_xs().text_color(muted))
+        .child(
+            div()
+                .text_xs()
+                .font_family(tone::MONO)
+                .text_color(palette::muted())
+                .child(description),
+        )
 }

@@ -3,10 +3,11 @@ pub mod empty_state;
 pub mod latency_chart;
 pub mod layout;
 pub mod modal;
+pub mod palette;
 pub mod rows;
 pub mod signal_field;
 pub mod tone;
 
 pub use cards::{card, install_card, list_card, stat_card, update_banner};
-pub use layout::{hint, page, section};
+pub use layout::{hint, page, page_title, section};
 pub use rows::{preference, service_row};

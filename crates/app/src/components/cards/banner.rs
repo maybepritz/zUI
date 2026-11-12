@@ -9,6 +9,7 @@ use gpui_kit::*;
 pub fn banner(text: impl Into<SharedString>, actions: impl IntoElement) -> AnyElement {
     GroupBox::new()
         .outline()
+        .content_style(super::card::surface_style())
         .child(
             div()
                 .h_flex()

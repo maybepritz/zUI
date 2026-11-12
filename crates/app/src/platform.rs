@@ -1,8 +1,13 @@
 pub const APP_ID: &str = "zUI.App";
 mod autostart;
+pub mod cleanup;
 mod handoff;
-pub use autostart::set_autostart;
+mod instance;
+pub use autostart::{set_autostart, upgrade_autostart};
 pub use handoff::wait_for_previous;
+#[cfg(windows)]
+pub use instance::activate_message;
+pub use instance::{activate_running, claim_single_instance};
 pub const APP_NAME: &str = "zUI";
 
 #[cfg(windows)]
@@ -80,3 +85,92 @@ pub fn system_dark() -> bool {
 pub fn system_dark() -> bool {
     false
 }
+
+/// Дескриптор окна Windows для вызовов, которым не нужен GPUI.
+#[cfg(windows)]
+pub fn window_handle(window: &gpui_kit::Window) -> Option<isize> {
+    use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    match HasWindowHandle::window_handle(window).ok()?.as_raw() {
+        RawWindowHandle::Win32(handle) => Some(handle.hwnd.get()),
+        _ => None,
+    }
+}
+
+#[cfg(not(windows))]
+pub fn window_handle(_: &gpui_kit::Window) -> Option<isize> {
+    None
+}
+
+/// Красит системный заголовок окна под тему приложения: светлая полоса над
+/// тёмным интерфейсом выглядит как чужое окно.
+#[cfg(windows)]
+pub fn set_title_bar_dark(window: Option<isize>, dark: bool) {
+    use windows::Win32::{
+        Foundation::HWND,
+        Graphics::Dwm::{DWMWA_USE_IMMERSIVE_DARK_MODE, DwmSetWindowAttribute},
+        UI::WindowsAndMessaging::{
+            SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER, SetWindowPos,
+        },
+    };
+    let Some(window) = window else {
+        return;
+    };
+    let hwnd = HWND(window as *mut _);
+    let value = i32::from(dark);
+    // SAFETY: значение — BOOL своего размера; окно принадлежит этому потоку.
+    unsafe {
+        let _ = DwmSetWindowAttribute(
+            hwnd,
+            DWMWA_USE_IMMERSIVE_DARK_MODE,
+            (&raw const value).cast(),
+            size_of::<i32>() as u32,
+        );
+        // Windows 10 перерисовывает заголовок только после смены рамки.
+        let _ = SetWindowPos(
+            hwnd,
+            None,
+            0,
+            0,
+            0,
+            0,
+            SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE,
+        );
+    }
+}
+
+#[cfg(not(windows))]
+pub fn set_title_bar_dark(_: Option<isize>, _: bool) {}
+
+/// Убирает у окна кнопку и жест «развернуть». Содержимое zUI — колонка шириной 720:
+/// на весь экран оно превращается в узкую полосу посреди пустоты.
+#[cfg(windows)]
+pub fn disable_maximize(window: Option<isize>) {
+    use windows::Win32::{
+        Foundation::HWND,
+        UI::WindowsAndMessaging::{
+            GWL_STYLE, GetWindowLongPtrW, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
+            SWP_NOZORDER, SetWindowLongPtrW, SetWindowPos, WS_MAXIMIZEBOX,
+        },
+    };
+    let Some(window) = window else {
+        return;
+    };
+    let hwnd = HWND(window as *mut _);
+    // SAFETY: окно принадлежит этому потоку; меняется только один бит стиля.
+    unsafe {
+        let style = GetWindowLongPtrW(hwnd, GWL_STYLE);
+        SetWindowLongPtrW(hwnd, GWL_STYLE, style & !(WS_MAXIMIZEBOX.0 as isize));
+        let _ = SetWindowPos(
+            hwnd,
+            None,
+            0,
+            0,
+            0,
+            0,
+            SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE,
+        );
+    }
+}
+
+#[cfg(not(windows))]
+pub fn disable_maximize(_: Option<isize>) {}

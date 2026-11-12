@@ -19,7 +19,7 @@ impl Render for RootView {
         let sidebar = self.sidebar(cx);
 
         let content = match self.tab {
-            Tab::Home => views::home::render(&self.state, &self.view_data, cx),
+            Tab::Home => views::home::render(&self.state, &self.view_data, self.chart_hour, cx),
             Tab::Strategies => {
                 views::strategies::render(&self.state, &self.view_data, &self.strategy_filters, cx)
             }
@@ -27,7 +27,7 @@ impl Render for RootView {
             Tab::Telegram => views::telegram::render(&self.state, &self.view_data, cx),
             Tab::Statistics => views::statistics::render(&self.state, &self.view_data, cx),
             Tab::Logs => views::logs::render(&self.view_data, cx),
-            Tab::Settings => views::settings::render(&self.state, cx),
+            Tab::Settings => views::settings::render(&self.state, self.settings_advanced, cx),
         };
 
         div()

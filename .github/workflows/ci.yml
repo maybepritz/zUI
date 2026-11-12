@@ -27,7 +27,7 @@ jobs:
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
       - name: Tests
-        run: cargo test -p z-core -p z-i18n --locked
+        run: cargo test --workspace --locked
 
       - name: Translations
         run: cargo run -p z-i18n --bin check-locales --locked

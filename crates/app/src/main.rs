@@ -73,8 +73,30 @@ impl AssetSource for EmbeddedAssets {
     }
 }
 
+/// Паника в релизе иначе не оставляет следов: консоли нет, журнал был только в памяти.
+fn install_panic_hook() {
+    let path = z_core::paths::log_file();
+    let previous = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let trace = std::backtrace::Backtrace::force_capture();
+        z_core::log::append_line(&path, &format!("PANIC {info}\n{trace}"));
+        previous(info);
+    }));
+}
+
 fn main() {
+    install_panic_hook();
+    // Деинсталлятор: уборка без окна и без проверки единственного экземпляра.
+    if platform::cleanup::requested() {
+        platform::cleanup::run();
+        return;
+    }
     if !platform::wait_for_previous() {
+        return;
+    }
+    // После ожидания: при перезапуске прежний экземпляр к этому моменту уже вышел.
+    if !platform::claim_single_instance() {
+        platform::activate_running();
         return;
     }
     platform::register_app_id();

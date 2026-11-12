@@ -15,6 +15,8 @@ use crate::{
 
 const CHECK_INTERVAL: Duration = Duration::from_secs(60);
 const RETEST_INTERVAL: u64 = 24 * 60 * 60;
+/// Как часто работающее приложение само узнаёт о новых версиях zUI и Zapret.
+const UPDATE_CHECK_INTERVAL: Duration = Duration::from_secs(6 * 60 * 60);
 
 pub struct Background {
     pub services: ServicesController,
@@ -29,6 +31,7 @@ pub struct Background {
     last_tick: Instant,
     last_save: Instant,
     last_update: UpdateState,
+    next_update_check: Instant,
 }
 
 impl Background {
@@ -46,6 +49,7 @@ impl Background {
             last_tick: now,
             last_save: now,
             last_update: UpdateState::Idle,
+            next_update_check: now + UPDATE_CHECK_INTERVAL,
         }
     }
 
@@ -61,6 +65,12 @@ impl AppState {
         self.background.record_uptime();
         if self.background.last_save.elapsed() >= CHECK_INTERVAL {
             self.persist_statistics();
+        }
+        // При старте проверку запускает prepare; дальше повторяем её, пока приложение живёт в трее.
+        if Instant::now() >= self.background.next_update_check {
+            self.background.next_update_check = Instant::now() + UPDATE_CHECK_INTERVAL;
+            self.update.check_background();
+            self.zapret.check_update();
         }
         self.poll_update_events();
 

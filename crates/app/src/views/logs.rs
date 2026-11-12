@@ -5,7 +5,6 @@ use crate::root::view_data::ViewData;
 use gpui_kit::component::{
     button::*,
     group_box::{GroupBox, GroupBoxVariants},
-    label::Label,
     *,
 };
 use gpui_kit::prelude::FluentBuilder as _;
@@ -32,9 +31,10 @@ fn header(count: usize, cx: &mut Context<RootView>) -> Div {
                 .v_flex()
                 .gap_1()
                 .child(
-                    Label::new(tr("ui-event-log"))
-                        .text_lg()
-                        .font_weight(FontWeight::MEDIUM),
+                    div()
+                        .text_size(px(30.))
+                        .line_height(relative(1.15))
+                        .child(tr("ui-event-log")),
                 )
                 .child(
                     div()
@@ -73,6 +73,7 @@ fn log_view(logs: Vec<String>, cx: &mut Context<RootView>) -> impl IntoElement {
 
     GroupBox::new()
         .outline()
+        .content_style(crate::components::cards::card::surface_style())
         .w_full()
         .child(div().v_flex().w_full().gap_1().children(lines))
 }
@@ -81,7 +82,7 @@ fn log_line(line: String, error: Hsla) -> AnyElement {
     let is_err = is_error(&line);
     div()
         .text_xs()
-        .font_family("Consolas")
+        .font_family(crate::components::tone::MONO)
         .when(is_err, |this| this.text_color(error))
         .child(line)
         .into_any_element()

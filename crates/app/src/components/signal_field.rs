@@ -113,7 +113,7 @@ impl SignalField {
                 let font_size = px(11.);
                 let run = |text: &str, color: Hsla| TextRun {
                     len: text.len(),
-                    font: font("Consolas"),
+                    font: font(crate::components::tone::MONO),
                     color,
                     background_color: None,
                     underline: None,

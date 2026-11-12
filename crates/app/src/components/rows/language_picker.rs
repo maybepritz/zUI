@@ -13,9 +13,15 @@ pub(crate) fn language_picker(current: &Language, prefix: &str, cx: &mut Context
         let language = Language::from_code(&locale.code);
         let button = Button::new(format!("{prefix}-{}", locale.code)).label(locale.name);
         let button = if language.code() == selected {
-            button.primary()
+            // Выбранный вариант — приподнятая поверхность с заметной границей, не главная кнопка.
+            button
+                .outline()
+                .bg(crate::components::palette::color(
+                    crate::components::palette::ramp().raised,
+                ))
+                .border_color(crate::components::palette::hairline_strong())
         } else {
-            button.outline()
+            button.ghost()
         };
         row = row.child(button.on_click(cx.listener(move |this, _, window, cx| {
             this.on_language(language.clone(), window, cx);
