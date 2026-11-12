@@ -113,7 +113,7 @@ pub(super) fn move_into_place(staging: &Path, dir: &Path) -> Result<()> {
         }
     }
     let backup = dir.with_file_name(format!(
-        "zapret.bak-{}-{}",
+        "{BACKUP_PREFIX}{}-{}",
         crate::clock::now(),
         std::process::id(),
     ));
@@ -133,9 +133,54 @@ pub(super) fn move_into_place(staging: &Path, dir: &Path) -> Result<()> {
     Ok(())
 }
 
+const BACKUP_PREFIX: &str = "zapret.bak-";
+
+/// Оставляет только последнюю резервную копию: каждая занимает место целой установки.
+/// По возможности: неудачная уборка не должна отменять уже завершённую установку.
+pub(super) fn prune_backups(root: &Path) {
+    let Ok(entries) = fs::read_dir(root) else {
+        return;
+    };
+    // В имени стоит время создания в секундах, поэтому порядок имён — порядок по времени.
+    let mut backups: Vec<(u64, PathBuf)> = entries
+        .flatten()
+        .filter_map(|entry| {
+            let name = entry.file_name().into_string().ok()?;
+            let created = name.strip_prefix(BACKUP_PREFIX)?.split('-').next()?;
+            Some((created.parse().ok()?, entry.path()))
+        })
+        .collect();
+    backups.sort();
+    backups.pop();
+    for (_, path) in backups {
+        let _ = fs::remove_dir_all(path);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_the_latest_backup_is_kept() {
+        let root = std::env::temp_dir().join(format!(
+            "zui-backups-{}-{}",
+            std::process::id(),
+            crate::clock::now(),
+        ));
+        for name in ["zapret.bak-100-1", "zapret.bak-99-7", "zapret.bak-250-3"] {
+            fs::create_dir_all(root.join(name)).unwrap();
+        }
+        fs::create_dir_all(root.join("zapret")).unwrap();
+        prune_backups(&root);
+        let mut left: Vec<_> = fs::read_dir(&root)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().into_string().unwrap())
+            .collect();
+        left.sort();
+        assert_eq!(left, ["zapret", "zapret.bak-250-3"]);
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn failed_replacement_restores_previous_installation() {

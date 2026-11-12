@@ -97,7 +97,10 @@ impl TelegramProxy {
             .stderr(Stdio::null());
         #[cfg(windows)]
         cmd.creation_flags(crate::CREATE_NO_WINDOW);
-        self.child = Some(cmd.spawn().context("Не удалось запустить TG WS Proxy")?);
+        let child = cmd.spawn().context("Не удалось запустить TG WS Proxy")?;
+        // Без привязки прокси работает как раньше, только переживёт падение zUI.
+        let _ = crate::children::adopt(&child);
+        self.child = Some(child);
         self.endpoint = Some(endpoint);
         self.started = Some(Instant::now());
         self.status = "Запускается…".into();

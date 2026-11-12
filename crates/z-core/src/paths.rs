@@ -25,3 +25,8 @@ pub fn zapret_dir() -> PathBuf {
 pub fn tg_proxy_dir() -> PathBuf {
     runtime_root().join("tg-ws-proxy")
 }
+
+/// Журнал событий на диске; рядом с ним лежит предыдущая копия `zui.log.1`.
+pub fn log_file() -> PathBuf {
+    runtime_root().join("logs").join("zui.log")
+}

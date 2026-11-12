@@ -1,3 +1,4 @@
+mod children;
 pub mod clock;
 pub mod dns;
 pub mod download;
