@@ -14,6 +14,9 @@ on:
 
 permissions:
   contents: write
+  # For build provenance: GitHub signs a statement that these files came from this run.
+  id-token: write
+  attestations: write
 
 jobs:
   version:
@@ -88,6 +91,37 @@ jobs:
           $match.Groups[1].Value.Trim() | Set-Content dist/release-notes.md -Encoding utf8
           $codename = (Get-Content crates/app/release-name.txt -Raw).Trim()
           "title=zUI $version $codename" >> $env:GITHUB_OUTPUT
+
+      # Anyone can check a download against these and against the attestation below.
+      - name: Checksums
+        shell: pwsh
+        run: |
+          $files = @('target/x86_64-pc-windows-msvc/release/zUI.exe') + (Get-ChildItem dist -File -Include *.zip, *.exe -Recurse).FullName
+          $lines = foreach ($f in $files) {
+            $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $f).Hash.ToLower()
+            '| `{0}` | `{1}` |' -f (Split-Path $f -Leaf), $hash
+          }
+          $section = @(
+            '',
+            '### Проверка файлов',
+            '',
+            'Файлы собраны GitHub Actions из этого тега. SHA-256:',
+            '',
+            '| Файл | SHA-256 |',
+            '| --- | --- |'
+          ) + $lines + @(
+            '',
+            'Подтверждение сборки: `gh attestation verify <файл> --repo ${{ github.repository }}`.',
+            'Подробнее — в разделе «Антивирус и проверка подлинности» README.'
+          )
+          Add-Content dist/release-notes.md -Value $section -Encoding utf8
+
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            target/x86_64-pc-windows-msvc/release/zUI.exe
+            dist/zUI-x86_64-pc-windows-msvc.zip
+            dist/zUI-*-Setup.exe
 
       # Tag only after a successful build, so a failed run can simply be retried.
       - name: Tag
