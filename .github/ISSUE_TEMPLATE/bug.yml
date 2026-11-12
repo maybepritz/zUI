@@ -1,0 +1,41 @@
+name: Ошибка в приложении
+description: zUI падает, зависает или ведёт себя не так, как должен
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Что случилось
+      description: Что вы делали, что ожидали и что произошло на самом деле
+      placeholder: |
+        1. Открыл вкладку DNS
+        2. Нажал «Применить» у Cloudflare
+        3. Окно перестало отвечать
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия zUI и Windows
+      placeholder: zUI 0.3.0 Altair, Windows 10 22H2
+    validations:
+      required: true
+  - type: dropdown
+    id: admin
+    attributes:
+      label: zUI запущен от администратора?
+      options:
+        - Да
+        - Нет
+        - Не знаю
+  - type: textarea
+    id: report
+    attributes:
+      label: Отчёт из приложения
+      description: "**Настройки → Помощь → Копировать для GitHub**. Если zUI не запускается, приложите файл `runtime/logs/zui.log` рядом с `zUI.exe`."
+      render: markdown
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Скриншоты
+      description: Если ошибка видна на экране, перетащите картинку сюда

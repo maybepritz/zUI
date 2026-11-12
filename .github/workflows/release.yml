@@ -1,6 +1,7 @@
 # Releases a new version when the version in Cargo.toml changes on main.
-# If the tag v<version> does not exist yet, it builds the Windows ZIP, creates the
-# tag and attaches the ZIP to a draft release that you publish by hand.
+# If the tag v<version> does not exist yet, it builds the Windows ZIP and the Setup EXE,
+# creates the tag and attaches both to a draft release that you publish by hand.
+# The release notes are taken from the matching section of CHANGELOG.md.
 name: Release
 
 on:
@@ -19,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
       new: ${{ steps.version.outputs.new }}
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +30,7 @@ jobs:
         run: |
           version=$(grep -m1 '^version = ' Cargo.toml | cut -d'"' -f2)
           tag="v$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
             echo "$tag already exists, nothing to release"
@@ -59,6 +62,33 @@ jobs:
           New-Item -ItemType Directory -Path dist -Force | Out-Null
           Compress-Archive -LiteralPath @('target/x86_64-pc-windows-msvc/release/zUI.exe', 'LICENSE') -DestinationPath dist/zUI-x86_64-pc-windows-msvc.zip -Force
 
+      # The installer is for first installs; updates still use the ZIP above.
+      # installer/zui.iss needs Inno Setup 7, which the runner does not have.
+      - name: Installer
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://jrsoftware.org/download.php/is.exe -OutFile "$env:RUNNER_TEMP\innosetup.exe"
+          Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
+          $iscc = Get-ChildItem -Path $env:ProgramFiles, ${env:ProgramFiles(x86)} -Filter ISCC.exe -Recurse -Depth 2 -ErrorAction SilentlyContinue |
+            Where-Object { $_.DirectoryName -like '*Inno Setup*' } | Select-Object -First 1
+          if (-not $iscc) { throw 'ISCC.exe not found after installing Inno Setup' }
+          & $iscc.FullName installer/zui.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
+
+      # The section "## <version> · <name>" of CHANGELOG.md, without its heading.
+      - name: Release notes
+        id: notes
+        shell: pwsh
+        run: |
+          $version = '${{ needs.version.outputs.version }}'
+          $changelog = Get-Content CHANGELOG.md -Raw -Encoding utf8
+          $pattern = '(?ms)^## ' + [regex]::Escape($version) + '\b[^\n]*\n(.*?)(?=^## |\z)'
+          $match = [regex]::Match($changelog, $pattern)
+          if (-not $match.Success) { throw "CHANGELOG.md has no section for $version" }
+          $match.Groups[1].Value.Trim() | Set-Content dist/release-notes.md -Encoding utf8
+          $codename = (Get-Content crates/app/release-name.txt -Raw).Trim()
+          "title=zUI $version $codename" >> $env:GITHUB_OUTPUT
+
       # Tag only after a successful build, so a failed run can simply be retried.
       - name: Tag
         run: |
@@ -68,6 +98,9 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.version.outputs.tag }}
-          name: zUI ${{ needs.version.outputs.tag }}
+          name: ${{ steps.notes.outputs.title }}
+          body_path: dist/release-notes.md
           draft: true
-          files: dist/zUI-x86_64-pc-windows-msvc.zip
+          files: |
+            dist/zUI-x86_64-pc-windows-msvc.zip
+            dist/zUI-*-Setup.exe

@@ -1,0 +1,53 @@
+name: Не работает обход
+description: YouTube, Discord или другой сервис не открывается при включённом обходе
+labels: ["bypass"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Перед отправкой попробуйте **Главная → Подобрать заново**: чаще всего провайдер просто сменил блокировку.
+        Если не помогло, заполните поля ниже — по ним можно понять, что происходит у вашего провайдера.
+  - type: input
+    id: service
+    attributes:
+      label: Что не открывается
+      placeholder: YouTube — видео не грузится, сайт открывается
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: Провайдер и город
+      description: Блокировки отличаются у разных провайдеров и регионов
+      placeholder: Ростелеком, Казань
+    validations:
+      required: true
+  - type: input
+    id: strategy
+    attributes:
+      label: Стратегия
+      description: Видна на главной под заголовком
+      placeholder: general (ALT7)
+  - type: dropdown
+    id: picked
+    attributes:
+      label: Пробовали «Подобрать заново»?
+      options:
+        - Да, не помогло
+        - Да, подбор не нашёл рабочую стратегию
+        - Нет
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия zUI и Windows
+      placeholder: zUI 0.3.0 Altair, Windows 11 24H2
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Отчёт из приложения
+      description: "**Настройки → Помощь → Копировать для GitHub**. Секреты прокси в отчёт не попадают, но перед отправкой просмотрите его."
+      render: markdown
