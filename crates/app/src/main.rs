@@ -86,7 +86,7 @@ fn install_panic_hook() {
 
 fn main() {
     install_panic_hook();
-    // Деинсталлятор: уборка без окна и без проверки единственного экземпляра.
+    // `--cleanup`: уборка перед удалением, без окна и без проверки единственного экземпляра.
     if platform::cleanup::requested() {
         platform::cleanup::run();
         return;
