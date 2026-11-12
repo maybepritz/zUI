@@ -41,24 +41,18 @@ pub fn claim_single_instance() -> bool {
             Foundation::{ERROR_ACCESS_DENIED, ERROR_ALREADY_EXISTS, GetLastError},
             System::Threading::CreateMutexW,
         },
-        core::{PCWSTR, w},
+        core::PCWSTR,
     };
     let name = wide(&format!("Local\\zUI.App.Instance.{}", scope()));
-    // SAFETY: имена — строки с завершающим нулём. Дескрипторы намеренно не закрываются:
-    // Windows освободит мьютексы при любом завершении процесса, включая падение.
-    let free = match unsafe { CreateMutexW(None, false, PCWSTR(name.as_ptr())) } {
+    // SAFETY: имя — строка с завершающим нулём. Дескриптор намеренно не закрывается:
+    // Windows освободит мьютекс при любом завершении процесса, включая падение.
+    match unsafe { CreateMutexW(None, false, PCWSTR(name.as_ptr())) } {
         Ok(_) => unsafe { GetLastError() != ERROR_ALREADY_EXISTS },
         // Мьютекс создан экземпляром с правами администратора, а у нас их нет.
         Err(error) if error.code() == ERROR_ACCESS_DENIED.to_hresult() => false,
         // Непонятная ошибка не должна мешать запустить приложение.
         Err(_) => true,
-    };
-    if free {
-        // Общая метка «zUI запущен» для установщика (`AppMutex` в zui.iss): он просит
-        // закрыть приложение перед обновлением или удалением. На запуск она не влияет.
-        let _ = unsafe { CreateMutexW(None, false, w!("Local\\zUI.App.Instance")) };
     }
-    free
 }
 
 /// Просит уже работающий экземпляр показать окно (в том числе из трея).

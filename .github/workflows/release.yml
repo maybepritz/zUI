@@ -1,6 +1,6 @@
 # Releases a new version when the version in Cargo.toml changes on main.
-# If the tag v<version> does not exist yet, it builds the Windows ZIP and the Setup EXE,
-# creates the tag and attaches both to a draft release that you publish by hand.
+# If the tag v<version> does not exist yet, it builds the Windows ZIP, creates the tag
+# and attaches the ZIP to a draft release that you publish by hand.
 # The release notes are taken from the matching section of CHANGELOG.md.
 name: Release
 
@@ -65,19 +65,6 @@ jobs:
           New-Item -ItemType Directory -Path dist -Force | Out-Null
           Compress-Archive -LiteralPath @('target/x86_64-pc-windows-msvc/release/zUI.exe', 'LICENSE') -DestinationPath dist/zUI-x86_64-pc-windows-msvc.zip -Force
 
-      # The installer is for first installs; updates still use the ZIP above.
-      # installer/zui.iss needs Inno Setup 7, which the runner does not have.
-      - name: Installer
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri https://jrsoftware.org/download.php/is.exe -OutFile "$env:RUNNER_TEMP\innosetup.exe"
-          Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
-          $iscc = Get-ChildItem -Path $env:ProgramFiles, ${env:ProgramFiles(x86)} -Filter ISCC.exe -Recurse -Depth 2 -ErrorAction SilentlyContinue |
-            Where-Object { $_.DirectoryName -like '*Inno Setup*' } | Select-Object -First 1
-          if (-not $iscc) { throw 'ISCC.exe not found after installing Inno Setup' }
-          & $iscc.FullName installer/zui.iss
-          if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
-
       # The section "## <version> · <name>" of CHANGELOG.md, without its heading.
       - name: Release notes
         id: notes
@@ -96,7 +83,7 @@ jobs:
       - name: Checksums
         shell: pwsh
         run: |
-          $files = @('target/x86_64-pc-windows-msvc/release/zUI.exe') + (Get-ChildItem dist -File -Include *.zip, *.exe -Recurse).FullName
+          $files = @('target/x86_64-pc-windows-msvc/release/zUI.exe', 'dist/zUI-x86_64-pc-windows-msvc.zip')
           $lines = foreach ($f in $files) {
             $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $f).Hash.ToLower()
             '| `{0}` | `{1}` |' -f (Split-Path $f -Leaf), $hash
@@ -121,7 +108,6 @@ jobs:
           subject-path: |
             target/x86_64-pc-windows-msvc/release/zUI.exe
             dist/zUI-x86_64-pc-windows-msvc.zip
-            dist/zUI-*-Setup.exe
 
       # Tag only after a successful build, so a failed run can simply be retried.
       - name: Tag
@@ -135,6 +121,4 @@ jobs:
           name: ${{ steps.notes.outputs.title }}
           body_path: dist/release-notes.md
           draft: true
-          files: |
-            dist/zUI-x86_64-pc-windows-msvc.zip
-            dist/zUI-*-Setup.exe
+          files: dist/zUI-x86_64-pc-windows-msvc.zip

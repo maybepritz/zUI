@@ -442,7 +442,7 @@ whats-new-notes = ## A home screen built on real data
     ## Simpler settings and Telegram
     - Settings are five rows, the rest is under "More settings".
     - Telegram connects in two steps: turn the proxy on and open the link.
-    - When zUI is uninstalled, it restores DNS and removes autostart.
+    - Before removing zUI, `zUI.exe --cleanup` restores DNS and removes autostart.
 
     ## A new look
     - A graphite palette, large titles, a title bar that matches the theme.
