@@ -1,1 +1,1 @@
-Vega
+Altair
