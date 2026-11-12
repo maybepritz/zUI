@@ -10,7 +10,10 @@ impl RootView {
     pub fn new(mut state: AppState, window: &mut Window, cx: &mut Context<Self>) -> Self {
         i18n::set_language(&state.settings.language);
         let show_whats_new = state.settings.onboarded
-            && state.settings.last_seen_version != env!("CARGO_PKG_VERSION");
+            && !crate::release::same_release(
+                &state.settings.last_seen_version,
+                crate::release::VERSION,
+            );
         if state.settings.autostart {
             crate::platform::upgrade_autostart();
         }

@@ -48,12 +48,17 @@ pub fn render(
         .automation
         .services
         .iter()
-        .map(|id| Row {
-            id: id.clone(),
-            last: result.and_then(|r| r.checks.iter().find(|c| &c.id == id).cloned()),
-            down: running && health.down_since.contains_key(id),
-            down_seconds: health.day(id).iter().filter(|b| b.down()).count() as u64
-                * BUCKET_SECONDS,
+        .map(|id| {
+            let last = result.and_then(|r| r.checks.iter().find(|c| &c.id == id).cloned());
+            Row {
+                id: id.clone(),
+                // Сбой из истории показываем только после свежей проверки: сразу после
+                // смены стратегии он относится к прошлой, а новая ещё не проверена.
+                down: running && last.is_some() && health.down_since.contains_key(id),
+                last,
+                down_seconds: health.day(id).iter().filter(|b| b.down()).count() as u64
+                    * BUCKET_SECONDS,
+            }
         })
         .collect();
     let broken = rows.iter().find(|r| r.down);

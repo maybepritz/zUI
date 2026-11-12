@@ -1,0 +1,15 @@
+name: Предложение
+description: Идея, как сделать zUI удобнее
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Что неудобно сейчас
+      description: Опишите ситуацию, а не готовое решение — так проще найти лучший вариант
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Как могло бы быть

@@ -78,10 +78,15 @@ impl AppState {
             && !self.diagnostics.busy()
             && !self.zapret.installing()
             && !matches!(self.update.state, UpdateState::Installing);
+        // Новый процесс winws (включение, смена стратегии, перезапуск) — проверяем заново.
+        let running = self.zapret.is_running();
+        self.background
+            .services
+            .follow(self.zapret.pid().filter(|_| running));
         // Проверяем, пока работает обход (для главной) или включено автопереключение.
         let fresh = self.background.services.poll(
             &self.settings.automation.services,
-            checking_allowed && (self.zapret.is_running() || self.settings.automation.auto_switch),
+            checking_allowed && (running || self.settings.automation.auto_switch),
         );
         if fresh {
             self.record_health();

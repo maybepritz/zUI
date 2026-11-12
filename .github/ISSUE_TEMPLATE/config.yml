@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Последний выпуск
+    url: https://github.com/maybepritz/zUI/releases/latest
+    about: Проверьте, не исправлена ли проблема в новой версии
+  - name: Стратегии и списки zapret
+    url: https://github.com/Flowseal/zapret-discord-youtube/issues
+    about: Если проблема в самих стратегиях zapret, а не в zUI, пишите в zapret-discord-youtube

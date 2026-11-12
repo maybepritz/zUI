@@ -17,6 +17,11 @@ impl ZapretController {
         self.locked = false;
     }
 
+    /// PID работающего winws. Меняется при каждом запуске, в том числе при смене стратегии.
+    pub fn pid(&self) -> Option<u32> {
+        self.zapret.pid
+    }
+
     pub fn is_running(&mut self) -> bool {
         let had_process = self.zapret.pid.is_some();
         let running = self.zapret.is_running();

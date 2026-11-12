@@ -19,7 +19,15 @@ pub struct ServicesController {
     tracker: FailureTracker,
     next_check: Instant,
     pub degraded: bool,
+    /// Процесс winws, для которого собраны текущие результаты.
+    watched_pid: Option<u32>,
 }
+
+/// Сколько ждать после запуска winws, прежде чем проверять: WinDivert поднимается не сразу,
+/// а проверка в первую же секунду показала бы ложный сбой.
+const SETTLE: Duration = Duration::from_secs(3);
+/// Обычный интервал между проверками.
+const INTERVAL: Duration = Duration::from_secs(60);
 
 impl ServicesController {
     pub fn new() -> Self {
@@ -32,6 +40,21 @@ impl ServicesController {
             tracker: FailureTracker::default(),
             next_check: Instant::now(),
             degraded: false,
+            watched_pid: None,
+        }
+    }
+
+    /// Следит за процессом winws. Новый процесс — это новая стратегия или перезапуск:
+    /// старые результаты к нему не относятся, и первая проверка идёт через пару секунд,
+    /// а не через минуту. Остановка обхода результаты не сбрасывает: по ним видно,
+    /// открываются ли сервисы без обхода.
+    pub fn follow(&mut self, pid: Option<u32>) {
+        if pid == self.watched_pid {
+            return;
+        }
+        self.watched_pid = pid;
+        if pid.is_some() {
+            self.reset();
         }
     }
 
@@ -46,7 +69,7 @@ impl ServicesController {
         let ids = ids.to_vec();
         let generation = self.generation;
         self.error = None;
-        self.next_check = Instant::now() + Duration::from_secs(60);
+        self.next_check = Instant::now() + INTERVAL;
         self.job.spawn(move || {
             (
                 generation,
@@ -82,13 +105,15 @@ impl ServicesController {
         fresh
     }
 
+    /// Забывает результаты и проверяет заново через [`SETTLE`]. Проверка, которая
+    /// ещё идёт, относится к прошлому состоянию: её результат будет отброшен.
     pub fn reset(&mut self) {
         self.generation = self.generation.wrapping_add(1);
         self.tracker = FailureTracker::default();
         self.degraded = false;
         self.result = None;
         self.error = None;
-        self.next_check = Instant::now() + Duration::from_secs(60);
+        self.next_check = Instant::now() + SETTLE;
     }
 }
 
@@ -135,6 +160,37 @@ mod tests {
             internet_available: internet,
             checked_at: at,
         }
+    }
+
+    #[test]
+    fn new_winws_process_drops_old_result_and_checks_soon() {
+        let mut controller = ServicesController::new();
+        controller.follow(Some(1));
+        controller.result = Some(batch(10, Availability::Reachable, true));
+        controller.next_check = Instant::now() + INTERVAL;
+
+        // Тот же процесс: ничего не меняется.
+        controller.follow(Some(1));
+        assert!(controller.result.is_some());
+
+        // Смена стратегии перезапускает winws с новым PID.
+        let generation = controller.generation;
+        controller.follow(Some(2));
+        assert!(controller.result.is_none());
+        assert_ne!(controller.generation, generation);
+        assert!(controller.next_check <= Instant::now() + SETTLE);
+    }
+
+    #[test]
+    fn stopping_winws_keeps_the_last_result() {
+        let mut controller = ServicesController::new();
+        controller.follow(Some(1));
+        controller.result = Some(batch(10, Availability::Reachable, true));
+        controller.follow(None);
+        assert!(controller.result.is_some());
+        // Включили снова: новый процесс, результаты собираются заново.
+        controller.follow(Some(3));
+        assert!(controller.result.is_none());
     }
 
     #[test]
