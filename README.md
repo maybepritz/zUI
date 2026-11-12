@@ -158,7 +158,7 @@ GitHub также подписывает подтверждение сборки
 gh attestation verify .\zUI.exe --repo maybepritz/zUI
 ```
 
-Подтверждения есть у выпусков начиная с 0.3.1. Любой файл можно дополнительно проверить на [VirusTotal](https://www.virustotal.com) – только сам `zUI.exe`, без папки `runtime`, иначе в отчёт попадут предупреждения о Zapret.
+Подтверждения есть у выпусков начиная с 0.3.1. Любой файл можно дополнительно проверить на [VirusTotal](https://www.virustotal.com) – только сам `zUI.exe`, без папки `runtime`, иначе в отчёт попадут предупреждения о Zapret. Пример: [проверка zUI.exe](https://www.virustotal.com/gui/file/88b1344ba011c8abdeb27cd7d4820128d2a1ee4c64a51e86ec83f76f112e6f86/detection) – 0 срабатываний из 71.
 
 ## Сообщить о проблеме
 
