@@ -21,6 +21,8 @@ mod native {
     struct State {
         data: NOTIFYICONDATAW,
         taskbar_created: u32,
+        /// Второй экземпляр zUI просит показать окно.
+        activate: u32,
         attached: Cell<bool>,
         available: Cell<bool>,
         quit: Cell<bool>,
@@ -46,7 +48,8 @@ mod native {
                 .map_err(|e| e.to_string())?;
                 let callback = RegisterWindowMessageW(w!("zUI.Tray.Callback"));
                 let taskbar_created = RegisterWindowMessageW(w!("TaskbarCreated"));
-                if callback == 0 || taskbar_created == 0 {
+                let activate = crate::platform::activate_message();
+                if callback == 0 || taskbar_created == 0 || activate == 0 {
                     return Err(crate::i18n::tr("tray-registration-failed"));
                 }
                 // Проводник обычно работает без прав администратора, даже если zUI запущен от администратора.
@@ -54,6 +57,8 @@ mod native {
                     .and_then(|_| {
                         ChangeWindowMessageFilterEx(hwnd, taskbar_created, MSGFLT_ALLOW, None)
                     })
+                    // Второй экземпляр тоже может быть запущен без прав администратора.
+                    .and_then(|_| ChangeWindowMessageFilterEx(hwnd, activate, MSGFLT_ALLOW, None))
                     .map_err(|e| e.to_string())?;
                 let mut data = NOTIFYICONDATAW {
                     cbSize: std::mem::size_of::<NOTIFYICONDATAW>() as u32,
@@ -70,6 +75,7 @@ mod native {
                 let state = Rc::new(State {
                     data,
                     taskbar_created,
+                    activate,
                     attached: Cell::new(false),
                     available: Cell::new(false),
                     quit: Cell::new(false),
@@ -237,6 +243,10 @@ mod native {
                 // Проводник мог перезапуститься: нельзя оставлять приложение скрытым без значка.
                 state.show();
             }
+            return LRESULT(0);
+        }
+        if message == state.activate {
+            state.show();
             return LRESULT(0);
         }
         if message == state.data.uCallbackMessage {

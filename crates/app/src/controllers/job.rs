@@ -52,3 +52,48 @@ impl<T: Send + 'static> Job<T> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn result_arrives_once_and_frees_the_job() {
+        let mut job = Job::new();
+        assert!(!job.busy());
+        job.spawn(|| 7);
+        assert!(job.busy());
+        let value = loop {
+            match job.poll() {
+                JobPoll::Done(value) => break value,
+                JobPoll::Pending => std::thread::yield_now(),
+                JobPoll::Lost => panic!("worker lost"),
+            }
+        };
+        assert_eq!(value, 7);
+        assert!(!job.busy());
+        assert!(matches!(job.poll(), JobPoll::Pending));
+    }
+
+    #[test]
+    fn panicking_worker_is_reported_as_lost() {
+        let mut job: Job<u8> = Job::new();
+        job.spawn(|| panic!("worker failed"));
+        loop {
+            match job.poll() {
+                JobPoll::Lost => break,
+                JobPoll::Pending => std::thread::yield_now(),
+                JobPoll::Done(_) => panic!("no result expected"),
+            }
+        }
+        assert!(!job.busy());
+    }
+
+    #[test]
+    fn wait_blocks_until_the_worker_finishes() {
+        let mut job = Job::new();
+        job.spawn(|| std::thread::sleep(std::time::Duration::from_millis(30)));
+        job.wait();
+        assert!(!job.busy());
+    }
+}

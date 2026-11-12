@@ -13,7 +13,12 @@ impl AppState {
     /// Готовит локальные данные вне потока GPUI. Управляемые сервисы здесь не запускаются.
     pub fn prepare(mut report: impl FnMut(PreparationStage)) -> Self {
         report(PreparationStage::Settings);
-        let log = Log::new();
+        let log = Log::to_file(&z_core::paths::log_file());
+        log.add(format!(
+            "zUI {} started (administrator: {})",
+            env!("CARGO_PKG_VERSION"),
+            z_core::dns::is_elevated()
+        ));
         let mut update = UpdateController::new(log.clone());
 
         let runtime_dir = z_core::paths::zapret_dir();

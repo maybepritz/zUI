@@ -4,7 +4,12 @@ use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde_json::Value;
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
-use std::process::Command;
+use std::{
+    io::Read,
+    process::{Command, Stdio},
+    thread,
+    time::{Duration, Instant},
+};
 
 #[cfg(windows)]
 pub fn is_elevated() -> bool {
@@ -87,13 +92,62 @@ pub(super) fn run_ps(body: &str, payload: Option<&str>) -> Result<String> {
     #[cfg(windows)]
     cmd.creation_flags(crate::CREATE_NO_WINDOW);
 
-    let out = cmd.output()?;
-    let stdout = decode(&out.stdout);
-    let stderr = decode(&out.stderr);
-    if !out.status.success() {
+    let (success, stdout, stderr) = output_with_timeout(cmd, PS_TIMEOUT)?;
+    let stdout = decode(&stdout);
+    let stderr = decode(&stderr);
+    if !success {
         bail!("{}", if stderr.is_empty() { stdout } else { stderr });
     }
     Ok(stdout)
+}
+
+/// Зависший WMI не должен вечно держать задачу DNS: её ждёт выход из приложения.
+/// Обычный скрипт укладывается в секунды, первый вызов после загрузки — в десятки секунд.
+const PS_TIMEOUT: Duration = Duration::from_secs(90);
+
+/// Как `Command::output`, но процесс, не уложившийся в срок, завершается.
+/// Возвращает признак успешного кода выхода, stdout и stderr.
+fn output_with_timeout(mut cmd: Command, timeout: Duration) -> Result<(bool, Vec<u8>, Vec<u8>)> {
+    fn drain(stream: Option<impl Read + Send + 'static>) -> thread::JoinHandle<Vec<u8>> {
+        thread::spawn(move || {
+            let mut bytes = Vec::new();
+            if let Some(mut stream) = stream {
+                let _ = stream.read_to_end(&mut bytes);
+            }
+            bytes
+        })
+    }
+
+    let mut child = cmd
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+    let _ = crate::children::adopt(&child);
+    // Читаем оба потока сразу, иначе заполненный канал остановит скрипт.
+    let stdout = drain(child.stdout.take());
+    let stderr = drain(child.stderr.take());
+
+    let started = Instant::now();
+    let status = loop {
+        if let Some(status) = child.try_wait()? {
+            break status;
+        }
+        if started.elapsed() >= timeout {
+            let _ = child.kill();
+            let _ = child.wait();
+            bail!(
+                "PowerShell не ответил за {} с и был остановлен; настройки DNS могли примениться частично",
+                timeout.as_secs()
+            );
+        }
+        thread::sleep(Duration::from_millis(25));
+    };
+    Ok((
+        status.success(),
+        stdout.join().unwrap_or_default(),
+        stderr.join().unwrap_or_default(),
+    ))
 }
 
 pub(super) fn parse_json_list<T: serde::de::DeserializeOwned>(json: &str) -> Vec<T> {
@@ -128,4 +182,27 @@ pub fn snapshot() -> Result<Vec<AdapterSnapshot>> {
         .into_iter()
         .filter(|r| r.interface_index > 0 && !r.interface_alias.is_empty())
         .collect())
+}
+
+#[cfg(all(test, windows))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn finished_command_returns_its_output() {
+        let mut cmd = Command::new("cmd");
+        cmd.args(["/C", "echo ready"]);
+        let (success, stdout, _) = output_with_timeout(cmd, Duration::from_secs(30)).unwrap();
+        assert!(success);
+        assert_eq!(decode(&stdout), "ready");
+    }
+
+    #[test]
+    fn hung_command_is_stopped_at_the_deadline() {
+        let mut cmd = Command::new("ping");
+        cmd.args(["-n", "60", "127.0.0.1"]);
+        let started = Instant::now();
+        assert!(output_with_timeout(cmd, Duration::from_millis(300)).is_err());
+        assert!(started.elapsed() < Duration::from_secs(10));
+    }
 }

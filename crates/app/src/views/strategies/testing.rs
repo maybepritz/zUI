@@ -34,24 +34,23 @@ pub(super) fn test_section(
         .child(Label::new(hint).text_xs().text_color(muted))
         .child(
             button_row()
-                .child(
-                    Button::new("diag-start")
-                        .primary()
-                        .label(tr("ui-test-strategies"))
-                        .disabled(busy || !is_admin || state.zapret.installing())
-                        .on_click(cx.listener(|this, _, _, cx| {
-                            this.on_start_test(cx);
-                        })),
-                )
-                .child(
+                // Одна кнопка на месте: запуск, а пока тест идёт — его отмена.
+                .child(if busy {
                     Button::new("diag-cancel")
                         .outline()
                         .label(tr("ui-cancel"))
-                        .disabled(!busy)
                         .on_click(cx.listener(|this, _, _, cx| {
                             this.on_cancel_test(cx);
-                        })),
-                )
+                        }))
+                } else {
+                    Button::new("diag-start")
+                        .primary()
+                        .label(tr("ui-test-strategies"))
+                        .disabled(!is_admin || state.zapret.installing())
+                        .on_click(cx.listener(|this, _, _, cx| {
+                            this.on_start_test(cx);
+                        }))
+                })
                 .child(
                     Button::new("diag-best")
                         .outline()

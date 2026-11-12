@@ -60,6 +60,19 @@ fn install_inner(dir: &Path, log: &dyn Fn(&str), upgrade: bool) -> Result<String
     let part = root.join("zapret.zip.part");
     let staging = root.join(".zapret-installing");
 
+    // Остатки прерванной установки (сбой питания, снятый процесс) иначе блокировали бы
+    // все следующие попытки. Одновременной установки не бывает: её исключают
+    // единственный экземпляр zUI и одна задача установки в контроллере.
+    let _ = fs::remove_file(&part);
+    if staging.exists() {
+        fs::remove_dir_all(&staging).with_context(|| {
+            format!(
+                "Не удалось убрать каталог прошлой установки {}",
+                staging.display()
+            )
+        })?;
+    }
+
     let tag = download::fetch_latest(&SOURCE, pick_archive, &part, log)?;
 
     log("Распаковка...");
@@ -92,6 +105,7 @@ fn install_inner(dir: &Path, log: &dyn Fn(&str), upgrade: bool) -> Result<String
         let _ = fs::remove_dir_all(&staging);
     }
     result?;
+    archive::prune_backups(root);
     Ok(tag)
 }
 

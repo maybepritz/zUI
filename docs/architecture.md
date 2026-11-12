@@ -16,7 +16,7 @@
 реэкспорты GPUI и компонентную библиотеку.
 
 Версия workspace задаётся в Cargo.toml; имя релиза — в app/release-name.txt.
-`release.rs` форматирует «0.2.0 Vega» для UI, не меняя числовую версию,
+`release.rs` форматирует «0.3.0 Altair» для UI, не меняя числовую версию,
 используемую автообновлением. Процедура выпуска описана в [releases.md](releases.md).
 
 Иконки берём из встроенного Lucide-каталога `gpui_kit::assets::IconName`.
@@ -274,7 +274,7 @@ refresh_and_notify; экран строит элементы и вызывает
 
 ```powershell
 cargo check --workspace --all-targets
-cargo test -p z-core -p z-i18n
+cargo test --workspace
 cargo run -p z-i18n --bin check-locales
 ```
 
@@ -282,3 +282,22 @@ cargo run -p z-i18n --bin check-locales
 зависит от доступа Windows к PowerShell/WMI. Некоторые проверки стратегий
 требуют установленного runtime/zapret и пропускаются, когда его нет.
 cargo check не заменяет ручную проверку GUI, UAC, трея и реальных процессов.
+
+## Надёжность процесса
+
+- `z-core/src/children.rs` привязывает winws, Telegram-прокси и PowerShell к Job Object
+  с `KILL_ON_JOB_CLOSE`: дочерние процессы не переживают zUI даже при его падении.
+- `platform/instance.rs` держит именованный мьютекс, свой для каждой папки данных. Второй запуск с той же папкой просит работающее
+  окно показаться (сообщение `zUI.Activate`, обрабатывается в `tray.rs`) и выходит.
+  Проверка идёт после `wait_for_previous`, поэтому перезапуск и повышение прав работают.
+- Главная строится на проверках сервисов: `ServicesController` хранит в памяти проверки
+  за последний час (`recent_points`), `latency_chart.rs` рисует их в режиме «Час», а
+  15-минутные корзины `Health` — в режиме «Сутки». Палитра интерфейса — `components/palette.rs`.
+- `z-core/src/log.rs` дублирует журнал в `runtime/logs/zui.log` (1 МБ, одна прошлая
+  копия `zui.log.1`). Обработчик паники в `main.rs` пишет туда же в обход `Log`.
+- `platform/autostart.rs`: zUI с правами администратора регистрирует задачу
+  планировщика «zUI Autostart» с наивысшими правами; без прав остаётся запись в `Run`.
+- `zUI.exe --cleanup` (`platform/cleanup.rs`) вызывает деинсталлятор: возвращает DNS
+  и убирает автозапуск, при необходимости один раз запрашивая UAC.
+- Обновления zUI и Zapret перепроверяются каждые 6 часов (`state/background.rs`);
+  фоновая проверка не показывает сбой сети как ошибку.

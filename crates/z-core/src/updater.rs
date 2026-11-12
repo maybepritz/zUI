@@ -1,5 +1,10 @@
 //! Обновление самого zUI из релизов GitHub.
 use self_update::backends::github::{ReleaseList, Update, UpdateBuilder};
+use std::time::Duration;
+
+/// Без таймаута зависшее соединение навсегда оставляет проверку или установку «в процессе».
+const CHECK_TIMEOUT: Duration = Duration::from_secs(30);
+const DOWNLOAD_TIMEOUT: Duration = Duration::from_secs(300);
 
 const OWNER: &str = "maybepritz";
 const REPO: &str = "zUI";
@@ -11,6 +16,7 @@ fn builder(current: &str) -> UpdateBuilder {
         .bin_name("zUI")
         .target("x86_64-pc-windows-msvc")
         .current_version(current)
+        .timeout(DOWNLOAD_TIMEOUT)
         .no_confirm(true)
         .show_download_progress(false);
     b
@@ -24,6 +30,7 @@ pub fn check(current: &str) -> Result<Option<String>, String> {
     let releases = ReleaseList::configure()
         .repo_owner(OWNER)
         .repo_name(REPO)
+        .timeout(CHECK_TIMEOUT)
         .build()
         .map_err(err)?
         .fetch()

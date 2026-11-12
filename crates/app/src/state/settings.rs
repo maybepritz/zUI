@@ -9,8 +9,6 @@ use z_core::preferences::{Language, ThemePreference};
 pub(crate) enum Preference {
     StartupZapret,
     StartupTelegram,
-    CloseToTray,
-    RememberCloseAction,
     AskElevation,
     Watchdog,
     AutoSwitch,
@@ -26,8 +24,6 @@ impl AppState {
         match preference {
             Preference::StartupZapret => self.settings.startup.zapret = value,
             Preference::StartupTelegram => self.settings.startup.telegram = value,
-            Preference::CloseToTray => self.settings.close_to_tray = value,
-            Preference::RememberCloseAction => self.settings.remember_close_action = value,
             Preference::AskElevation => self.settings.ask_elevation = value,
             Preference::Watchdog => self.settings.automation.watchdog = value,
             Preference::AutoSwitch => self.settings.automation.auto_switch = value,
@@ -75,5 +71,74 @@ impl AppState {
                 false
             }
         }
+    }
+}
+
+/// Что делает крестик окна: в настройках это один выбор вместо двух связанных флажков.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum CloseBehavior {
+    /// Каждый раз показывать диалог «Скрыть в трей / Выйти».
+    Ask,
+    Tray,
+    Exit,
+}
+
+impl CloseBehavior {
+    pub(crate) fn of(settings: &z_core::settings::Settings) -> Self {
+        match (settings.remember_close_action, settings.close_to_tray) {
+            (false, _) => Self::Ask,
+            (true, true) => Self::Tray,
+            (true, false) => Self::Exit,
+        }
+    }
+
+    /// «Спрашивать» не трогает `close_to_tray`: это вариант, отмеченный в диалоге по умолчанию.
+    fn apply(self, settings: &mut z_core::settings::Settings) {
+        settings.remember_close_action = self != Self::Ask;
+        match self {
+            Self::Ask => {}
+            Self::Tray => settings.close_to_tray = true,
+            Self::Exit => settings.close_to_tray = false,
+        }
+    }
+}
+
+impl AppState {
+    pub(crate) fn set_close_behavior(&mut self, behavior: CloseBehavior) {
+        behavior.apply(&mut self.settings);
+        self.save_settings();
+    }
+
+    /// Общий выключатель уведомлений; отдельные виды остаются в «Дополнительно».
+    pub(crate) fn set_notifications(&mut self, enabled: bool) {
+        let notifications = &mut self.settings.notifications;
+        notifications.errors = enabled;
+        notifications.strategy = enabled;
+        notifications.updates = enabled;
+        self.save_settings();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CloseBehavior;
+    use z_core::settings::Settings;
+
+    #[test]
+    fn close_behavior_round_trips_through_the_two_saved_flags() {
+        for behavior in [CloseBehavior::Ask, CloseBehavior::Tray, CloseBehavior::Exit] {
+            let mut settings = Settings::default();
+            behavior.apply(&mut settings);
+            assert_eq!(CloseBehavior::of(&settings), behavior);
+        }
+    }
+
+    #[test]
+    fn asking_keeps_the_choice_preselected_in_the_dialog() {
+        let mut settings = Settings::default();
+        CloseBehavior::Exit.apply(&mut settings);
+        CloseBehavior::Ask.apply(&mut settings);
+        assert!(!settings.remember_close_action);
+        assert!(!settings.close_to_tray);
     }
 }

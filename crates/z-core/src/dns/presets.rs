@@ -24,12 +24,12 @@ fn preset(key: &str, name: &str, v4: &[&str], v6: &[&str], doh: &str, desc: &str
 pub fn presets() -> Vec<DnsPreset> {
     vec![
         preset(
-            "comss",
-            "Comss One DNS",
-            &["83.220.169.155", "212.109.195.93"],
+            "dnsai",
+            "DNS AI",
+            &["194.87.196.13", "45.151.102.219"],
             &[],
-            "https://dns.comss.one/dns-query",
-            "Comss One DNS: обход блокировок и геоблока (сторонний сервис)",
+            "https://dns.dns-ai.ru/dns-query",
+            "DNS AI: обход блокировок и геоблока (сторонний сервис)",
         ),
         preset(
             "cloudflare",

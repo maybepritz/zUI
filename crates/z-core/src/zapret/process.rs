@@ -74,6 +74,10 @@ impl Zapret {
         let pid = child.id();
         self.pid = Some(pid);
         self.log.add(format!("Процесс winws запущен (PID: {pid})"));
+        if let Err(error) = crate::children::adopt(&child) {
+            self.log
+                .add(format!("winws не привязан к zUI (PID {pid}): {error}"));
+        }
 
         // Читатели вывода из stdout и stderr
         if let Some(stdout) = child.stdout.take() {

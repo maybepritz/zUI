@@ -21,6 +21,41 @@ impl RootView {
         self.refresh_and_notify(cx);
     }
 
+    /// «Вместе с Windows» для человека значит «обход включится сам», поэтому вместе
+    /// с автозапуском включается и запуск Zapret. Выключение его не трогает: zUI,
+    /// открытый вручную, ведёт себя как раньше.
+    pub(crate) fn on_start_with_windows(&mut self, checked: bool, cx: &mut Context<Self>) {
+        self.state.set_autostart(checked);
+        if checked && self.state.settings.autostart {
+            self.state.set_preference(Preference::StartupZapret, true);
+        }
+        self.refresh_and_notify(cx);
+    }
+
+    pub(crate) fn on_close_behavior(
+        &mut self,
+        behavior: crate::state::CloseBehavior,
+        cx: &mut Context<Self>,
+    ) {
+        self.state.set_close_behavior(behavior);
+        self.refresh_and_notify(cx);
+    }
+
+    pub(crate) fn on_notifications(&mut self, enabled: bool, cx: &mut Context<Self>) {
+        self.state.set_notifications(enabled);
+        self.refresh_and_notify(cx);
+    }
+
+    pub(crate) fn on_chart_range(&mut self, hour: bool, cx: &mut Context<Self>) {
+        self.chart_hour = hour;
+        cx.notify();
+    }
+
+    pub(crate) fn on_toggle_advanced_settings(&mut self, cx: &mut Context<Self>) {
+        self.settings_advanced = !self.settings_advanced;
+        cx.notify();
+    }
+
     pub(crate) fn on_reopen_onboarding(&mut self, cx: &mut Context<Self>) {
         self.state.reopen_onboarding();
         self.onboarding_step = Default::default();
@@ -40,6 +75,7 @@ impl RootView {
             ThemePreference::System => crate::platform::system_dark(),
         };
         self.state.set_theme(preference, dark);
+        crate::platform::set_title_bar_dark(self.hwnd, dark);
         Theme::change(
             if dark {
                 ThemeMode::Dark
@@ -49,6 +85,7 @@ impl RootView {
             Some(window),
             cx,
         );
+        crate::components::palette::apply(cx);
         self.state.save_settings();
         self.refresh_and_notify(cx);
     }

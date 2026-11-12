@@ -20,4 +20,10 @@ pub(crate) struct RootView {
     onboarding_step: OnboardingStep,
     show_whats_new: bool,
     close_prompt_open: bool,
+    /// Окно Windows: заголовок перекрашивается вместе с темой.
+    hwnd: Option<isize>,
+    /// Раскрыт ли блок «Дополнительно» в настройках; между запусками не сохраняется.
+    settings_advanced: bool,
+    /// График на главной показывает последний час (иначе сутки); между запусками не сохраняется.
+    chart_hour: bool,
 }

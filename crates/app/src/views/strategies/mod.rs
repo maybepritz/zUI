@@ -1,10 +1,10 @@
 //! Разметка стратегий и результатов тестирования.
 use crate::components::page::page;
+use crate::components::page_title::page_title;
 use crate::i18n::tr;
 use crate::root::strategy_filters::StrategyFilters;
 use crate::root::view_data::ViewData;
 use crate::{root::RootView, state::AppState};
-use gpui_kit::component::label::Label;
 use gpui_kit::component::*;
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
@@ -90,18 +90,13 @@ pub fn render(
     page(
         div()
             .v_flex()
-            .gap_4()
-            .child(
-                div()
-                    .v_flex()
-                    .gap_1()
-                    .child(
-                        Label::new(tr("ui-dpi-bypass-strategies"))
-                            .text_lg()
-                            .font_weight(FontWeight::MEDIUM),
-                    )
-                    .child(Label::new(intro()).text_xs().text_color(muted)),
-            )
+            .gap_5()
+            .child(page_title(
+                tr("ui-strategies"),
+                (total > 0).then(|| total.to_string().into()),
+                Some(intro().into()),
+                cx,
+            ))
             .child(test_section(state, data, muted, cx))
             .child(filters::render(filters, shown, total, cx))
             .when(shown == 0, |content| {

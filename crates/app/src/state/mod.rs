@@ -22,7 +22,7 @@ use crate::controllers::{
 
 pub(crate) use background::Background;
 pub(crate) use preparation::PreparationStage;
-pub(crate) use settings::Preference;
+pub(crate) use settings::{CloseBehavior, Preference};
 
 pub(crate) struct AppState {
     pub(crate) log: Log,

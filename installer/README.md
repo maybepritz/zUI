@@ -26,14 +26,14 @@ Cargo автоматически не запускается. Ищет снач�
 & 'C:\Program Files\Inno Setup 7\ISCC.exe' .\installer\zui.iss
 ```
 
-Выход: `dist/zUI-<версия>-<имя>-Setup.exe`, например `zUI-0.2.0-Vega-Setup.exe`.
+Выход: `dist/zUI-<версия>-<имя>-Setup.exe`, например `zUI-0.3.0-Altair-Setup.exe`.
 Номер сценарий читает из `Cargo.toml`, имя — из `crates/app/release-name.txt`.
 Заменить их можно через `/DMyAppVersion=...` и `/DMyAppCodename=...` перед путём
 сценария, бинарник — через `/DMyAppExe=...`. Установщик не пересобирает EXE:
 сначала соберите release-версию.
 
 Если предыдущий Setup EXE открыт, его нельзя перезаписать. Закройте это окно
-или задайте другое имя, например `/FzUI-0.2.0-Vega-Setup-Test`.
+или задайте другое имя, например `/FzUI-0.3.0-Altair-Setup-Test`.
 Не копируйте отдельные фрагменты сценария: открывайте полный `zui.iss`.
 При сборке из другого расположения можно явно указать `/DRepoRoot=E:\zui`.
 

@@ -35,6 +35,12 @@ impl StartupView {
             ThemeMode::Light
         };
         Theme::change(mode, None, cx);
+        crate::components::palette::apply(cx);
+        crate::platform::disable_maximize(crate::platform::window_handle(window));
+        crate::platform::set_title_bar_dark(
+            crate::platform::window_handle(window),
+            crate::platform::system_dark(),
+        );
         // Пока нет основного окна и трея, закрытие означает выход.
         window.on_window_should_close(cx, |_, cx| {
             cx.defer(|cx| cx.quit());

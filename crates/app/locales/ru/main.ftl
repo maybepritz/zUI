@@ -107,7 +107,7 @@ ui-winws-restarts = Автоперезапуски
 ui-zapret-is-not-installed = Zapret не установлен
 
 # Used in: components/cards/install_card.rs
-ui-the-latest-zapret-discord-youtube-release-will = Будет скачан последний релиз zapret-discord-youtube в папку runtime рядом с программой.
+ui-the-latest-zapret-discord-youtube-release-will = zUI скачает последний выпуск zapret-discord-youtube с GitHub
 
 # Used in: components/cards/install_card.rs
 ui-installing = Установка…
@@ -152,19 +152,19 @@ ui-link-copied-open-it-in-telegram-saved = Ссылка скопирована. 
 ui-running-without-administrator-privileges = Запущено без прав администратора
 
 # Used in: views/dns/mod.rs
-ui-dns-and-doh-changes-require-administrator-privileges = Для применения DNS и шифрования DoH требуются права Администратора. Перезапустите zapret-ui от имени Администратора.
+ui-dns-and-doh-changes-require-administrator-privileges = Без прав администратора Windows не даст изменить DNS и включить DoH.
 
 # Used in: views/dns/mod.rs
 ui-dns-servers = DNS-серверы
 
 # Used in: views/dns/mod.rs
-ui-public-dns-helps-with-dns-based-blocking = Публичные DNS помогают, только если блокировка сделана подменой DNS-ответов. Прокси-DNS (XBox DNS, Comss One) перенаправляют трафик ряда сервисов через сторонние серверы: они видят, какие домены вы запрашиваете.
+ui-public-dns-helps-with-dns-based-blocking = Помогает, когда сайт блокируют подменой адреса. Прокси-DNS (DNS AI) открывает сервисы с геоблоком, но ведёт их трафик через сторонние серверы: они видят, какие домены вы запрашиваете.
 
 # Used in: views/dns/mod.rs
 ui-restore-previous-settings = Вернуть как было
 
 # Used in: views/dns/mod.rs
-ui-reset-to-dhcp-automatic = Сбросить на DHCP (Авто)
+ui-reset-to-dhcp-automatic = Сбросить DNS на автоматический
 
 # Used in: views/dns/preset_card.rs
 ui-applied-doh-registered = Применён · DoH зарегистрирован
@@ -206,16 +206,16 @@ ui-interface-language = Язык интерфейса
 ui-automation = Автоматизация
 
 # Used in: views/settings/automation.rs
-ui-restart-winws-after-a-crash = Перезапускать winws после сбоя
+ui-restart-winws-after-a-crash = Включать обход заново, если он остановился
 
 # Used in: views/settings/automation.rs
-ui-retest-strategies-when-access-is-lost = Подбирать стратегию при потере доступа
+ui-retest-strategies-when-access-is-lost = Подбирать другую стратегию, когда сервис перестал открываться
 
 # Used in: views/settings/automation.rs
-ui-retest-once-a-day = Перетест раз в сутки
+ui-retest-once-a-day = Перепроверять стратегии раз в сутки
 
 # Used in: views/settings/automation.rs
-ui-testing-temporarily-stops-zapret-the-app-and = Тест временно останавливает Zapret. Нужны работающее приложение, активный Zapret и права администратора. Проверяются выбранные нейросервисы. Без автопереключения ежедневный тест только предлагает лучшую стратегию.
+ui-testing-temporarily-stops-zapret-the-app-and = Перепроверка на время останавливает обход. Она идёт, только пока zUI запущен с правами администратора и обход работает
 
 # Used in: views/settings/automation.rs
 ui-notifications = Уведомления
@@ -245,7 +245,9 @@ ui-start-telegram-proxy-with-zui = Запускать Telegram-прокси вм
 ui-start-at-windows-sign-in = Автозапуск при входе в Windows
 
 # Used in: views/settings/behavior.rs, views/overlays/onboarding/startup.rs
-ui-autostart-does-not-elevate-privileges-zapret-requires = Автозапуск не повышает права. Для Zapret понадобится запуск от администратора.
+ui-autostart-does-not-elevate-privileges-zapret-requires = Если zUI запущен от администратора, автозапуск тоже будет с правами и без запроса UAC. Иначе zUI стартует без прав, и обход придётся включать вручную.
+autostart-disable-needs-admin = Автозапуск настроен с правами администратора. Чтобы его отключить, перезапустите zUI от администратора.
+autostart-task-failed = Планировщик Windows не принял задачу автозапуска (код { $code }).
 
 # Used in: views/settings/behavior.rs
 ui-application = Приложение
@@ -296,7 +298,7 @@ strategy-running = Работает
 ui-selected = Выбрана
 
 # Used in: views/strategies/mod.rs
-ui-choose-a-strategy-for-your-isp-changing = Выберите наиболее подходящую стратегию под вашего провайдера. При смене активной стратегии работающий Zapret перезапустится автоматически.
+ui-choose-a-strategy-for-your-isp-changing = Способ обхода для вашего провайдера. При смене стратегии работающий обход перезапустится сам
 
 # Used in: views/strategies/mod.rs
 ui-tests-strategies-against-discord-and-youtube-zapret = Перебор стратегий с проверкой Discord и YouTube. Интернет на время теста нестабилен, Zapret будет остановлен.
@@ -422,31 +424,33 @@ ui-enable = Включить
 ui-disable = Выключить
 
 # Used in: views/overlays/whats_new.rs
-whats-new-summary = zUI сам подбирает стратегию и включает обход, главная показывает, открываются ли YouTube и Discord, а ошибки больше не теряются.
-whats-new-footer = Эти заметки можно снова открыть в Настройках → О программе
-whats-new-notes = ## Подбор в одну кнопку
-    - «Подобрать» перебирает стратегии, останавливается на первой рабочей и сам включает обход.
-    - Проверяется и настоящий видеоузел YouTube у провайдера, а не только сайт.
-    - Адрес считается открытым, только если с него пришло начало ответа: обрыв на 16–20 КБ больше не проходит за успех.
-    - После мастера первого запуска подбор начинается сам.
+whats-new-summary = Обход больше не теряется после сбоя и перезагрузки, главная показывает задержку по каждой проверке, а интерфейс собран заново
+whats-new-footer = Эти заметки можно снова открыть: Настройки → Помощь
+whats-new-featured = главное
+whats-new-tagline = после Vega
+whats-new-notes = ## Главная на настоящих данных
+    - График задержки за последний час: новая точка после каждой проверки. Суточный вид остался рядом.
+    - У сервисов свои цвета: YouTube красный, Discord сине-фиолетовый.
+    - Под заголовком видно стратегию и время последней проверки.
 
-    ## Главная о главном
-    - Один переключатель обхода и список сервисов: сразу видно, что открывается.
-    - График задержки за сутки. Время, когда zUI был закрыт, отмечено пунктиром.
-    - Если сервис перестал открываться, рядом появляется «Подобрать заново».
+    ## Обход не теряется
+    - «Запускать вместе с Windows», включённое от администратора, запускает zUI сразу с правами, без запроса.
+    - Если zUI закрылся из-за сбоя, обход и Telegram-прокси останавливаются вместе с ним.
+    - Повторный запуск открывает уже работающее окно.
+    - Обновления zUI и Zapret проверяются каждые 6 часов, пока приложение работает.
 
-    ## Понятные ошибки
-    - Если обход не включился, причина видна на главной и во всплывающем окне.
-    - Без прав администратора zUI предлагает перезапуститься с ними.
+    ## Проще настройки и Telegram
+    - В настройках пять строк, остальное в «Дополнительно».
+    - Telegram подключается в два шага: включить прокси и открыть ссылку.
+    - При удалении zUI возвращает DNS как было и убирает автозапуск.
 
-    ## Новый экран запуска
-    - Загрузка, проверка обновлений и вопрос о правах идут по очереди.
-    - Вопрос о правах можно отключить в настройках.
+    ## Новый вид
+    - Графитовая палитра, крупные заголовки, заголовок окна в цвет темы.
+    - Окно больше не разворачивается на весь экран.
+    - Журнал событий сохраняется в файл runtime/logs/zui.log.
 
-    ## Надёжнее
-    - Тест стратегий проверяет только сервисы, которые zapret может открыть.
-    - Повторная настройка DNS больше не теряет исходное состояние DoH.
-    - Повреждённые settings.json и statistics.json сохраняются рядом, а не перезаписываются.
+    ## Изменилось
+    - Пресет DNS «Comss One» заменён на «DNS AI». Уже применённый Comss продолжает работать; вернуть прежние настройки можно на вкладке DNS.
 
 # Dynamic UI messages
 
@@ -642,10 +646,10 @@ duration-minutes = { $minutes } мин
 time-ago = { $duration } назад
 
 # Used in: views/dns/preset_card.rs
-dns-preset-public-description = Публичный DNS. Не обходит DPI и геоблок
+dns-preset-public-description = Публичный DNS, не обходит DPI и геоблок
 
 # Used in: views/dns/preset_card.rs
-dns-preset-comss-description = Comss One DNS: обход блокировок и геоблока (сторонний сервис)
+dns-preset-dnsai-description = DNS AI: обход блокировок и геоблока (сторонний сервис)
 
 # Used in: views/telegram/mod.rs
 telegram-title = Telegram · TG WS Proxy
@@ -774,3 +778,35 @@ pick-progress = Проверено { $done } из { $total }. Обход вкл�
 pick-found = Нашли стратегию, с которой всё открывается, и включили обход
 pick-partial = Ни одна стратегия не открыла всё. Включили ту, что открыла больше всего
 pick-nothing-found = Не нашли стратегию, которая что-то открывает. Проверьте интернет и антивирус
+settings-main = Основное
+settings-start-with-windows = Запускать вместе с Windows
+settings-on-close = При закрытии окна
+settings-close-ask = Спрашивать
+settings-close-tray = Сворачивать в трей
+settings-close-exit = Выходить
+settings-more = Дополнительно
+settings-help = Помощь
+home-latency = Задержка
+home-range-hour = Час
+home-range-day = Сутки
+home-axis-hour-ago = час назад
+home-axis-30m = 30 мин назад
+home-chart-live-empty = Первая точка появится после проверки сервисов
+home-admin-detail = Без них Windows не даст включить обход
+home-facts-strategy = стратегия { $strategy }
+tg-title = Telegram
+tg-intro = Прокси, через который Telegram работает при блокировке. Он не зависит от обхода и включается отдельно
+tg-switch = Прокси Telegram
+tg-install-title = Прокси для Telegram не установлен
+tg-install-hint = zUI скачает TG WS Proxy от Flowseal с GitHub и проверит файл по контрольной сумме
+tg-install = Установить прокси
+tg-steps = Как подключить
+tg-step-start = Включите прокси переключателем вверху
+tg-step-connect = Откройте ссылку в Telegram и подтвердите добавление прокси
+tg-media-title = Не загружаются фото и видео
+tg-media-hint = Выключите прокси, выберите способ и включите снова. Если первый не помог — попробуйте второй
+tg-media-dc4 = Только сервер DC 4
+tg-media-clear = Без привязки серверов
+home-facts-no-strategy = стратегия не выбрана
+home-service-opens = открывается
+home-service-blocked = не открывается

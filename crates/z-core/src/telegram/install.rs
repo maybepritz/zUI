@@ -18,6 +18,8 @@ pub fn install(dir: &Path) -> Result<String> {
     }
     fs::create_dir_all(dir)?;
     let part = dir.join(format!("{}.part", asset_name()));
+    // Файл от прерванной загрузки иначе блокировал бы все следующие попытки.
+    let _ = fs::remove_file(&part);
     let tag = download::fetch_latest(&SOURCE, pick_exe, &part, &|_| {})?;
     let linked = fs::hard_link(&part, dir.join(asset_name()));
     let _ = fs::remove_file(&part);

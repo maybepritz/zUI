@@ -107,7 +107,7 @@ ui-winws-restarts = Automatic restarts
 ui-zapret-is-not-installed = Zapret is not installed
 
 # Used in: components/cards/install_card.rs
-ui-the-latest-zapret-discord-youtube-release-will = The latest zapret-discord-youtube release will be downloaded into the runtime folder.
+ui-the-latest-zapret-discord-youtube-release-will = zUI downloads the latest zapret-discord-youtube release from GitHub
 
 # Used in: components/cards/install_card.rs
 ui-installing = Installing…
@@ -152,19 +152,19 @@ ui-link-copied-open-it-in-telegram-saved = Link copied. Open it in Telegram Save
 ui-running-without-administrator-privileges = Running without administrator privileges
 
 # Used in: views/dns/mod.rs
-ui-dns-and-doh-changes-require-administrator-privileges = DNS and DoH changes require administrator privileges. Use Restart as administrator in Settings.
+ui-dns-and-doh-changes-require-administrator-privileges = Windows does not allow changing DNS or enabling DoH without administrator privileges.
 
 # Used in: views/dns/mod.rs
 ui-dns-servers = DNS servers
 
 # Used in: views/dns/mod.rs
-ui-public-dns-helps-with-dns-based-blocking = Public DNS helps with DNS-based blocking. Proxy DNS (XBox DNS, Comss One) routes selected services through third-party servers that can see the domains you request.
+ui-public-dns-helps-with-dns-based-blocking = Helps when a site is blocked by altering DNS answers. Proxy DNS (DNS AI) opens geo-blocked services, but routes them through third-party servers that can see the domains you request.
 
 # Used in: views/dns/mod.rs
 ui-restore-previous-settings = Restore previous settings
 
 # Used in: views/dns/mod.rs
-ui-reset-to-dhcp-automatic = Reset to DHCP (automatic)
+ui-reset-to-dhcp-automatic = Reset DNS to automatic
 
 # Used in: views/dns/preset_card.rs
 ui-applied-doh-registered = Applied · DoH registered
@@ -206,16 +206,16 @@ ui-interface-language = Interface language
 ui-automation = Automation
 
 # Used in: views/settings/automation.rs
-ui-restart-winws-after-a-crash = Restart winws after a crash
+ui-restart-winws-after-a-crash = Turn the bypass back on if it stops
 
 # Used in: views/settings/automation.rs
-ui-retest-strategies-when-access-is-lost = Retest strategies when access is lost
+ui-retest-strategies-when-access-is-lost = Pick another strategy when a service stops opening
 
 # Used in: views/settings/automation.rs
-ui-retest-once-a-day = Retest once a day
+ui-retest-once-a-day = Recheck strategies once a day
 
 # Used in: views/settings/automation.rs
-ui-testing-temporarily-stops-zapret-the-app-and = Testing temporarily stops Zapret. The app and Zapret must be running with administrator privileges. Tests selected AI services. With automatic switching off, daily testing only recommends a better strategy.
+ui-testing-temporarily-stops-zapret-the-app-and = A recheck stops the bypass for a moment. It runs only while zUI has administrator privileges and the bypass is on
 
 # Used in: views/settings/automation.rs
 ui-notifications = Notifications
@@ -245,7 +245,9 @@ ui-start-telegram-proxy-with-zui = Start Telegram proxy with zUI
 ui-start-at-windows-sign-in = Start at Windows sign-in
 
 # Used in: views/settings/behavior.rs, views/overlays/onboarding/startup.rs
-ui-autostart-does-not-elevate-privileges-zapret-requires = Autostart does not elevate privileges. Zapret requires an administrator launch.
+ui-autostart-does-not-elevate-privileges-zapret-requires = When zUI runs as administrator, autostart is elevated too, without a UAC prompt. Otherwise zUI starts without privileges and the bypass has to be turned on by hand.
+autostart-disable-needs-admin = Autostart was set up with administrator privileges. Restart zUI as administrator to turn it off.
+autostart-task-failed = Windows Task Scheduler rejected the autostart task (code { $code }).
 
 # Used in: views/settings/behavior.rs
 ui-application = Application
@@ -296,7 +298,7 @@ strategy-running = Running
 ui-selected = Selected
 
 # Used in: views/strategies/mod.rs
-ui-choose-a-strategy-for-your-isp-changing = Choose a strategy for your ISP. Changing the active strategy automatically restarts Zapret.
+ui-choose-a-strategy-for-your-isp-changing = The bypass method for your ISP. Changing the strategy restarts a running bypass by itself
 
 # Used in: views/strategies/mod.rs
 ui-tests-strategies-against-discord-and-youtube-zapret = Tests strategies against Discord and YouTube. Zapret temporarily stops and connectivity may be unstable.
@@ -422,31 +424,33 @@ ui-enable = Enable
 ui-disable = Disable
 
 # Used in: views/overlays/whats_new.rs
-whats-new-summary = zUI picks a strategy and turns the bypass on by itself, the home screen shows whether YouTube and Discord open, and errors no longer go unnoticed.
-whats-new-footer = You can open these notes again in Settings → About
-whats-new-notes = ## One-button pick
-    - "Pick" goes through the strategies, stops at the first one that works and turns the bypass on.
-    - It also checks your provider's real YouTube video node, not just the website.
-    - A site counts as open only if the start of the response arrives: a cut at 16–20 KB no longer passes as success.
-    - After the first-run wizard, picking starts by itself.
+whats-new-summary = The bypass no longer gets lost after a crash or a reboot, the home screen shows latency for every check, and the interface has been rebuilt
+whats-new-footer = You can open these notes again: Settings → Help
+whats-new-featured = highlight
+whats-new-tagline = after Vega
+whats-new-notes = ## A home screen built on real data
+    - Latency for the last hour: a new point after every check. The daily view is still next to it.
+    - Services have their own colours: YouTube is red, Discord is blurple.
+    - The strategy and the time of the last check are shown under the title.
 
-    ## What matters, on the home screen
-    - One bypass switch and a list of services: you see at once what opens.
-    - Latency over the day. Time when zUI was closed is shown dashed.
-    - When a service stops opening, "Pick again" appears next to it.
+    ## The bypass does not get lost
+    - "Start with Windows", when turned on as administrator, starts zUI elevated right away, without a prompt.
+    - If zUI closes because of a crash, the bypass and the Telegram proxy stop with it.
+    - Launching zUI again opens the window that is already running.
+    - Updates for zUI and Zapret are checked every 6 hours while the app is running.
 
-    ## Clear errors
-    - If the bypass doesn't start, the reason shows on the home screen and in a popup.
-    - Without administrator rights, zUI offers to restart with them.
+    ## Simpler settings and Telegram
+    - Settings are five rows, the rest is under "More settings".
+    - Telegram connects in two steps: turn the proxy on and open the link.
+    - When zUI is uninstalled, it restores DNS and removes autostart.
 
-    ## A new startup screen
-    - Loading, the update check and the rights question come one after another.
-    - The rights question can be turned off in Settings.
+    ## A new look
+    - A graphite palette, large titles, a title bar that matches the theme.
+    - The window can no longer be maximized.
+    - The event log is saved to runtime/logs/zui.log.
 
-    ## More reliable
-    - Strategy tests check only services zapret can unblock.
-    - Applying DNS again no longer loses the original DoH state.
-    - Damaged settings.json and statistics.json are kept next to the new ones instead of being overwritten.
+    ## Changed
+    - The "Comss One" DNS preset is replaced with "DNS AI". Comss that is already applied keeps working; you can restore the previous settings on the DNS tab.
 
 # Dynamic UI messages
 
@@ -640,10 +644,10 @@ duration-minutes = { $minutes } min
 time-ago = { $duration } ago
 
 # Used in: views/dns/preset_card.rs
-dns-preset-public-description = Public DNS. Does not bypass DPI or geographic restrictions.
+dns-preset-public-description = Public DNS, does not bypass DPI or geographic restrictions
 
 # Used in: views/dns/preset_card.rs
-dns-preset-comss-description = Comss One DNS: bypassing blocks and geographic restrictions (third-party service)
+dns-preset-dnsai-description = DNS AI: bypassing blocks and geographic restrictions (third-party service)
 
 # Used in: views/telegram/mod.rs
 telegram-title = Telegram · TG WS Proxy
@@ -772,3 +776,35 @@ pick-progress = Checked { $done } of { $total }. The bypass will turn on by itse
 pick-found = Found a strategy that opens everything and turned the bypass on
 pick-partial = No strategy opened everything. Turned on the one that opened the most
 pick-nothing-found = No strategy opened anything. Check your internet connection and antivirus
+settings-main = General
+settings-start-with-windows = Start with Windows
+settings-on-close = When the window is closed
+settings-close-ask = Ask
+settings-close-tray = Hide to tray
+settings-close-exit = Exit
+settings-more = More settings
+settings-help = Help
+home-latency = Latency
+home-range-hour = Hour
+home-range-day = Day
+home-axis-hour-ago = an hour ago
+home-axis-30m = 30 min ago
+home-chart-live-empty = The first point appears after the services are checked
+home-admin-detail = Windows will not turn the bypass on without them
+home-facts-strategy = strategy { $strategy }
+tg-title = Telegram
+tg-intro = A proxy that keeps Telegram working when it is blocked. It does not depend on the bypass and is turned on separately
+tg-switch = Telegram proxy
+tg-install-title = The Telegram proxy is not installed
+tg-install-hint = zUI downloads TG WS Proxy by Flowseal from GitHub and verifies the file by its checksum
+tg-install = Install the proxy
+tg-steps = How to connect
+tg-step-start = Turn the proxy on with the switch at the top
+tg-step-connect = Open the link in Telegram and confirm adding the proxy
+tg-media-title = Photos and videos do not load
+tg-media-hint = Turn the proxy off, pick a method and turn it on again. If the first does not help, try the second
+tg-media-dc4 = DC 4 server only
+tg-media-clear = No server pinning
+home-facts-no-strategy = no strategy selected
+home-service-opens = opens
+home-service-blocked = does not open

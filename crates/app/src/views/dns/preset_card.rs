@@ -42,7 +42,7 @@ pub(super) fn render(
                     .child(
                         div()
                             .text_xs()
-                            .font_family("Consolas")
+                            .font_family(crate::components::tone::MONO)
                             .text_color(muted)
                             .child(addrs),
                     )
@@ -64,8 +64,8 @@ pub(super) fn render(
                     }),
             )
             .child(
-                Label::new(tr(if preset.key == "comss" {
-                    "dns-preset-comss-description"
+                Label::new(tr(if preset.key == "dnsai" {
+                    "dns-preset-dnsai-description"
                 } else {
                     "dns-preset-public-description"
                 }))

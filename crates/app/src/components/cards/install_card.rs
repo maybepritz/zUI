@@ -1,59 +1,60 @@
-//! Карточка «Zapret не установлен» с кнопкой установки.
+//! Первый шаг на главной, пока zapret не установлен: одно действие на весь экран.
+use super::card::card;
 use crate::i18n::tr;
 use crate::root::RootView;
-use gpui_kit::component::{
-    button::*,
-    group_box::{GroupBox, GroupBoxVariants},
-    label::Label,
-    *,
-};
+use gpui_kit::component::{button::*, *};
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 
-/// Показывается на главной, пока zapret не установлен.
-pub fn install_card(installing: bool, cx: &mut Context<RootView>) -> AnyElement {
+/// `progress` — последняя строка хода установки, пока она идёт.
+pub fn install_card(
+    installing: bool,
+    progress: Option<String>,
+    cx: &mut Context<RootView>,
+) -> AnyElement {
     let muted = cx.theme().muted_foreground;
-    GroupBox::new()
-        .outline()
-        .gap_3()
+    card(cx)
+        .items_center()
+        .gap_5()
+        .px_6()
+        .py_10()
+        .child(img("icon.svg").size_12().rounded_lg())
         .child(
             div()
-                .h_flex()
-                .w_full()
-                .gap_3()
-                .justify_between()
+                .v_flex()
                 .items_center()
+                .gap_2()
                 .child(
                     div()
-                        .v_flex()
-                        .flex_1()
-                        .min_w_0()
-                        .gap_1()
-                        .child(
-                            Label::new(tr("ui-zapret-is-not-installed"))
-                                .text_sm()
-                                .font_weight(FontWeight::MEDIUM),
-                        )
-                        .child(
-                            Label::new(tr("ui-the-latest-zapret-discord-youtube-release-will"))
-                                .text_xs()
-                                .text_color(muted),
-                        ),
+                        .text_lg()
+                        .font_weight(FontWeight::MEDIUM)
+                        .child(tr("ui-zapret-is-not-installed")),
                 )
                 .child(
-                    div().flex_shrink_0().child(
-                        Button::new("install-zapret")
-                            .primary()
-                            .label(if installing {
-                                tr("ui-installing")
-                            } else {
-                                tr("ui-install-zapret")
-                            })
-                            .disabled(installing)
-                            .on_click(cx.listener(|this, _, _, cx| {
-                                this.on_install_zapret(cx);
-                            })),
-                    ),
+                    div()
+                        .max_w(px(420.))
+                        .text_sm()
+                        .text_center()
+                        .text_color(muted)
+                        .child(tr("ui-the-latest-zapret-discord-youtube-release-will")),
                 ),
         )
+        .child(
+            Button::new("install-zapret")
+                .primary()
+                .label(if installing {
+                    tr("ui-installing")
+                } else {
+                    tr("ui-install-zapret")
+                })
+                .loading(installing)
+                .disabled(installing)
+                .on_click(cx.listener(|this, _, _, cx| {
+                    this.on_install_zapret(cx);
+                })),
+        )
+        .when_some(progress.filter(|_| installing), |card, line| {
+            card.child(div().text_xs().text_color(muted).child(line))
+        })
         .into_any_element()
 }
