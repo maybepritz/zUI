@@ -1,11 +1,12 @@
-# Checks every push and pull request to main: build, lints, tests and translations.
+# Checks every push and pull request to main and next: build, lints, tests and translations.
+# Work happens on next; a pull request from next to main ships a release.
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, next]
   pull_request:
-    branches: [main]
+    branches: [main, next]
 
 jobs:
   check:
