@@ -66,6 +66,30 @@ pub(crate) async fn probe(client: &reqwest::Client, url: &str) -> (Availability,
     (availability, ms)
 }
 
+/// Время установки TCP-соединения с сервером адреса — почти чистый сетевой пинг.
+/// В отличие от [`probe`], сюда не входят TLS, обход и работа веб-сервера, поэтому
+/// цифра сравнима с пингом в звонке или в браузере. `None`, если не удалось соединиться.
+pub(crate) async fn connect_ms(url: &str, timeout: Duration) -> Option<u64> {
+    let url = reqwest::Url::parse(url).ok()?;
+    let host = url.host_str()?;
+    let port = url.port_or_known_default()?;
+    // Адрес узнаём заранее: время DNS к пингу не относится.
+    let address = tokio::net::lookup_host((host, port)).await.ok()?.next()?;
+    let started = Instant::now();
+    tokio::time::timeout(timeout, tokio::net::TcpStream::connect(address))
+        .await
+        .ok()?
+        .ok()?;
+    let ms = started.elapsed().as_millis() as u64;
+    // VPN-туннель (sing-box, Clash, WireGuard) принимает соединение прямо на компьютере:
+    // выходит 0–1 мс, а до сервера на самом деле далеко. Такой замер ничего не говорит.
+    (ms >= LOCAL_CONNECT_MS).then_some(ms)
+}
+
+/// Быстрее этого соединение с удалённым сервером не устанавливается: значит,
+/// его принял кто-то на этом компьютере.
+const LOCAL_CONNECT_MS: u64 = 2;
+
 /// Ближайший к пользователю видеоузел YouTube. Redirector называет кластер
 /// провайдера («31.171.198.212 => tktelecom-kuf1 (…)»), а узел этого кластера
 /// отвечает по имени `r1.<кластер>.googlevideo.com`.
@@ -86,6 +110,26 @@ fn cluster_name(report: &str) -> Option<&str> {
 #[cfg(test)]
 mod tests {
     use super::cluster_name;
+
+    /// Ходит в сеть, поэтому запускается вручную: `cargo test -- --ignored`.
+    #[test]
+    #[ignore]
+    fn connect_time_is_measured() {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let ms = runtime.block_on(super::connect_ms(
+            "https://discord.com",
+            std::time::Duration::from_secs(4),
+        ));
+        // `None` тоже возможен: через VPN-туннель соединение принимается локально.
+        println!("discord.com connect: {ms:?} ms");
+        assert_eq!(
+            runtime.block_on(super::connect_ms(
+                "not a url",
+                std::time::Duration::from_secs(1)
+            )),
+            None
+        );
+    }
 
     #[test]
     fn reads_cluster_from_report_mapping() {
