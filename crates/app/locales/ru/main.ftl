@@ -810,3 +810,18 @@ tg-media-clear = Без привязки серверов
 home-facts-no-strategy = стратегия не выбрана
 home-service-opens = открывается
 home-service-blocked = не открывается
+home-vpn-title = Включён VPN { $name }
+home-vpn-title-unnamed = Включён VPN
+home-vpn-detail = { $services } { $count ->
+        [one] идёт
+       *[other] идут
+    } через него, а не через обход: проверки и задержка показывают VPN
+home-vpn-proxy-title = Включён системный прокси { $server }
+home-vpn-proxy-detail = Браузер ходит через него, а не через обход. Проверки zUI идут напрямую
+home-vpn-dismiss = Понятно
+home-service-via-vpn = через VPN
+home-service-via-vpn-down = не отвечает через VPN
+home-telegram-off = прокси выключен
+home-telegram-client = прокси · клиент подключён
+home-telegram-no-client = клиент не подключён к прокси
+list-and = и

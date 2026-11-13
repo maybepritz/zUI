@@ -33,28 +33,47 @@ struct Row {
     down_seconds: u64,
 }
 
+impl Row {
+    fn via_vpn(&self) -> bool {
+        self.last.as_ref().is_some_and(|c| c.via_vpn)
+    }
+}
+
+/// Плитка Telegram: появляется, только когда прокси установлен.
+struct TelegramTile {
+    running: bool,
+    last: Option<Check>,
+    /// Подключён ли клиент Telegram к прокси, по последней проверке.
+    client: Option<bool>,
+}
+
 /// `chart_hour` — график показывает последний час по отдельным проверкам, иначе сутки.
+/// `vpn_dismissed` — текст плашки о VPN, которую закрыли.
 pub fn render(
     state: &AppState,
     data: &ViewData,
     chart_hour: bool,
+    vpn_dismissed: Option<&str>,
     cx: &mut Context<RootView>,
 ) -> AnyElement {
     let running = data.zapret_running;
     let result = state.background.services.result.as_ref();
     let health = &state.background.health;
+    let last = |id: &str| result.and_then(|r| r.checks.iter().find(|c| c.id == id).cloned());
     let rows: Vec<Row> = state
         .settings
         .automation
         .services
         .iter()
         .map(|id| {
-            let last = result.and_then(|r| r.checks.iter().find(|c| &c.id == id).cloned());
+            let last = last(id);
+            // Сбой из истории показываем только после свежей проверки: сразу после
+            // смены стратегии он относится к прошлой, а новая ещё не проверена.
+            // Сервис через VPN обход не чинит, его сбой — не сбой обхода.
+            let fresh = last.as_ref().is_some_and(|c| !c.via_vpn);
             Row {
                 id: id.clone(),
-                // Сбой из истории показываем только после свежей проверки: сразу после
-                // смены стратегии он относится к прошлой, а новая ещё не проверена.
-                down: running && last.is_some() && health.down_since.contains_key(id),
+                down: running && fresh && health.down_since.contains_key(id),
                 last,
                 down_seconds: health.day(id).iter().filter(|b| b.down()).count() as u64
                     * BUCKET_SECONDS,
@@ -62,6 +81,25 @@ pub fn render(
         })
         .collect();
     let broken = rows.iter().find(|r| r.down);
+    let telegram = state.telegram.proxy.installed().then(|| {
+        let running = state.telegram.proxy.running();
+        TelegramTile {
+            running,
+            last: running.then(|| last(services::TELEGRAM)).flatten(),
+            client: result.and_then(|r| r.telegram_client),
+        }
+    });
+    let chart_ids: Vec<String> = rows
+        .iter()
+        .map(|r| r.id.clone())
+        .chain(telegram.is_some().then(|| services::TELEGRAM.to_owned()))
+        .collect();
+    let telegram_running = telegram.as_ref().is_some_and(|t| t.running);
+    let banner_ids: Vec<String> = chart_ids
+        .iter()
+        .filter(|id| id.as_str() != services::TELEGRAM || telegram_running)
+        .cloned()
+        .collect();
 
     // Без Zapret переключатель, график и список сервисов ничего не показывают:
     // оставляем на экране один шаг — установку.
@@ -92,12 +130,17 @@ pub fn render(
             .when(!data.administrator, |t| {
                 t.child(admin_notice(tr("home-admin-detail"), cx))
             })
-            .when(!rows.is_empty(), |t| {
-                t.child(service_tiles(&rows, running, cx))
+            .when_some(
+                result.and_then(|r| vpn_banner(r, &banner_ids, vpn_dismissed, cx)),
+                |t, b| t.child(b),
+            )
+            .when(!rows.is_empty() || telegram.is_some(), |t| {
+                t.child(service_tiles(&rows, telegram.as_ref(), running, cx))
             })
             .child(chart(
                 state,
                 data,
+                &chart_ids,
                 running,
                 broken.is_none(),
                 chart_hour,
@@ -256,14 +299,190 @@ fn header(
         .child(div().pt_2().child(actions))
 }
 
+/// «YouTube», «YouTube и Discord», «YouTube, Discord и Telegram».
+fn join_names(names: &[&str]) -> String {
+    match names {
+        [] => String::new(),
+        [one] => (*one).to_owned(),
+        [rest @ .., last] => format!("{} {} {last}", rest.join(", "), tr("list-and")),
+    }
+}
+
+/// Плашка о VPN: что включено и какие сервисы идут мимо обхода. Жёлтая только точка:
+/// это не ошибка, а объяснение, почему цифры на главной говорят о VPN.
+/// `ids` — сервисы в порядке плиток, Telegram последним, если его плитка видна
+/// и прокси работает: проверка остановленного прокси уже ничего не говорит.
+fn vpn_banner(
+    result: &services::CheckBatch,
+    ids: &[String],
+    dismissed: Option<&str>,
+    cx: &mut Context<RootView>,
+) -> Option<AnyElement> {
+    let through: Vec<&str> = ids
+        .iter()
+        .filter(|id| result.checks.iter().any(|c| &c.id == *id && c.via_vpn))
+        .map(|id| services::name(id))
+        .collect();
+    let (title, detail) = if !through.is_empty() {
+        let title = match result.vpn.name() {
+            Some(name) => tr_args("home-vpn-title", &[("name", name.to_owned().into())]),
+            None => tr("home-vpn-title-unnamed"),
+        };
+        let detail = tr_args(
+            "home-vpn-detail",
+            &[
+                ("services", join_names(&through).into()),
+                ("count", through.len().into()),
+            ],
+        );
+        (title, detail)
+    } else if let Some(server) = &result.vpn.proxy {
+        (
+            tr_args("home-vpn-proxy-title", &[("server", server.clone().into())]),
+            tr("home-vpn-proxy-detail"),
+        )
+    } else {
+        return None;
+    };
+    let key = format!("{title}\n{detail}");
+    if dismissed == Some(key.as_str()) {
+        return None;
+    }
+    let muted = cx.theme().muted_foreground;
+    Some(
+        card(cx)
+            .h_flex()
+            .items_center()
+            .gap_4()
+            .child(
+                div()
+                    .v_flex()
+                    .flex_1()
+                    .min_w_0()
+                    .gap_1()
+                    .child(
+                        div()
+                            .h_flex()
+                            .items_center()
+                            .gap_2()
+                            .child(status_dot(tone::warning(cx)))
+                            .child(div().text_sm().font_weight(FontWeight::MEDIUM).child(title)),
+                    )
+                    .child(div().text_xs().text_color(muted).child(detail)),
+            )
+            .child(
+                div().flex_shrink_0().child(
+                    Button::new("home-vpn-dismiss")
+                        .ghost()
+                        .small()
+                        .label(tr("home-vpn-dismiss"))
+                        .on_click(
+                            cx.listener(move |this, _, _, cx| this.on_dismiss_vpn(key.clone(), cx)),
+                        ),
+                ),
+            )
+            .into_any_element(),
+    )
+}
+
+/// Название с цветной чертой: черта — цвет линии этого сервиса на графике.
+fn tile_name(id: &str, index: usize, cx: &mut Context<RootView>) -> Div {
+    div()
+        .h_flex()
+        .items_center()
+        .gap_2()
+        .text_sm()
+        .text_color(cx.theme().muted_foreground)
+        .child(
+            div()
+                .w_3()
+                .h(px(3.))
+                .rounded_full()
+                .bg(tone::service_color(id, index, cx)),
+        )
+        .child(services::name(id).to_string())
+}
+
+/// Плитка: название, крупная задержка (или прочерк) и строка состояния.
+fn tile(
+    name: Div,
+    latency: Option<String>,
+    dot: Hsla,
+    detail: String,
+    cx: &mut Context<RootView>,
+) -> impl IntoElement {
+    // Три плитки (два сервиса и Telegram) встают в ряд и в окне минимальной ширины.
+    card(cx)
+        .flex_1()
+        .min_w(px(160.))
+        .gap_3()
+        .child(name)
+        .child(
+            div()
+                .text_size(px(30.))
+                .line_height(relative(1.))
+                .font_weight(FontWeight::MEDIUM)
+                .when(latency.is_none(), |d| d.text_color(palette::muted()))
+                .child(latency.unwrap_or_else(|| "—".into())),
+        )
+        .child(
+            div()
+                .h_flex()
+                .items_center()
+                .gap_2()
+                .text_xs()
+                .font_family(tone::MONO)
+                .text_color(palette::muted())
+                .child(status_dot(dot))
+                .child(detail),
+        )
+}
+
+fn latency_text(check: &Check) -> Option<String> {
+    check
+        .availability
+        .connected()
+        .then(|| tr_args("home-latency-ms", &[("ms", check.latency_ms.into())]))
+}
+
+/// Telegram: задержка до серверов, через которые ходит прокси, и подключён ли клиент.
+fn telegram_tile(telegram: &TelegramTile, cx: &mut Context<RootView>) -> impl IntoElement {
+    let connected = telegram.last.as_ref().map(|c| c.availability.connected());
+    let via_vpn = telegram.last.as_ref().is_some_and(|c| c.via_vpn);
+    let (dot, detail) = match (telegram.running, connected) {
+        (false, _) => (palette::muted(), tr("home-telegram-off")),
+        (true, None) => (palette::muted(), tr("home-checking")),
+        (true, Some(false)) if via_vpn => (tone::warning(cx), tr("home-service-via-vpn-down")),
+        (true, Some(false)) => (tone::warning(cx), tr("home-service-not-responding")),
+        (true, Some(true)) if via_vpn => (palette::muted(), tr("home-service-via-vpn")),
+        (true, Some(true)) if telegram.client == Some(false) => {
+            (tone::warning(cx), tr("home-telegram-no-client"))
+        }
+        (true, Some(true)) => (tone::ok(cx), tr("home-telegram-client")),
+    };
+    let latency = telegram.last.as_ref().and_then(latency_text);
+    let name = tile_name(services::TELEGRAM, 0, cx);
+    tile(name, latency, dot, detail, cx)
+}
+
 /// Плитка на сервис: название, крупная задержка и состояние за сутки.
 /// Полоска у названия — цвет линии этого сервиса на графике ниже.
-fn service_tiles(rows: &[Row], running: bool, cx: &mut Context<RootView>) -> impl IntoElement {
-    let muted = cx.theme().muted_foreground;
+fn service_tiles(
+    rows: &[Row],
+    telegram: Option<&TelegramTile>,
+    running: bool,
+    cx: &mut Context<RootView>,
+) -> impl IntoElement {
     let mut tiles = div().h_flex().flex_wrap().items_stretch().gap_4();
     for (index, row) in rows.iter().enumerate() {
         let connected = row.last.as_ref().map(|c| c.availability.connected());
         let (dot, detail) = match (running, connected) {
+            // Через VPN сервис открывается независимо от обхода: говорим об этом,
+            // а не о сбоях за сутки, которые относятся к обходу.
+            (_, Some(true)) if row.via_vpn() => (palette::muted(), tr("home-service-via-vpn")),
+            (_, Some(false)) if row.via_vpn() => {
+                (tone::warning(cx), tr("home-service-via-vpn-down"))
+            }
             // Обход выключен, но свежая проверка есть: видно, нужен ли он вообще.
             (false, Some(true)) => (tone::ok(cx), tr("home-service-opens")),
             (false, Some(false)) => (tone::error(cx), tr("home-service-blocked")),
@@ -279,54 +498,16 @@ fn service_tiles(rows: &[Row], running: bool, cx: &mut Context<RootView>) -> imp
             ),
             (true, Some(_)) => (tone::ok(cx), tr("home-service-no-outages")),
         };
-        let latency = match (&row.last, !row.down) {
-            (Some(check), true) if check.availability.connected() => Some(tr_args(
-                "home-latency-ms",
-                &[("ms", check.latency_ms.into())],
-            )),
-            _ => None,
-        };
-        tiles = tiles.child(
-            card(cx)
-                .flex_1()
-                .min_w(px(200.))
-                .gap_3()
-                .child(
-                    div()
-                        .h_flex()
-                        .items_center()
-                        .gap_2()
-                        .text_sm()
-                        .text_color(muted)
-                        .child(
-                            div()
-                                .w_3()
-                                .h(px(3.))
-                                .rounded_full()
-                                .bg(tone::service_color(&row.id, index, cx)),
-                        )
-                        .child(services::name(&row.id).to_string()),
-                )
-                .child(
-                    div()
-                        .text_size(px(30.))
-                        .line_height(relative(1.))
-                        .font_weight(FontWeight::MEDIUM)
-                        .when(latency.is_none(), |d| d.text_color(palette::muted()))
-                        .child(latency.unwrap_or_else(|| "—".into())),
-                )
-                .child(
-                    div()
-                        .h_flex()
-                        .items_center()
-                        .gap_2()
-                        .text_xs()
-                        .font_family(tone::MONO)
-                        .text_color(palette::muted())
-                        .child(status_dot(dot))
-                        .child(detail),
-                ),
-        );
+        let latency = row
+            .last
+            .as_ref()
+            .filter(|_| !row.down)
+            .and_then(latency_text);
+        let name = tile_name(&row.id, index, cx);
+        tiles = tiles.child(tile(name, latency, dot, detail, cx));
+    }
+    if let Some(telegram) = telegram {
+        tiles = tiles.child(telegram_tile(telegram, cx));
     }
     tiles
 }
@@ -349,6 +530,7 @@ fn range(id: &'static str, label: String, selected: bool) -> Button {
 fn chart(
     state: &AppState,
     data: &ViewData,
+    ids: &[String],
     running: bool,
     healthy: bool,
     hour: bool,
@@ -359,7 +541,6 @@ fn chart(
     let grid = palette::hairline();
     // Ореол виден только на тёмном фоне; на светлом линии остаются просто цветными.
     let glow = cx.theme().mode.is_dark();
-    let ids = &state.settings.automation.services;
     let color = |index: usize, id: &str| tone::service_color(id, index, cx);
 
     let legend =

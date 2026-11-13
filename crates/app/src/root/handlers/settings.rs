@@ -51,6 +51,12 @@ impl RootView {
         cx.notify();
     }
 
+    /// «Понятно» на плашке о VPN: прячет её, пока текст тот же.
+    pub(crate) fn on_dismiss_vpn(&mut self, text: String, cx: &mut Context<Self>) {
+        self.vpn_dismissed = Some(text);
+        cx.notify();
+    }
+
     pub(crate) fn on_toggle_advanced_settings(&mut self, cx: &mut Context<Self>) {
         self.settings_advanced = !self.settings_advanced;
         cx.notify();

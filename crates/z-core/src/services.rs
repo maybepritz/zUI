@@ -55,6 +55,9 @@ pub const SERVICES: &[Service] = &[
 
 /// Название сервиса для интерфейса; неизвестный id возвращается как есть.
 pub fn name(id: &str) -> &str {
+    if id == TELEGRAM {
+        return "Telegram";
+    }
     SERVICES.iter().find(|s| s.id == id).map_or(id, |s| s.name)
 }
 
@@ -83,6 +86,9 @@ pub struct Check {
     pub id: String,
     pub availability: Availability,
     pub latency_ms: u64,
+    /// Сервис идёт через VPN или прокси, а не через обход: его сбой — не повод
+    /// менять стратегию, а задержка показывает VPN.
+    pub via_vpn: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -90,6 +96,24 @@ pub struct CheckBatch {
     pub checks: Vec<Check>,
     pub internet_available: bool,
     pub checked_at: u64,
+    pub vpn: crate::vpn::Vpn,
+    /// Подключён ли клиент Telegram к прокси; `None`, если прокси не проверялся.
+    pub telegram_client: Option<bool>,
+}
+
+/// Id Telegram среди проверок. Это не сервис из [`SERVICES`]: его проверяют,
+/// пока работает прокси, и zapret его не чинит.
+pub const TELEGRAM: &str = "telegram";
+
+/// Куда ходит Telegram-прокси: проверять нужно тот же сервер.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TelegramTarget {
+    /// Имя WebSocket-сервера Telegram, например `kws2.web.telegram.org`.
+    pub host: String,
+    /// Адрес из настроек прокси (`dc_ip`); `None` — прокси узнаёт его через DNS.
+    pub address: Option<std::net::SocketAddr>,
+    /// Локальный порт прокси, к которому подключается клиент Telegram.
+    pub port: u16,
 }
 
 /// Сервисы, чей id есть в `ids`, в порядке `SERVICES`.
@@ -122,7 +146,46 @@ async fn probe_twice(client: &reqwest::Client, url: &str) -> (Availability, u64)
     crate::net::probe(client, url).await
 }
 
-pub fn check(ids: &[String]) -> anyhow::Result<CheckBatch> {
+/// Итог проверки одного адреса до того, как он станет [`Check`].
+struct Probe {
+    availability: Availability,
+    latency_ms: u64,
+    via_vpn: bool,
+    /// Виртуальный адаптер на пути к серверу.
+    adapter: Option<String>,
+}
+
+/// Открывает адрес, замеряет пинг до `address` и смотрит, не идёт ли он через VPN.
+async fn probe_address(
+    client: &reqwest::Client,
+    url: &str,
+    address: Option<std::net::SocketAddr>,
+) -> Probe {
+    let (availability, response_ms) = probe_twice(client, url).await;
+    let route = address.and_then(|a| crate::vpn::route(a.ip()));
+    let adapter = route.filter(|r| !r.physical).map(|r| r.name);
+    let fake_ip = address.is_some_and(|a| crate::vpn::is_fake_ip(a.ip()));
+    // Задержка — время соединения с сервером, а не ответа сайта: так она похожа
+    // на пинг в звонке или в браузере. Если соединение принял VPN-туннель на этом
+    // компьютере, пинг неизвестен и остаётся время ответа сайта.
+    let connect = match address {
+        Some(address) if availability.connected() => crate::net::connect(address, CONNECT).await,
+        _ => crate::net::Connect::Failed,
+    };
+    let latency_ms = match connect {
+        crate::net::Connect::Remote(ms) => ms,
+        _ => response_ms,
+    };
+    Probe {
+        availability,
+        latency_ms,
+        via_vpn: adapter.is_some() || fake_ip || connect == crate::net::Connect::Local,
+        adapter,
+    }
+}
+
+/// Проверяет сервисы `ids` и, если прокси работает, путь Telegram-прокси.
+pub fn check(ids: &[String], telegram: Option<TelegramTarget>) -> anyhow::Result<CheckBatch> {
     let runtime = tokio::runtime::Runtime::new()?;
     runtime.block_on(async {
         let client = crate::net::client(CONNECT, TOTAL)?;
@@ -131,36 +194,61 @@ pub fn check(ids: &[String]) -> anyhow::Result<CheckBatch> {
         for service in selected(ids) {
             let client = client.clone();
             jobs.spawn(async move {
-                let (availability, latency_ms) = probe_twice(&client, service.url).await;
-                // Задержка — время соединения с сервером, а не ответа сайта: так она
-                // похожа на пинг, который пользователь видит в звонке или в браузере.
-                // Если соединение принял VPN-туннель, остаётся время ответа сайта.
-                let latency_ms = if availability.connected() {
-                    crate::net::connect_ms(service.url, CONNECT)
-                        .await
-                        .unwrap_or(latency_ms)
-                } else {
-                    latency_ms
-                };
-                Check {
-                    id: service.id.into(),
-                    availability,
-                    latency_ms,
-                }
+                let address = crate::net::resolve(service.url).await;
+                let probe = probe_address(&client, service.url, address).await;
+                (service.id.to_owned(), probe)
+            });
+        }
+        // Прокси ходит к Telegram через WebSocket веб-версии: тот же сервер, то же имя.
+        // Ответ на обычный запрос к /apiws значит, что DPI пропускает рукопожатие.
+        let telegram_port = telegram.as_ref().map(|t| t.port);
+        if let Some(target) = telegram {
+            let url = format!("https://{}/apiws", target.host);
+            let address = match target.address {
+                Some(address) => Some(address),
+                None => crate::net::resolve(&url).await,
+            };
+            let client = match address {
+                Some(address) => crate::net::pinned_client(CONNECT, TOTAL, &target.host, address)?,
+                None => client.clone(),
+            };
+            jobs.spawn(async move {
+                let probe = probe_address(&client, &url, address).await;
+                (TELEGRAM.to_owned(), probe)
             });
         }
         let (control, _) = crate::net::probe(&client, CONTROL_URL).await;
 
         let mut checks = Vec::new();
+        let mut adapter = None;
         while let Some(result) = jobs.join_next().await {
-            checks.push(result?);
+            let (id, probe) = result?;
+            adapter = adapter.or(probe.adapter);
+            checks.push(Check {
+                id,
+                availability: probe.availability,
+                latency_ms: probe.latency_ms,
+                via_vpn: probe.via_vpn,
+            });
         }
         checks.sort_by(|a, b| a.id.cmp(&b.id));
 
+        let any_vpn = checks.iter().any(|c| c.via_vpn);
+        let proxy = crate::vpn::system_proxy();
+        let vpn = crate::vpn::Vpn {
+            app: (any_vpn || proxy.is_some())
+                .then(crate::vpn::known_app)
+                .flatten()
+                .map(str::to_owned),
+            adapter,
+            proxy,
+        };
         Ok(CheckBatch {
             checks,
             internet_available: control.connected(),
             checked_at: crate::clock::now(),
+            vpn,
+            telegram_client: telegram_port.map(crate::net::has_local_clients),
         })
     })
 }

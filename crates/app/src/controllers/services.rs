@@ -5,7 +5,7 @@ use std::{
 };
 use z_core::{
     recovery::FailureTracker,
-    services::{self, CheckBatch},
+    services::{self, CheckBatch, TelegramTarget},
 };
 
 pub struct ServicesController {
@@ -21,6 +21,7 @@ pub struct ServicesController {
     pub degraded: bool,
     /// Процесс winws, для которого собраны текущие результаты.
     watched_pid: Option<u32>,
+    telegram_running: bool,
 }
 
 /// Сколько ждать после запуска winws, прежде чем проверять: WinDivert поднимается не сразу,
@@ -41,6 +42,7 @@ impl ServicesController {
             next_check: Instant::now(),
             degraded: false,
             watched_pid: None,
+            telegram_running: false,
         }
     }
 
@@ -62,8 +64,16 @@ impl ServicesController {
         self.job.busy()
     }
 
-    pub fn check(&mut self, ids: &[String]) {
-        if self.busy() || ids.is_empty() {
+    /// Telegram-прокси включили: его первая проверка тоже через пару секунд.
+    pub fn follow_telegram(&mut self, running: bool) {
+        if running && !self.telegram_running {
+            self.next_check = self.next_check.min(Instant::now() + SETTLE);
+        }
+        self.telegram_running = running;
+    }
+
+    pub fn check(&mut self, ids: &[String], telegram: Option<TelegramTarget>) {
+        if self.busy() || (ids.is_empty() && telegram.is_none()) {
             return;
         }
         let ids = ids.to_vec();
@@ -73,13 +83,18 @@ impl ServicesController {
         self.job.spawn(move || {
             (
                 generation,
-                services::check(&ids).map_err(|e| format!("{e:#}")),
+                services::check(&ids, telegram).map_err(|e| format!("{e:#}")),
             )
         });
     }
 
     /// Возвращает `true`, когда пришёл новый результат проверки.
-    pub fn poll(&mut self, ids: &[String], enabled: bool) -> bool {
+    pub fn poll(
+        &mut self,
+        ids: &[String],
+        telegram: Option<TelegramTarget>,
+        enabled: bool,
+    ) -> bool {
         let mut fresh = false;
         match self.job.poll() {
             JobPoll::Done((generation, _)) if generation != self.generation => {}
@@ -100,7 +115,7 @@ impl ServicesController {
             JobPoll::Pending => {}
         }
         if enabled && Instant::now() >= self.next_check {
-            self.check(ids);
+            self.check(ids, telegram);
         }
         fresh
     }
@@ -156,9 +171,12 @@ mod tests {
                 id: "youtube".into(),
                 availability,
                 latency_ms: 40,
+                via_vpn: false,
             }],
             internet_available: internet,
             checked_at: at,
+            vpn: Default::default(),
+            telegram_client: None,
         }
     }
 
@@ -179,6 +197,20 @@ mod tests {
         assert!(controller.result.is_none());
         assert_ne!(controller.generation, generation);
         assert!(controller.next_check <= Instant::now() + SETTLE);
+    }
+
+    #[test]
+    fn telegram_proxy_start_brings_the_check_closer() {
+        let mut controller = ServicesController::new();
+        controller.next_check = Instant::now() + INTERVAL;
+        controller.follow_telegram(false);
+        assert!(controller.next_check > Instant::now() + SETTLE);
+        controller.follow_telegram(true);
+        assert!(controller.next_check <= Instant::now() + SETTLE);
+        // Прокси работает и дальше: интервал не сбивается на каждом опросе.
+        controller.next_check = Instant::now() + INTERVAL;
+        controller.follow_telegram(true);
+        assert!(controller.next_check > Instant::now() + SETTLE);
     }
 
     #[test]

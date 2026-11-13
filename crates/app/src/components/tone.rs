@@ -52,6 +52,7 @@ pub fn service_color(id: &str, index: usize, cx: &App) -> Hsla {
         "discord" => pick(0x7c86ff, 0x5865f2, cx),
         "instagram" => pick(0xf0609a, 0xd62976, cx),
         "x" => pick(0xc8c8cc, 0x3f3f46, cx),
+        "telegram" => pick(0x4cc2ff, 0x229ed9, cx),
         _ => series(index, cx),
     }
 }

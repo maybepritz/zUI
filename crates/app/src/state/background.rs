@@ -83,10 +83,15 @@ impl AppState {
         self.background
             .services
             .follow(self.zapret.pid().filter(|_| running));
-        // Проверяем, пока работает обход (для главной) или включено автопереключение.
+        let telegram = self.telegram.proxy.check_target();
+        self.background.services.follow_telegram(telegram.is_some());
+        // Проверяем, пока работает обход или Telegram-прокси (для главной)
+        // или включено автопереключение.
+        let enabled = running || telegram.is_some() || self.settings.automation.auto_switch;
         let fresh = self.background.services.poll(
             &self.settings.automation.services,
-            checking_allowed && (running || self.settings.automation.auto_switch),
+            telegram,
+            checking_allowed && enabled,
         );
         if fresh {
             self.record_health();

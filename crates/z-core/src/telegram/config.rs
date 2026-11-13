@@ -22,6 +22,15 @@ impl TelegramProxy {
         proxy_link(&read_config(&self.config_path())?)
     }
 
+    /// Куда ходит работающий прокси: zUI проверяет тот же сервер Telegram.
+    /// `None`, если прокси остановлен или его конфиг не читается.
+    pub fn check_target(&self) -> Option<crate::services::TelegramTarget> {
+        if !self.running() {
+            return None;
+        }
+        check_target(&read_config(&self.config_path()).ok()?)
+    }
+
     /// Меняет привязку DC к IP, пока прокси остановлен; `clear` убирает все привязки.
     pub fn fix_media(&self, clear: bool) -> Result<()> {
         if self.running() {
@@ -55,6 +64,30 @@ pub(super) fn read_config(path: &Path) -> Result<Value> {
         bail!("Конфигурация TG WS Proxy должна быть JSON-объектом");
     }
     Ok(config)
+}
+
+/// Прокси открывает WebSocket к `kws<DC>.web.telegram.org`. Если в `dc_ip` есть
+/// привязка вида `2:149.154.167.220`, он идёт на этот адрес, иначе — по DNS.
+fn check_target(config: &Value) -> Option<crate::services::TelegramTarget> {
+    let port = config_endpoint(config).ok()?.port();
+    let pinned = config["dc_ip"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .find_map(|entry| {
+            let (dc, ip) = entry.split_once(':')?;
+            let dc: u8 = dc.trim().parse().ok()?;
+            let ip: IpAddr = ip.trim().parse().ok()?;
+            Some((dc, SocketAddr::new(ip, 443)))
+        });
+    // DC 2 — основной для большинства аккаунтов из России и Европы.
+    let (dc, address) = pinned.map_or((2, None), |(dc, address)| (dc, Some(address)));
+    Some(crate::services::TelegramTarget {
+        host: format!("kws{dc}.web.telegram.org"),
+        address,
+        port,
+    })
 }
 
 pub(super) fn config_endpoint(config: &Value) -> Result<SocketAddr> {
@@ -118,6 +151,21 @@ mod tests {
 
     fn config() -> Value {
         json!({"host":"127.0.0.1","port":1443,"secret":"0123456789abcdef0123456789abcdef"})
+    }
+
+    #[test]
+    fn check_target_follows_dc_ip() {
+        let mut value = config();
+        value["dc_ip"] = json!(["4:149.154.167.220"]);
+        let target = check_target(&value).unwrap();
+        assert_eq!(target.host, "kws4.web.telegram.org");
+        assert_eq!(target.address, Some("149.154.167.220:443".parse().unwrap()));
+        assert_eq!(target.port, 1443);
+
+        value["dc_ip"] = json!([]);
+        let target = check_target(&value).unwrap();
+        assert_eq!(target.host, "kws2.web.telegram.org");
+        assert_eq!(target.address, None);
     }
 
     #[test]

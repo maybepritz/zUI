@@ -19,7 +19,13 @@ impl Render for RootView {
         let sidebar = self.sidebar(cx);
 
         let content = match self.tab {
-            Tab::Home => views::home::render(&self.state, &self.view_data, self.chart_hour, cx),
+            Tab::Home => views::home::render(
+                &self.state,
+                &self.view_data,
+                self.chart_hour,
+                self.vpn_dismissed.as_deref(),
+                cx,
+            ),
             Tab::Strategies => {
                 views::strategies::render(&self.state, &self.view_data, &self.strategy_filters, cx)
             }
