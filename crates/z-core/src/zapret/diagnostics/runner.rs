@@ -114,13 +114,24 @@ fn check_one(
         zapret.stop();
         return None;
     }
+    // winws, упавший на аргументах стратегии, ничего не обходит. Если сайты при этом
+    // открываются (через VPN или вообще без блокировки), стратегия всё равно не годится.
+    if !zapret.is_running() {
+        score.error = Some(WINWS_EXITED.into());
+        return Some(score);
+    }
     let result = rt.block_on(async {
         tokio::select! {
             result = probe(targets, video) => Some(result),
             _ = wait_for_cancel(progress) => None,
         }
     });
+    let survived = zapret.is_running();
     zapret.stop();
+    if result.is_some() && !survived {
+        score.error = Some(WINWS_EXITED.into());
+        return Some(score);
+    }
     match result? {
         Ok(results) => {
             let times: Vec<u64> = results.iter().filter_map(|(_, t)| *t).collect();
@@ -141,6 +152,8 @@ fn check_one(
     wait_unless_cancelled(Duration::from_secs(1), progress); // освободить WinDivert
     Some(score)
 }
+
+const WINWS_EXITED: &str = "winws завершился во время проверки: стратегия не работает";
 
 fn wait_unless_cancelled(duration: Duration, progress: &Progress) -> bool {
     let start = Instant::now();

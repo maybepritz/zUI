@@ -89,6 +89,7 @@ pub(crate) fn parse_with_game_filter(
 
     // Удаление возможных остаточных одиночных символов '^'
     full = full.replace(" ^ ", " ");
+    let full = unescape_carets(&full);
 
     let full = full.trim();
     if full.is_empty() {
@@ -96,6 +97,30 @@ pub(crate) fn parse_with_game_filter(
     } else {
         Some(full.to_string())
     }
+}
+
+/// Снимает экранирование `^`, как это делает cmd.exe: вне кавычек `^X` — это `X`,
+/// внутри кавычек `^` остаётся буквой. Flowseal пишет `--dpi-desync-fake-tls=^!`,
+/// и winws должен получить `!` (стандартный фейк TLS), иначе он ищет файл `^!` и падает.
+fn unescape_carets(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut quoted = false;
+    let mut chars = text.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            '"' => {
+                quoted = !quoted;
+                out.push(c);
+            }
+            '^' if !quoted => {
+                if let Some(next) = chars.next() {
+                    out.push(next);
+                }
+            }
+            _ => out.push(c),
+        }
+    }
+    out
 }
 
 pub(crate) fn game_ports(content: &str) -> (String, String) {
@@ -157,6 +182,18 @@ mod tests {
         assert!(parse_bat_args("rem winws.exe --wrong", "", "").is_none());
     }
     #[test]
+    fn carets_are_unescaped_outside_quotes() {
+        // Строка, которая кончается на `^`, продолжается на следующей, поэтому `^^`
+        // проверяется в середине.
+        let script =
+            "winws.exe --dpi-desync-fake-tls=^! --new ^\n --hostlist=\"%lists%a^b.txt\" --x=^^ --y";
+        assert_eq!(
+            parse_bat_args(script, "", "C:\\l\\").unwrap(),
+            "--dpi-desync-fake-tls=! --new --hostlist=\"C:\\l\\a^b.txt\" --x=^ --y"
+        );
+    }
+
+    #[test]
     fn game_modes_and_invalid_ports() {
         assert_eq!(game_ports(""), ("12".into(), "12".into()));
         assert_eq!(
@@ -200,11 +237,18 @@ mod tests {
         );
     }
 
+    /// Папка Zapret из `ZUI_ZAPRET_DIR`, если задана, иначе из проекта. Так можно
+    /// проверить свежий набор Flowseal: `ZUI_ZAPRET_DIR=… cargo test bundled`.
     #[test]
     fn bundled_strategies_reference_existing_files() {
-        let root = ["runtime/zapret", "../../runtime/zapret"]
-            .into_iter()
+        let root = std::env::var_os("ZUI_ZAPRET_DIR")
             .map(std::path::PathBuf::from)
+            .into_iter()
+            .chain(
+                ["runtime/zapret", "../../runtime/zapret"]
+                    .into_iter()
+                    .map(std::path::PathBuf::from),
+            )
             .find(|p| p.join("bin/winws.exe").is_file());
         let Some(root) = root else {
             return;
@@ -225,6 +269,12 @@ mod tests {
             assert!(
                 !args.contains('%'),
                 "unresolved variable in {}",
+                path.display()
+            );
+            // Экранирование cmd снято: `^` остаётся только внутри кавычек.
+            assert!(
+                args.split('"').step_by(2).all(|part| !part.contains('^')),
+                "batch escape left in {}",
                 path.display()
             );
             assert!(args.contains("--wf-tcp="));
