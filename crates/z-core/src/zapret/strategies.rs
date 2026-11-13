@@ -113,6 +113,32 @@ mod tests {
         }
     }
 
+    /// Отдаёт каждую стратегию настоящему winws с `--dry-run`: он проверяет аргументы
+    /// и выходит, не трогая сеть. winws требует прав администратора даже для этого,
+    /// поэтому тест запускается вручную из терминала администратора:
+    /// `ZUI_ZAPRET_DIR=… cargo test -- --ignored winws_accepts`.
+    #[cfg(windows)]
+    #[test]
+    #[ignore]
+    fn winws_accepts_every_strategy() {
+        use std::os::windows::process::CommandExt;
+        let dir = std::path::PathBuf::from(std::env::var_os("ZUI_ZAPRET_DIR").unwrap());
+        let winws = dir.join("bin/winws.exe");
+        for strategy in load_strategies(&dir).unwrap() {
+            let output = std::process::Command::new(&winws)
+                .raw_arg("--dry-run")
+                .raw_arg(&strategy.raw_args)
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "{}: {}",
+                strategy.file_name,
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+    }
+
     #[test]
     fn parser_ignores_comments_and_preserves_unicode_and_spaces() {
         let content = "rem winws.exe --wrong\nstart \"Тест\" \"%bin%winws.exe\" --wf-tcp=443 ^\n --hostlist=\"%lists%list.txt\"\necho ignored";

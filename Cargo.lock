@@ -9119,7 +9119,7 @@ dependencies = [
 
 [[package]]
 name = "z-core"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "anyhow",
  "base64 0.23.1",
@@ -9136,7 +9136,7 @@ dependencies = [
 
 [[package]]
 name = "z-i18n"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "fluent-bundle",
  "fluent-syntax",
@@ -9147,7 +9147,7 @@ dependencies = [
 
 [[package]]
 name = "zUI"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "gpui-kit",
  "notify-rust",
