@@ -5,7 +5,7 @@ edition.workspace = true
 
 [dependencies]
 z-i18n = { path = "../z-i18n" }
-gpui-kit = "0.7"
+gpui-kit = "0.9"
 notify-rust = "4"
 rust-embed = "8.5"
 winreg = "0.52"
