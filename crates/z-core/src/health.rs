@@ -125,9 +125,12 @@ mod tests {
                 id: "youtube".into(),
                 availability,
                 latency_ms: 100,
+                via_vpn: false,
             }],
             internet_available: internet,
             checked_at: at,
+            vpn: Default::default(),
+            telegram_client: None,
         }
     }
 

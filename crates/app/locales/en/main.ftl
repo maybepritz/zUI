@@ -808,3 +808,18 @@ tg-media-clear = No server pinning
 home-facts-no-strategy = no strategy selected
 home-service-opens = opens
 home-service-blocked = does not open
+home-vpn-title = VPN is on: { $name }
+home-vpn-title-unnamed = VPN is on
+home-vpn-detail = { $services } { $count ->
+        [one] goes
+       *[other] go
+    } through it, not the bypass: checks and latency show the VPN
+home-vpn-proxy-title = System proxy is on: { $server }
+home-vpn-proxy-detail = The browser goes through it, not the bypass. zUI checks go direct
+home-vpn-dismiss = Got it
+home-service-via-vpn = via VPN
+home-service-via-vpn-down = not responding via VPN
+home-telegram-off = proxy is off
+home-telegram-client = proxy · client connected
+home-telegram-no-client = client isn't connected to the proxy
+list-and = and

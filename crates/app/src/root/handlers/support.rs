@@ -49,7 +49,8 @@ impl RootView {
     /// Проверить сервисы сейчас, не дожидаясь минутного интервала.
     pub(crate) fn on_check_services(&mut self, cx: &mut Context<Self>) {
         let ids = self.state.settings.automation.services.clone();
-        self.state.background.services.check(&ids);
+        let telegram = self.state.telegram.proxy.check_target();
+        self.state.background.services.check(&ids, telegram);
         self.refresh_and_notify(cx);
     }
 

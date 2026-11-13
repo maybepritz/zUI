@@ -32,7 +32,18 @@ pub(crate) fn video_client(
     total: Duration,
     node: SocketAddr,
 ) -> reqwest::Result<reqwest::Client> {
-    builder(connect, total).resolve(VIDEO_HOST, node).build()
+    pinned_client(connect, total, VIDEO_HOST, node)
+}
+
+/// Клиент, который ходит на `host` по адресу `address`, а не по DNS:
+/// имя нужно для сертификата, а соединение идёт туда же, куда и у программы.
+pub(crate) fn pinned_client(
+    connect: Duration,
+    total: Duration,
+    host: &str,
+    address: SocketAddr,
+) -> reqwest::Result<reqwest::Client> {
+    builder(connect, total).resolve(host, address).build()
 }
 
 /// Открывает адрес и замеряет время до ответа сервера. Открытым адрес
@@ -66,29 +77,108 @@ pub(crate) async fn probe(client: &reqwest::Client, url: &str) -> (Availability,
     (availability, ms)
 }
 
-/// Время установки TCP-соединения с сервером адреса — почти чистый сетевой пинг.
-/// В отличие от [`probe`], сюда не входят TLS, обход и работа веб-сервера, поэтому
-/// цифра сравнима с пингом в звонке или в браузере. `None`, если не удалось соединиться.
-pub(crate) async fn connect_ms(url: &str, timeout: Duration) -> Option<u64> {
+/// Адрес сервера для `url`, как его вернёт DNS Windows.
+pub(crate) async fn resolve(url: &str) -> Option<SocketAddr> {
     let url = reqwest::Url::parse(url).ok()?;
     let host = url.host_str()?;
     let port = url.port_or_known_default()?;
-    // Адрес узнаём заранее: время DNS к пингу не относится.
-    let address = tokio::net::lookup_host((host, port)).await.ok()?.next()?;
-    let started = Instant::now();
-    tokio::time::timeout(timeout, tokio::net::TcpStream::connect(address))
-        .await
-        .ok()?
-        .ok()?;
-    let ms = started.elapsed().as_millis() as u64;
-    // VPN-туннель (sing-box, Clash, WireGuard) принимает соединение прямо на компьютере:
-    // выходит 0–1 мс, а до сервера на самом деле далеко. Такой замер ничего не говорит.
-    (ms >= LOCAL_CONNECT_MS).then_some(ms)
+    tokio::net::lookup_host((host, port)).await.ok()?.next()
 }
 
-/// Быстрее этого соединение с удалённым сервером не устанавливается: значит,
-/// его принял кто-то на этом компьютере.
+/// Чем закончилась установка TCP-соединения.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Connect {
+    /// Соединился сервер, время в миллисекундах — почти чистый сетевой пинг.
+    Remote(u64),
+    /// Соединение принято на этом компьютере за 0–1 мс: так делает VPN-туннель
+    /// (sing-box, Clash, WireGuard), а до сервера на самом деле далеко.
+    Local,
+    Failed,
+}
+
+/// Быстрее этого соединение с удалённым сервером не устанавливается.
 const LOCAL_CONNECT_MS: u64 = 2;
+
+/// Устанавливает TCP-соединение и замеряет время. В отличие от [`probe`], сюда
+/// не входят TLS, обход и работа веб-сервера, поэтому цифра сравнима с пингом
+/// в звонке или в браузере. Адрес узнаётся заранее: время DNS к пингу не относится.
+pub(crate) async fn connect(address: SocketAddr, timeout: Duration) -> Connect {
+    let started = Instant::now();
+    match tokio::time::timeout(timeout, tokio::net::TcpStream::connect(address)).await {
+        Ok(Ok(_)) => match started.elapsed().as_millis() as u64 {
+            ms if ms < LOCAL_CONNECT_MS => Connect::Local,
+            ms => Connect::Remote(ms),
+        },
+        _ => Connect::Failed,
+    }
+}
+
+/// Есть ли установленные соединения к локальному порту `port`, то есть подключён ли
+/// к прокси хоть один клиент. Сам прокси об этом не сообщает, а Windows знает.
+pub(crate) fn has_local_clients(port: u16) -> bool {
+    imp::has_local_clients(port)
+}
+
+#[cfg(windows)]
+mod imp {
+    use windows::Win32::{
+        Foundation::NO_ERROR,
+        NetworkManagement::IpHelper::{
+            GetExtendedTcpTable, MIB_TCP_STATE_ESTAB, MIB_TCPROW_OWNER_PID,
+            TCP_TABLE_OWNER_PID_CONNECTIONS,
+        },
+        Networking::WinSock::AF_INET,
+    };
+
+    pub(super) fn has_local_clients(port: u16) -> bool {
+        // Порт в таблице хранится в сетевом порядке байт в младших 16 битах.
+        let wanted = u32::from(port.to_be());
+        let mut size = 0u32;
+        // SAFETY: первый вызов только узнаёт размер; второй пишет в буфер этого размера.
+        unsafe {
+            GetExtendedTcpTable(
+                None,
+                &mut size,
+                false,
+                u32::from(AF_INET.0),
+                TCP_TABLE_OWNER_PID_CONNECTIONS,
+                0,
+            );
+            // Запас на соединения, появившиеся между вызовами.
+            size += 16 * size_of::<MIB_TCPROW_OWNER_PID>() as u32;
+            let mut buffer = vec![0u32; (size as usize).div_ceil(4)];
+            if GetExtendedTcpTable(
+                Some(buffer.as_mut_ptr().cast()),
+                &mut size,
+                false,
+                u32::from(AF_INET.0),
+                TCP_TABLE_OWNER_PID_CONNECTIONS,
+                0,
+            ) != NO_ERROR.0
+            {
+                return false;
+            }
+            let count = buffer[0] as usize;
+            let rows = std::slice::from_raw_parts(
+                buffer.as_ptr().add(1).cast::<MIB_TCPROW_OWNER_PID>(),
+                count,
+            );
+            // Клиент — сторона, у которой удалённый порт равен порту прокси на loopback.
+            rows.iter().any(|row| {
+                row.dwState == MIB_TCP_STATE_ESTAB.0 as u32
+                    && row.dwRemotePort == wanted
+                    && u32::from_be(row.dwRemoteAddr) >> 24 == 127
+            })
+        }
+    }
+}
+
+#[cfg(not(windows))]
+mod imp {
+    pub(super) fn has_local_clients(_: u16) -> bool {
+        false
+    }
+}
 
 /// Ближайший к пользователю видеоузел YouTube. Redirector называет кластер
 /// провайдера («31.171.198.212 => tktelecom-kuf1 (…)»), а узел этого кластера
@@ -116,19 +206,26 @@ mod tests {
     #[ignore]
     fn connect_time_is_measured() {
         let runtime = tokio::runtime::Runtime::new().unwrap();
-        let ms = runtime.block_on(super::connect_ms(
-            "https://discord.com",
-            std::time::Duration::from_secs(4),
-        ));
-        // `None` тоже возможен: через VPN-туннель соединение принимается локально.
-        println!("discord.com connect: {ms:?} ms");
-        assert_eq!(
-            runtime.block_on(super::connect_ms(
-                "not a url",
-                std::time::Duration::from_secs(1)
-            )),
-            None
-        );
+        let address = runtime.block_on(super::resolve("https://discord.com"));
+        println!("discord.com: {address:?}");
+        let address = address.unwrap();
+        // `Local` тоже возможен: через VPN-туннель соединение принимается на компьютере.
+        let result = runtime.block_on(super::connect(address, std::time::Duration::from_secs(4)));
+        println!("connect: {result:?}");
+        assert_ne!(result, super::Connect::Failed);
+        assert_eq!(runtime.block_on(super::resolve("not a url")), None);
+    }
+
+    /// Смотрит таблицу соединений Windows, поэтому запускается вручную.
+    #[test]
+    #[ignore]
+    fn reads_the_tcp_table() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        assert!(!super::has_local_clients(port));
+        let _client = std::net::TcpStream::connect(("127.0.0.1", port)).unwrap();
+        let _server = listener.accept().unwrap();
+        assert!(super::has_local_clients(port));
     }
 
     #[test]

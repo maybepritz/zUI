@@ -17,6 +17,12 @@ impl FailureTracker {
         }
         let mut degraded = false;
         for check in &batch.checks {
+            // Telegram и сервисы через VPN идут мимо zapret: менять стратегию из-за
+            // их сбоев бессмысленно.
+            if check.id == crate::services::TELEGRAM || check.via_vpn {
+                self.failures.remove(&check.id);
+                continue;
+            }
             match check.availability {
                 Availability::Reachable => {
                     self.reachable.insert(check.id.clone());
@@ -77,9 +83,12 @@ mod tests {
                 id: "chatgpt".into(),
                 availability: Availability::Reachable,
                 latency_ms: 1,
+                via_vpn: false,
             }],
             internet_available: true,
             checked_at: 0,
+            vpn: Default::default(),
+            telegram_client: None,
         };
         assert!(!tracker.observe(&batch));
         batch.checks[0].availability = Availability::Http(403);
@@ -92,6 +101,29 @@ mod tests {
         assert!(tracker.observe(&batch));
         batch.internet_available = false;
         assert!(!tracker.observe(&batch));
+    }
+
+    #[test]
+    fn failures_through_vpn_do_not_trigger_recovery() {
+        let mut tracker = FailureTracker::default();
+        let mut batch = CheckBatch {
+            checks: vec![Check {
+                id: "youtube".into(),
+                availability: Availability::Reachable,
+                latency_ms: 1,
+                via_vpn: false,
+            }],
+            internet_available: true,
+            checked_at: 0,
+            vpn: Default::default(),
+            telegram_client: None,
+        };
+        assert!(!tracker.observe(&batch));
+        batch.checks[0].availability = Availability::NetworkError;
+        batch.checks[0].via_vpn = true;
+        for _ in 0..5 {
+            assert!(!tracker.observe(&batch));
+        }
     }
     #[test]
     fn restart_budget_limits_crash_loops() {

@@ -122,6 +122,7 @@ impl RootView {
             hwnd,
             settings_advanced: false,
             chart_hour: true,
+            vpn_dismissed: None,
             view_data: Default::default(),
             strategy_filters,
         };

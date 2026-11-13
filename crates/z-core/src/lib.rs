@@ -15,6 +15,7 @@ pub mod statistics;
 pub(crate) mod storage;
 pub mod telegram;
 pub mod updater;
+pub mod vpn;
 pub mod zapret;
 
 /// Флаг создания процесса, чтобы консольные утилиты не открывали окно.
