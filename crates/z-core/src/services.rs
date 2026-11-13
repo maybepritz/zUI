@@ -106,16 +106,42 @@ pub fn targets(ids: &[String]) -> Vec<String> {
         .collect()
 }
 
+const CONNECT: Duration = Duration::from_secs(4);
+const TOTAL: Duration = Duration::from_secs(8);
+/// Пауза перед повтором неудачной проверки.
+const RETRY_AFTER: Duration = Duration::from_secs(2);
+
+/// Одна оборванная попытка — ещё не блокировка: браузер в таком случае тоже
+/// просто повторяет запрос. Сбоем считаем, только если не открылось оба раза.
+async fn probe_twice(client: &reqwest::Client, url: &str) -> (Availability, u64) {
+    let first = crate::net::probe(client, url).await;
+    if first.0.connected() {
+        return first;
+    }
+    tokio::time::sleep(RETRY_AFTER).await;
+    crate::net::probe(client, url).await
+}
+
 pub fn check(ids: &[String]) -> anyhow::Result<CheckBatch> {
     let runtime = tokio::runtime::Runtime::new()?;
     runtime.block_on(async {
-        let client = crate::net::client(Duration::from_secs(4), Duration::from_secs(8))?;
+        let client = crate::net::client(CONNECT, TOTAL)?;
 
         let mut jobs = tokio::task::JoinSet::new();
         for service in selected(ids) {
             let client = client.clone();
             jobs.spawn(async move {
-                let (availability, latency_ms) = crate::net::probe(&client, service.url).await;
+                let (availability, latency_ms) = probe_twice(&client, service.url).await;
+                // Задержка — время соединения с сервером, а не ответа сайта: так она
+                // похожа на пинг, который пользователь видит в звонке или в браузере.
+                // Если соединение принял VPN-туннель, остаётся время ответа сайта.
+                let latency_ms = if availability.connected() {
+                    crate::net::connect_ms(service.url, CONNECT)
+                        .await
+                        .unwrap_or(latency_ms)
+                } else {
+                    latency_ms
+                };
                 Check {
                     id: service.id.into(),
                     availability,
