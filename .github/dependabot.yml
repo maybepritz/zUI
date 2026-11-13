@@ -1,9 +1,11 @@
 # Раз в неделю: обновления GitHub Actions и зависимостей Rust.
 # Зависимости Rust приходят одним PR на группу, чтобы не засыпать репозиторий.
+# PR идут в next: обновления попадают в выпуск вместе с остальной работой.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    target-branch: next
     schedule:
       interval: weekly
     groups:
@@ -12,6 +14,7 @@ updates:
 
   - package-ecosystem: cargo
     directory: /
+    target-branch: next
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
